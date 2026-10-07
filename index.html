@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>СКЛАДСКОЙ ПУЛЬТ // ТЕРМИНАЛ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg-space: #050811;
+    --card-surface: rgba(13, 20, 36, 0.78);
+    --border-glow: rgba(56, 189, 248, 0.22);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --neon-cyan: #00f2fe;
+    --neon-blue: #38bdf8;
+    --neon-emerald: #10b981;
+    --neon-amber: #f59e0b;
+    --neon-rose: #f43f5e;
+    --neon-purple: #c084fc;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #475569;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+  html, body { height: 100%; }
+
+  body {
+    background-color: var(--bg-space);
+    background-image: 
+      radial-gradient(circle at 10% 10%, rgba(0, 242, 254, 0.07) 0%, transparent 40%),
+      radial-gradient(circle at 90% 90%, rgba(192, 132, 252, 0.06) 0%, transparent 40%),
+      linear-gradient(180deg, #050811 0%, #03060c 100%);
+    color: var(--text-primary);
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum"; }
+
+  .app-shell {
+    max-width: 1600px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .hud-header {
+    background: var(--card-surface);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glow);
+    border-radius: 14px;
+    padding: 10px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  }
+  .brand-zone { display: flex; align-items: center; gap: 12px; }
+  .brand-tag {
+    background: linear-gradient(135deg, var(--neon-cyan), #0284c7);
+    color: #030712;
+    font-weight: 900;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.08em;
+  }
+  .brand-title h1 {
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    background: linear-gradient(90deg, #fff 40%, var(--neon-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .brand-title p { font-size: 11px; color: var(--text-secondary); }
+
+  .hud-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  .pill-badge {
+    display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 700;
+    padding: 6px 14px; border-radius: 9999px; cursor: pointer; user-select: none;
+    transition: all 0.2s ease;
+  }
+  .pill-online {
+    background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #34d399; box-shadow: 0 0 14px rgba(16, 185, 129, 0.2);
+  }
+  .pill-offline {
+    background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.4);
+    color: #fb7185; box-shadow: 0 0 14px rgba(244, 63, 94, 0.2);
+  }
+  .pill-busy {
+    background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #fbbf24; box-shadow: 0 0 14px rgba(245, 158, 11, 0.2);
+  }
+  .dot-ping { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+  .pill-busy .dot-ping { animation: pulse 1.2s infinite; }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+
+  .btn-hud {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-subtle);
+    color: #cbd5e1; padding: 6px 13px; border-radius: 8px; font-size: 11px; font-weight: 700;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.15s ease;
+  }
+  .btn-hud:hover {
+    background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.4);
+    color: #fff; transform: translateY(-1px);
+  }
+  .select-hud {
+    background: #090e1a; border: 1px solid var(--border-subtle);
+    color: #cbd5e1; padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 700;
+    outline: none; cursor: pointer;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+  @media(max-width: 1000px) { .metrics-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media(max-width: 600px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .hud-stat-card {
+    background: var(--card-surface);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .hud-stat-card:hover {
+    transform: translateY(-2px); border-color: var(--neon-blue);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 15px rgba(56, 189, 248, 0.15);
+  }
+  .hud-stat-card.active { 
+    border-color: var(--neon-cyan); 
+    background: rgba(14, 28, 54, 0.85);
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.25);
+  }
+  .stat-label { font-size: 10px; font-weight: 800; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
+  .stat-value { font-size: 22px; font-weight: 800; margin-top: 4px; letter-spacing: -0.02em; }
+
+  .terminal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media(max-width: 850px) { .terminal-grid { grid-template-columns: 1fr; } }
+
+  .deck-card {
+    background: var(--card-surface);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 14px;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+  .deck-card.return-deck {
+    border-color: rgba(16, 185, 129, 0.35);
+    background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08) 0%, rgba(13, 20, 36, 0.85) 60%);
+  }
+
+  .deck-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .deck-title {
+    font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media(max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+  .hud-group { position: relative; margin-bottom: 8px; }
+  .hud-label { display: block; font-size: 10.5px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; }
+  
+  .hud-input {
+    width: 100%;
+    background: rgba(5, 9, 18, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9px;
+    padding: 10px 14px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+  }
+  .hud-input:focus {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 0 2px rgba(0, 242, 254, 0.15), 0 0 15px rgba(0, 242, 254, 0.15);
+  }
+  .return-deck .hud-input:focus {
+    border-color: var(--neon-emerald);
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15), 0 0 15px rgba(16, 185, 129, 0.2);
+  }
+  .hud-input.err { border-color: var(--neon-rose); box-shadow: 0 0 0 2px rgba(244,63,94,0.25); }
+
+  .btn-submit {
+    width: 100%; padding: 10.5px; border-radius: 9px;
+    font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+    border: none; cursor: pointer; transition: all 0.2s ease;
+  }
+  .btn-issue {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #fff; box-shadow: 0 4px 18px rgba(2, 132, 199, 0.35);
+  }
+  .btn-issue:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  
+  .btn-return-action {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: #fff; box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
+  }
+  .btn-return-action:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+  .drop-box {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: rgba(11, 18, 33, 0.98);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    border-radius: 10px; max-height: 220px; overflow-y: auto; z-index: 1000;
+    box-shadow: 0 16px 36px rgba(0,0,0,0.85);
+    display: none;
+  }
+  .drop-box.show { display: block; }
+  .drop-item {
+    padding: 8px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; font-size: 12px;
+  }
+  .drop-item:hover, .drop-item.selected { background: rgba(56, 189, 248, 0.15); }
+
+  .registry-deck {
+    background: var(--card-surface);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 12px 18px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+  .reg-head {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .reg-wrap {
+    overflow-y: auto;
+    flex: 1;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    min-height: 0;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; background: rgba(4, 7, 15, 0.4); }
+  th, td { padding: 9px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); text-align: left; vertical-align: middle; }
+  th {
+    background: rgba(13, 20, 36, 0.98); font-size: 10px; font-weight: 800; text-transform: uppercase;
+    color: var(--text-secondary); letter-spacing: 0.06em; position: sticky; top: 0; z-index: 2;
+  }
+  tr:hover { background: rgba(56, 189, 248, 0.04); }
+  tr.row-overdue { background: rgba(244, 63, 94, 0.12); }
+  
+  tr.just-returned { animation: glow-green 2.5s ease-out; }
+  @keyframes glow-green {
+    0% { background: rgba(16, 185, 129, 0.55); }
+    100% { background: transparent; }
+  }
+
+  .sn-link {
+    cursor: pointer; text-decoration: underline; text-decoration-color: rgba(0, 242, 254, 0.4);
+    text-underline-offset: 3px; transition: all 0.15s ease;
+  }
+  .sn-link:hover {
+    color: #fff !important; text-shadow: 0 0 10px var(--neon-cyan);
+    text-decoration-color: var(--neon-cyan);
+  }
+
+  .badge-chip { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; user-select: none; }
+  .chip-free { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+  .chip-busy { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+  .chip-over {
+    background: rgba(244, 63, 94, 0.22); color: #f43f5e;
+    border: 1px solid rgba(244, 63, 94, 0.7); font-weight: 800;
+    box-shadow: 0 0 8px rgba(244, 63, 94, 0.4);
+  }
+
+  #toast {
+    position: fixed; top: 24px; left: 50%;
+    transform: translateX(-50%) translateY(-120px);
+    background: #091724; border: 2px solid var(--neon-emerald); border-radius: 14px;
+    padding: 14px 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(16, 185, 129, 0.4);
+    display: flex; align-items: center; gap: 16px; z-index: 10000; opacity: 0;
+    transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; max-width: 90vw;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  #toast.err { border-color: var(--neon-rose); box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(244,63,94,0.4); }
+  #toast.err .t-icon { background: rgba(244,63,94,0.2); border-color: var(--neon-rose); color: var(--neon-rose); }
+  #toast.warn { border-color: var(--neon-amber); box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(245,158,11,0.4); }
+  #toast.warn .t-icon { background: rgba(245,158,11,0.2); border-color: var(--neon-amber); color: var(--neon-amber); }
+  .t-icon { width: 38px; height: 38px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); border: 1px solid var(--neon-emerald); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--neon-emerald); flex-shrink: 0; }
+  .t-body h4 { font-size: 14px; font-weight: 800; color: #34d399; }
+  #toast.err .t-body h4 { color: #fb7185; }
+  #toast.warn .t-body h4 { color: #fbbf24; }
+  .t-body p { font-size: 12px; color: #cbd5e1; margin-top: 2px; }
+
+  .audit-overlay {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(6px);
+    display: none; z-index: 9998; opacity: 0; transition: opacity 0.25s ease;
+  }
+  .audit-overlay.show { display: block; opacity: 1; }
+  
+  .audit-drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 440px; max-width: 90vw;
+    background: #090e1a; border-left: 1px solid rgba(56, 189, 248, 0.3);
+    box-shadow: -15px 0 40px rgba(0,0,0,0.85);
+    z-index: 9999; display: flex; flex-direction: column;
+    transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 20px;
+  }
+  .audit-drawer.open { transform: translateX(0); }
+
+  .audit-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 14px;
+  }
+  .audit-header h3 { font-size: 17px; font-weight: 800; color: #fff; }
+
+  .audit-summary {
+    background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px; padding: 12px; margin-bottom: 16px; font-size: 12px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .summary-item label { color: var(--text-muted); font-size: 10px; text-transform: uppercase; font-weight: 700; display: block; }
+  .summary-item b { color: #fff; font-size: 12.5px; }
+
+  .timeline-box { flex: 1; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 12px; }
+  .timeline-item { position: relative; padding-left: 20px; border-left: 2px solid rgba(56, 189, 248, 0.3); }
+  .timeline-dot { position: absolute; left: -6px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--neon-cyan); box-shadow: 0 0 8px var(--neon-cyan); }
+  .timeline-item.return .timeline-dot { background: var(--neon-emerald); box-shadow: 0 0 8px var(--neon-emerald); }
+  .timeline-time { font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+  .timeline-action { font-size: 12px; font-weight: 800; color: #fff; margin-top: 1px; }
+  .timeline-actor { font-size: 11.5px; color: #cbd5e1; margin-top: 2px; }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center; z-index: 9999; padding: 14px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-card {
+    background: #0c111c; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px;
+    width: 100%; max-width: 480px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+    max-height: 90vh; overflow-y: auto;
+  }
+
+  .swap-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin: 14px 0; }
+  .swap-card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 12px; text-align: center; }
+  .swap-card.old { border-color: rgba(244,63,94,.4); background: rgba(244,63,94,.05); }
+  .swap-card.new { border-color: rgba(16,185,129,.4); background: rgba(16,185,129,.05); }
+  .swap-card .label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; }
+  .swap-card .sn { font-size: 16px; font-weight: 800; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+  .swap-card.old .sn { color: #fb7185; }
+  .swap-card.new .sn { color: #34d399; }
+  .swap-arrow { font-size: 26px; color: var(--neon-amber); }
+
+  @media print {
+    body { background: #fff !important; color: #000 !important; overflow: visible !important; height: auto !important; padding: 0 !important; }
+    .hud-header, .metrics-grid, .terminal-grid, .hud-actions, .reg-head input, .btn-hud, #toast, .drop-box, #logStatus { display: none !important; }
+    .registry-deck { border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 !important; }
+    .reg-wrap { border: none !important; overflow: visible !important; }
+    table { width: 100% !important; border: 1px solid #000 !important; color: #000 !important; font-size: 10pt !important; }
+    th, td { border: 1px solid #999 !important; color: #000 !important; padding: 6px !important; }
+    th { background: #f0f0f0 !important; color: #000 !important; }
+    .badge-chip { border: none !important; color: #000 !important; font-weight: 700 !important; padding: 0 !important; }
+    .sn-link { text-decoration: none !important; color: #000 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <header class="hud-header">
+    <div class="brand-zone">
+      <div class="brand-tag mono">TERMINAL</div>
+      <div class="brand-title">
+        <h1>Складской Пульт Учёта Сканеров</h1>
+        <p>Двухпостовой Cloud • Автономная работа • Экспресс-замена</p>
+      </div>
+    </div>
+
+    <div class="hud-actions">
+      <div id="syncStatus" class="pill-badge pill-online" onclick="showDiag()">
+        <span class="dot-ping"></span>
+        <span id="syncText">Онлайн</span>
+      </div>
+      <button class="btn-hud" onclick="buildShiftReport()" title="Ctrl+R">📋 Отчёт смены</button>
+      <button class="btn-hud" onclick="exportExcel()" title="Ctrl+E">📊 Excel</button>
+      <button class="btn-hud" onclick="window.print()" title="Ctrl+P">🖨 А4</button>
+      <button class="btn-hud" onclick="openModal('impModal')" title="Ctrl+I">📥 Импорт</button>
+      <select id="shiftSelect" class="select-hud" onchange="state.shift=this.value; renderTable();">
+        <option value="auto">⏱ Авто-смена</option>
+        <option value="Дневная">☀️ Дневная</option>
+        <option value="Ночная">🌙 Ночная</option>
+      </select>
+    </div>
+  </header>
+
+  <section class="metrics-grid">
+    <div class="hud-stat-card active" data-filter="all">
+      <div class="stat-label">ВСЕГО СКАНЕРОВ</div>
+      <div id="mTotal" class="stat-value mono">0</div>
+    </div>
+    <div class="hud-stat-card" data-filter="free">
+      <div class="stat-label" style="color:var(--neon-emerald);">● НА СКЛАДЕ</div>
+      <div id="mFree" class="stat-value mono" style="color:var(--neon-emerald);">0</div>
+    </div>
+    <div class="hud-stat-card" data-filter="issued">
+      <div class="stat-label" style="color:var(--neon-blue);">● НА РУКАХ</div>
+      <div id="mIssued" class="stat-value mono" style="color:var(--neon-blue);">0</div>
+    </div>
+    <div class="hud-stat-card" data-filter="overdue">
+      <div class="stat-label" style="color:var(--neon-rose);">🚨 ДОЛГИ (>12Ч)</div>
+      <div id="mOverdue" class="stat-value mono" style="color:var(--neon-rose);">0</div>
+    </div>
+    <div class="hud-stat-card" data-filter="day">
+      <div class="stat-label" style="color:#fbbf24;">☀️ ДЕНЬ (СМЕНА)</div>
+      <div id="mDay" class="stat-value mono" style="color:#fbbf24;">0</div>
+    </div>
+    <div class="hud-stat-card" data-filter="night">
+      <div class="stat-label" style="color:var(--neon-purple);">🌙 НОЧЬ (СМЕНА)</div>
+      <div id="mNight" class="stat-value mono" style="color:var(--neon-purple);">0</div>
+    </div>
+  </section>
+
+  <section class="terminal-grid">
+
+    <div class="deck-card">
+      <div class="deck-header">
+        <span class="deck-title" style="color:var(--neon-cyan);">📤 1. ВЫДАЧА СКАНЕРА</span>
+        <span id="modelHint" class="mono" style="font-size:11px; color:var(--text-secondary);">F1 • Скан сканера ➔ Enter к ID</span>
+      </div>
+      <form id="issueForm" autocomplete="off">
+        <div class="form-row">
+          <div class="hud-group">
+            <label class="hud-label">Серийный номер (или хвост):</label>
+            <input id="issSn" class="hud-input mono" placeholder="S10023 или 0635..." autocomplete="off" spellcheck="false">
+            <div id="issDrop" class="drop-box"></div>
+          </div>
+
+          <div class="hud-group">
+            <label class="hud-label">ID / Табельный / ФИО:</label>
+            <input id="issWorker" class="hud-input" placeholder="611252 или Иванов..." autocomplete="off" spellcheck="false">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit btn-issue">ВЫДАТЬ СКАНЕР (ENTER)</button>
+      </form>
+    </div>
+
+    <div class="deck-card return-deck">
+      <div class="deck-header">
+        <span class="deck-title" style="color:var(--neon-emerald);">📥 2. СДАЧА СКАНЕРА</span>
+        <span style="font-size:11px; color:var(--text-secondary);">F2 • Enter = мгновенный приём</span>
+      </div>
+
+      <div class="hud-group">
+        <label class="hud-label">Введите ID / Табельный / Фамилию / Серийник:</label>
+        <input id="retQuery" class="hud-input mono" placeholder="611252, Иванов или S10023 ➔ Enter" autocomplete="off" spellcheck="false">
+        <div id="retDrop" class="drop-box"></div>
+      </div>
+
+      <button type="button" class="btn-submit btn-return-action" id="retBtn">
+        ПРИНЯТЬ НА СКЛАД (ENTER)
+      </button>
+    </div>
+
+  </section>
+
+  <section class="registry-deck">
+    <div class="reg-head">
+      <div style="font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;">
+        РЕЕСТР ОБОРУДОВАНИЯ (Клик по SN ➔ История сканера)
+      </div>
+      <input id="searchTable" class="hud-input mono" style="width:230px; padding:6px 12px; font-size:11.5px;" placeholder="Поиск (Ctrl+K)..." spellcheck="false">
+    </div>
+
+    <div class="reg-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>СЕРИЙНЫЙ НОМЕР</th>
+            <th>МОДЕЛЬ</th>
+            <th>СТАТУС</th>
+            <th>ИСПОЛНИТЕЛЬ (ID / ФИО)</th>
+            <th>ВРЕМЯ НА РУКАХ / СМЕНА</th>
+            <th style="text-align:right;">ДЕЙСТВИЕ</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:6px; font-family:'JetBrains Mono'; font-size:11px; color:#94a3b8;" id="logStatus">
+      [SYSTEM] Пульт готов к работе.
+    </div>
+  </section>
+
+</div>
+
+<div id="toast">
+  <div class="t-icon" id="tIcon">✓</div>
+  <div class="t-body">
+    <h4 id="tTitle">ГОТОВО</h4>
+    <p id="tDesc"></p>
+  </div>
+</div>
+
+<div id="auditOverlay" class="audit-overlay" onclick="closeAuditDrawer()"></div>
+<div id="auditDrawer" class="audit-drawer">
+  <div class="audit-header">
+    <div>
+      <h3 id="audSn" class="mono" style="color:var(--neon-cyan);">S10023</h3>
+      <span id="audStatusBadge" class="badge-chip chip-free" style="margin-top:4px;">На складе</span>
+    </div>
+    <button class="btn-hud" style="padding:4px 8px; font-size:12px;" onclick="closeAuditDrawer()">✕ Закрыть</button>
+  </div>
+
+  <div class="audit-summary">
+    <div class="summary-item">
+      <label>Модель:</label>
+      <b id="audModel">—</b>
+    </div>
+    <div class="summary-item">
+      <label>Текущий держатель:</label>
+      <b id="audHolder">—</b>
+    </div>
+    <div class="summary-item" style="grid-column: span 2;">
+      <label>Время на руках:</label>
+      <b id="audDuration">—</b>
+    </div>
+  </div>
+
+  <div style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase; margin-bottom:10px; letter-spacing:0.04em;">
+    📜 Хронология перемещений:
+  </div>
+
+  <div id="audTimeline" class="timeline-box"></div>
+</div>
+
+<div id="swapModal" class="modal-overlay">
+  <div class="modal-card">
+    <h3 style="font-size:15px; margin-bottom:10px; color:var(--neon-amber);">🔄 ЭКСПРЕСС-ЗАМЕНА СКАНЕРА</h3>
+    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:6px;">
+      На сотруднике <b id="swapWorker" style="color:#fff;"></b> уже числится прибор. Сдадим старый и выдадим новый в 1 шаг:
+    </p>
+    <div class="swap-grid">
+      <div class="swap-card old">
+        <div class="label">Сдать на склад</div>
+        <div class="sn" id="swapOldSn">—</div>
+        <div class="model" id="swapOldModel" style="font-size:11px; color:var(--text-secondary); margin-top:2px;">—</div>
+      </div>
+      <div class="swap-arrow">→</div>
+      <div class="swap-card new">
+        <div class="label">Выдать в работу</div>
+        <div class="sn" id="swapNewSn">—</div>
+        <div class="model" id="swapNewModel" style="font-size:11px; color:var(--text-secondary); margin-top:2px;">—</div>
+      </div>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+      <button class="btn-hud" onclick="closeModal('swapModal')">Отмена</button>
+      <button class="btn-submit btn-issue" style="width:auto; padding:8px 18px;" id="swapConfirm">Заменить (Enter)</button>
+    </div>
+  </div>
+</div>
+
+<div id="pickModal" class="modal-overlay">
+  <div class="modal-card">
+    <h3 style="font-size:14px; margin-bottom:8px; color:var(--neon-amber);">⚠️ НЕСКОЛЬКО СОВПАДЕНИЙ</h3>
+    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">Уточните, какой именно сканер принимается:</p>
+    <div id="pickList" style="max-height:240px; overflow-y:auto; border:1px solid rgba(255,255,255,0.08); border-radius:8px;"></div>
+    <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+      <button class="btn-hud" onclick="closeModal('pickModal')">Отмена</button>
+    </div>
+  </div>
+</div>
+
+<div id="reportModal" class="modal-overlay">
+  <div class="modal-card" style="max-width:540px;">
+    <h3 style="font-size:14px; margin-bottom:10px; color:var(--neon-cyan);">📋 ИТОГИ СМЕНЫ</h3>
+    <textarea id="reportText" rows="11" class="hud-input mono" style="font-size:12px; line-height:1.5; resize:none;"></textarea>
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+      <button class="btn-hud" onclick="closeModal('reportModal')">Закрыть</button>
+      <button class="btn-submit btn-issue" style="width:auto; padding:6px 16px;" onclick="copyReportText()">Скопировать текст</button>
+    </div>
+  </div>
+</div>
+
+<div id="impModal" class="modal-overlay">
+  <div class="modal-card">
+    <h3 style="font-size:14px; margin-bottom:12px;">📥 ИМПОРТ ОБОРУДОВАНИЯ</h3>
+    <textarea id="impText" rows="8" class="hud-input mono" placeholder="Список серийников (каждый с новой строки)..."></textarea>
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
+      <button class="btn-hud" onclick="closeModal('impModal')">Отмена</button>
+      <button class="btn-submit btn-issue" style="width:auto; padding:6px 16px;" onclick="processImport()">Загрузить</button>
+    </div>
+  </div>
+</div>
+
+<div id="diagModal" class="modal-overlay">
+  <div class="modal-card">
+    <h3 style="font-size:14px; margin-bottom:10px; color:var(--neon-cyan);">⚡ СТАТУС СИНХРОНИЗАЦИИ</h3>
+    <div id="diagContent" class="mono" style="font-size:12px; line-height:1.8; color:#94a3b8; margin-bottom:14px;"></div>
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button class="btn-hud" onclick="closeModal('diagModal')">Закрыть</button>
+      <button class="btn-submit btn-issue" style="width:auto; padding:6px 14px;" onclick="forceSync()">Форсировать синхронизацию</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   КОНФИГУРАЦИЯ СЕТИ И СОСТОЯНИЯ
+   ============================================================ */
+const SUPABASE_URL = "https://sgpkvnymkqwuhepkaoxw.supabase.co";
+const SUPABASE_KEY = "sb_publishable_dqlmOngeOHVYMFUG1s4kLw_N1Pxi9KW";
+const OVERDUE_H = 12;
+
+const state = {
+  devices: [],
+  filter: 'all',
+  shift: 'auto',
+  syncing: false,
+  lastError: '—',
+  pendingSwap: null
+};
+
+const $ = id => document.getElementById(id);
+const nowIso = () => new Date().toISOString();
+
+function esc(s) {
+  return String(s !== null && s !== undefined ? s : '').replace(/[&<>"']/g, m => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[m]));
+}
+
+function debounce(fn, ms) {
+  let t;
+  return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+}
+
+const RU = {'й':'q','ц':'w','у':'e','к':'r','е':'t','н':'y','г':'u','ш':'i','щ':'o','з':'p','х':'[','ъ':']','ф':'a','ы':'s','в':'d','а':'f','п':'g','р':'h','о':'j','л':'k','д':'l','ж':';','э':'\'','я':'z','ч':'x','с':'c','м':'v','и':'b','т':'n','ь':'m','б':',','ю':'.','ё':'`'};
+function fixLayout(s) {
+  return String(s ? s : '').split('').map(ch => {
+    const lo = ch.toLowerCase();
+    return RU[lo] !== undefined ? (ch === lo ? RU[lo] : RU[lo].toUpperCase()) : ch;
+  }).join('').toUpperCase().replace(/\s+/g, '');
+}
+
+function detectModel(sn) {
+  const s = String(sn ? sn : '').toUpperCase();
+  if (s.startsWith('S')) return 'Zebra';
+  if (s.includes('TAB') || s.includes('ПЛАНШЕТ')) return 'Планшет';
+  return 'Point Mobile';
+}
+
+function hoursSince(iso) {
+  return iso ? (Date.now() - Date.parse(iso)) / 3600000 : 0;
+}
+
+function fmtHours(h) {
+  if (h < 1) return Math.round(h * 60) + ' мин';
+  return (Math.round(h * 10) / 10) + ' ч';
+}
+
+function getShift() {
+  if (state.shift !== 'auto') return state.shift;
+  const h = new Date().getHours();
+  return (h >= 6 && h < 18) ? 'Дневная' : 'Ночная';
+}
+
+function logMsg(msg) {
+  const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  $('logStatus').innerText = `[${t}] ${msg}`;
+}
+
+/* ============================================================
+   AUDIO FX
+   ============================================================ */
+let audioCtx = null;
+function beep(type) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+    osc.connect(g); g.connect(audioCtx.destination);
+    const t = audioCtx.currentTime;
+
+    if (type === 'return') {
+      osc.frequency.setValueAtTime(600, t);
+      osc.frequency.exponentialRampToValueAtTime(1200, t + 0.15);
+      g.gain.setValueAtTime(0.18, t);
+      g.gain.linearRampToValueAtTime(0.01, t + 0.18);
+      osc.start(t); osc.stop(t + 0.18);
+    } else if (type === 'issue') {
+      osc.frequency.setValueAtTime(850, t);
+      g.gain.setValueAtTime(0.12, t);
+      g.gain.linearRampToValueAtTime(0.01, t + 0.12);
+      osc.start(t); osc.stop(t + 0.12);
+    } else if (type === 'swap') {
+      osc.frequency.setValueAtTime(500, t);
+      osc.frequency.linearRampToValueAtTime(1100, t + 0.2);
+      g.gain.setValueAtTime(0.15, t);
+      g.gain.linearRampToValueAtTime(0.01, t + 0.22);
+      osc.start(t); osc.stop(t + 0.22);
+    } else {
+      osc.frequency.setValueAtTime(200, t);
+      g.gain.setValueAtTime(0.15, t);
+      g.gain.linearRampToValueAtTime(0.01, t + 0.28);
+      osc.start(t); osc.stop(t + 0.28);
+    }
+  } catch (e) {}
+  if (navigator.vibrate) navigator.vibrate(type === 'err' ? [60, 40, 60] : 40);
+}
+
+/* ============================================================
+   SUPABASE КЛИЕНТ
+   ============================================================ */
+let cloud = null;
+try {
+  cloud = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+} catch (e) {}
+
+/* ============================================================
+   INDEXEDDB
+   ============================================================ */
+let db = null;
+const DB_REQ = indexedDB.open("SkladDB", 3);
+
+DB_REQ.onupgradeneeded = e => {
+  const d = e.target.result;
+  if (!d.objectStoreNames.contains("devices")) d.createObjectStore("devices", { keyPath: "serial" });
+  if (!d.objectStoreNames.contains("queue"))   d.createObjectStore("queue",   { autoIncrement: true });
+  if (!d.objectStoreNames.contains("moves"))   d.createObjectStore("moves",   { autoIncrement: true });
+};
+
+DB_REQ.onblocked = () => {
+  alert('⚠️ Терминал открыт в другой вкладке браузера!\nЗакройте соседнюю вкладку и нажмите F5.');
+};
+
+DB_REQ.onsuccess = async e => {
+  db = e.target.result;
+  loadLocal();
+  syncNow();
+};
+
+DB_REQ.onerror = e => {
+  showToast('ОШИБКА ХРАНИЛИЩА', 'Локальная база недоступна', 'err');
+};
+
+function txStore(store, mode = 'readonly') {
+  return db.transaction(store, mode).objectStore(store);
+}
+
+const idb = {
+  all: store => new Promise(r => {
+    const req = txStore(store).getAll();
+    req.onsuccess = () => r(req.result ? req.result : []);
+    req.onerror = () => r([]);
+  }),
+  keys: store => new Promise(r => {
+    const req = txStore(store).getAllKeys();
+    req.onsuccess = () => r(req.result ? req.result : []);
+    req.onerror = () => r([]);
+  }),
+  count: store => new Promise(r => {
+    const req = txStore(store).count();
+    req.onsuccess = () => r(req.result);
+    req.onerror = () => r(0);
+  })
+};
+
+function loadLocal() {
+  const tx = db.transaction("devices", "readonly");
+  const req = tx.objectStore("devices").getAll();
+  req.onsuccess = () => {
+    state.devices = req.result ? req.result : [];
+    renderTable();
+  };
+}
+
+function saveDevice(dev, actionName, workerName) {
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(["devices", "queue", "moves"], "readwrite");
+    t.objectStore("devices").put(dev);
+    t.objectStore("queue").add({
+      type: 'upsert',
+      dev: dev,
+      action: actionName,
+      worker: workerName ? workerName : '',
+      ts: nowIso()
+    });
+    t.objectStore("moves").add({
+      serial: dev.serial,
+      action: actionName,
+      worker: workerName ? workerName : '',
+      created_at: nowIso()
+    });
+    t.oncomplete = () => { loadLocal(); syncNow(); resolve(); };
+    t.onerror = () => reject(t.error);
+  });
+}
+
+/* ============================================================
+   НОРМАЛИЗАЦИЯ ДАННЫХ И СИНХРОНИЗАЦИЯ (БЕЗ updated_at)
+   ============================================================ */
+function normalizeCloudDevice(row) {
+  if (!row) return null;
+  const sn = row.serial ? row.serial : (row.sn ? row.sn : (row.serial_number ? row.serial_number : row.id));
+  if (!sn) return null;
+
+  const rawHolder = String(row.holder ? row.holder : (row.worker ? row.worker : '')).trim();
+  let status = 'free';
+  const s = String(row.status ? row.status : '').toLowerCase().trim();
+
+  if (s === 'issued' || s === 'на руках' || s === 'выдан') {
+    status = 'issued';
+  } else if (s === 'free' || s === 'на складе' || s === 'свободен') {
+    status = 'free';
+  } else {
+    status = rawHolder.length > 0 ? 'issued' : 'free';
+  }
+
+  const cleanHolder = status === 'issued' ? rawHolder : '';
+  const issuedAt = status === 'issued' ? (row.issued_at ? row.issued_at : (row.issue_date ? row.issue_date : null)) : null;
+  const lastMove = row.last_move ? row.last_move : null;
+
+  let shift = row.shift;
+  if (!shift || shift === 'null' || shift === '') {
+    if (status === 'issued' && issuedAt) {
+      const h = new Date(issuedAt).getHours();
+      shift = (h >= 6 && h < 18) ? 'Дневная' : 'Ночная';
+    } else {
+      shift = '—';
+    }
+  }
+
+  return {
+    serial: String(sn),
+    model: row.model ? row.model : detectModel(sn),
+    status: status,
+    holder: cleanHolder,
+    issued_at: issuedAt,
+    last_move: lastMove,
+    shift: shift
+  };
+}
+
+async function syncNow() {
+  if (state.syncing) return;
+  if (!cloud || !navigator.onLine) { setSync(false, 'Офлайн'); return; }
+
+  state.syncing = true;
+  setSync(true, 'Синхронизация...', true);
+
+  try {
+    const q = await idb.all('queue');
+    const keys = await idb.keys('queue');
+
+    for (let i = 0; i < q.length; i++) {
+      const it = q[i];
+
+      const cleanDev = {
+        serial: it.dev.serial,
+        model: it.dev.model,
+        status: it.dev.status,
+        holder: it.dev.status === 'free' ? null : (it.dev.holder ? it.dev.holder : null),
+        shift: it.dev.status === 'free' ? null : (it.dev.shift ? it.dev.shift : null),
+        issued_at: it.dev.status === 'free' ? null : it.dev.issued_at,
+        last_move: it.dev.last_move ? it.dev.last_move : it.ts
+      };
+
+      let { error: devErr } = await cloud.from('devices').upsert(cleanDev, { onConflict: 'serial' });
+
+      if (devErr) {
+        state.lastError = devErr.message;
+        setSync(false, 'Ошибка отправки');
+        state.syncing = false;
+        return;
+      }
+
+      const fullMove = {
+        serial: it.dev.serial,
+        action: it.action,
+        worker: it.worker ? it.worker : (it.dev.holder ? it.dev.holder : ''),
+        created_at: it.ts
+      };
+      await cloud.from('movements').insert(fullMove);
+
+      await new Promise(r => {
+        const t = db.transaction("queue", "readwrite");
+        t.objectStore("queue").delete(keys[i]);
+        t.oncomplete = r;
+      });
+    }
+
+    const { data, error } = await cloud.from('devices').select('*').limit(5000);
+    if (error) {
+      state.lastError = error.message;
+      setSync(false, 'Ошибка загрузки');
+      state.syncing = false;
+      return;
+    }
+
+    if (data && data.length) {
+      const norm = data.map(normalizeCloudDevice).filter(Boolean);
+      await applyPull(norm);
+    }
+
+    state.lastError = '—';
+    setSync(true, 'Онлайн');
+  } catch(e) {
+    state.lastError = e.message ? e.message : 'Ошибка сети';
+    setSync(false, 'Сбой сети');
+  } finally {
+    state.syncing = false;
+  }
+}
+
+async function applyPull(data) {
+  if (!data || !data.length) return;
+  return new Promise(resolve => {
+    const t = db.transaction("devices", "readwrite");
+    const s = t.objectStore("devices");
+    data.forEach(d => s.put(d));
+    t.oncomplete = () => {
+      loadLocal();
+      resolve();
+    };
+    t.onerror = () => resolve();
+  });
+}
+
+function setSync(ok, txt, busy = false) {
+  const p = $('syncStatus');
+  p.className = 'pill-badge ' + (busy ? 'pill-busy' : (ok ? 'pill-online' : 'pill-offline'));
+  $('syncText').innerText = txt;
+}
+
+async function forceSync() {
+  closeModal('diagModal');
+  state.syncing = false;
+  await syncNow();
+}
+
+/* ============================================================
+   ВЫДАЧА И АВТО-ПЕРЕХОД СКАНЕРА
+   ============================================================ */
+function handleIssSnInput() {
+  const el = $('issSn');
+  const fixed = fixLayout(el.value);
+  if (fixed !== el.value) el.value = fixed;
+
+  const drop = $('issDrop');
+  if (fixed.length < 2) {
+    drop.classList.remove('show');
+    $('modelHint').innerText = "F1 • Скан сканера ➔ Enter к ID";
+    return;
+  }
+
+  const freeDevs = state.devices.filter(d => d.status === 'free');
+  const matches = freeDevs.filter(d => d.serial.toUpperCase().endsWith(fixed) || d.serial.toUpperCase().includes(fixed));
+
+  if (!matches.length) {
+    drop.classList.remove('show');
+    $('modelHint').innerText = `⚡ Новый: создастся как ${detectModel(fixed)}`;
+    return;
+  }
+
+  drop.innerHTML = matches.slice(0, 8).map((d, i) => `
+    <div class="drop-item ${i === 0 ? 'selected' : ''}" data-sn="${esc(d.serial)}">
+      <div>
+        <span class="mono" style="font-weight:700; color:var(--neon-cyan);">${esc(d.serial)}</span>
+        <span style="font-size:11px; color:#cbd5e1;">(${esc(d.model)})</span>
+      </div>
+      <span style="font-size:10px; color:var(--neon-emerald);">🟢 НА СКЛАДЕ</span>
+    </div>
+  `).join('');
+
+  drop.classList.add('show');
+  drop.querySelectorAll('.drop-item').forEach(it => {
+    it.onclick = () => {
+      el.value = it.dataset.sn;
+      drop.classList.remove('show');
+      $('issWorker').focus();
+    };
+  });
+}
+
+function handleIssSnKeydown(e) {
+  const drop = $('issDrop');
+  const items = Array.from(drop.querySelectorAll('.drop-item'));
+  const cur = items.findIndex(it => it.classList.contains('selected'));
+
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (cur >= 0 && items[cur]) {
+      $('issSn').value = items[cur].dataset.sn;
+    }
+    drop.classList.remove('show');
+    $('issWorker').focus();
+    return;
+  }
+
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    if (!items.length) return;
+    e.preventDefault();
+    if (cur >= 0) items[cur].classList.remove('selected');
+    const next = e.key === 'ArrowDown' ? (cur + 1) % items.length : (cur - 1 + items.length) % items.length;
+    items[next].classList.add('selected');
+    items[next].scrollIntoView({ block: 'nearest' });
+    return;
+  }
+
+  if (e.key === 'Escape') drop.classList.remove('show');
+}
+
+function handleIssWorkerKeydown(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    submitIssue();
+  }
+}
+
+async function submitIssue() {
+  const rawSn = $('issSn').value.trim();
+  const worker = $('issWorker').value.trim();
+
+  $('issSn').classList.remove('err');$('issWorker').classList.remove('err');
+
+  if (!rawSn) { $('issSn').classList.add('err'); beep('err'); return; }
+  if (!worker) { $('issWorker').classList.add('err'); beep('err'); return; }
+
+  const existing = state.devices.find(d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === worker.toUpperCase());
+
+  const clean = fixLayout(rawSn);
+  const freeDevs = state.devices.filter(d => d.status === 'free');
+  const tailMatches = freeDevs.filter(d => d.serial.toUpperCase().endsWith(clean));
+  const sn = tailMatches.length === 1 ? tailMatches[0].serial : clean;
+  const dev = state.devices.find(d => d.serial === sn);
+
+  if (dev && dev.status === 'issued') {
+    beep('err');
+    showToast('ЗАНЯТ', `${sn} уже выдан: ${dev.holder}`, 'err');
+    return;
+  }
+
+  if (existing) {
+    state.pendingSwap = { worker, oldSn: existing.serial, newSn: sn, isNew: !dev };
+    $('swapWorker').innerText = worker;
+    $('swapOldSn').innerText = existing.serial;
+    $('swapOldModel').innerText = existing.model ? existing.model : '—';
+    $('swapNewSn').innerText = sn;
+    $('swapNewModel').innerText = dev ? dev.model : detectModel(sn);
+    openModal('swapModal');
+    setTimeout(() => $('swapConfirm').focus(), 80);
+    return;
+  }
+
+  await performIssue(sn, worker, dev);
+}
+
+async function performIssue(sn, worker, dev) {
+  const isNew = !dev;
+  const ts = nowIso();
+  const updated = {
+    serial: sn,
+    model: dev ? dev.model : detectModel(sn),
+    status: 'issued',
+    holder: worker,
+    issued_at: ts,
+    last_move: ts,
+    shift: getShift()
+  };
+
+  await saveDevice(updated, isNew ? 'Создан и выдан' : 'Выдан', worker);
+  beep('issue');
+  showToast('ВЫДАНО', `${sn} ➔ ${worker}`);
+  logMsg(`ВЫДАНО: ${sn} ➔ ${worker} (${updated.shift})`);
+
+  $('issSn').value = '';$('issWorker').value = '';
+  $('issDrop').classList.remove('show');$('modelHint').innerText = "F1 • Скан сканера ➔ Enter к ID";
+  $('issSn').focus();
+}
+
+async function confirmSwap() {
+  const p = state.pendingSwap;
+  if (!p) return;
+  closeModal('swapModal');
+
+  const oldDev = state.devices.find(d => d.serial === p.oldSn);
+  const newDev = state.devices.find(d => d.serial === p.newSn);
+  const ts = nowIso();
+
+  if (oldDev) {
+    await saveDevice({
+      ...oldDev,
+      status: 'free',
+      holder: '',
+      shift: '—',
+      issued_at: null,
+      last_move: ts
+    }, 'Возврат (замена)', p.worker);
+  }
+
+  await saveDevice({
+    serial: p.newSn,
+    model: newDev ? newDev.model : detectModel(p.newSn),
+    status: 'issued',
+    holder: p.worker,
+    issued_at: ts,
+    last_move: ts,
+    shift: getShift()
+  }, p.isNew ? 'Создан и выдан (замена)' : 'Выдача (замена)', p.worker);
+
+  beep('swap');
+  showToast('ЗАМЕНА ВЫПОЛНЕНА', `${p.oldSn} ➔ ${p.newSn} (${p.worker})`, 'warn');
+  logMsg(`🔄 ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn} у ${p.worker}`);
+
+  state.pendingSwap = null;
+  $('issSn').value = '';
+  $('issWorker').value = '';$('issSn').focus();
+}
+
+/* ============================================================
+   ПРИЁМ СКАНЕРА
+   ============================================================ */
+function handleRetInput() {
+  const el = $('retQuery');
+  const fixed = fixLayout(el.value);
+  if (fixed !== el.value) el.value = fixed;
+
+  const drop = $('retDrop');
+  if (fixed.length < 2) { drop.classList.remove('show'); return; }
+
+  const busy = state.devices.filter(d => d.status === 'issued');
+  const matches = busy.filter(d => (d.holder && d.holder.toUpperCase().includes(fixed)) || d.serial.toUpperCase().includes(fixed));
+
+  if (!matches.length) { drop.classList.remove('show'); return; }
+
+  drop.innerHTML = matches.slice(0, 8).map(d => `
+    <div class="drop-item" data-sn="${esc(d.serial)}">
+      <div>
+        <span class="mono" style="font-weight:700; color:var(--neon-amber);">${esc(d.serial)}</span>
+        <span style="font-size:11px; color:#cbd5e1;">(${esc(d.model)})</span>
+      </div>
+      <span style="font-size:11px; color:#cbd5e1;">${esc(d.holder)}</span>
+    </div>
+  `).join('');
+
+  drop.classList.add('show');
+  drop.querySelectorAll('.drop-item').forEach(it => {
+    it.onclick = () => {
+      el.value = it.dataset.sn;
+      drop.classList.remove('show');
+      quickReturn();
+    };
+  });
+}
+
+function handleRetKeydown(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const drop = $('retDrop');
+    if (drop.classList.contains('show')) {
+      const first = drop.querySelector('.drop-item');
+      if (first) { first.click(); return; }
+    }
+    quickReturn();
+  }
+}
+
+async function quickReturn() {
+  const q = $('retQuery').value.trim().toUpperCase();$('retDrop').classList.remove('show');
+  if (!q) return;
+
+  const busy = state.devices.filter(d => d.status === 'issued');
+  const exact = busy.filter(d => d.holder && d.holder.toUpperCase() === q);
+  const bySn = busy.filter(d => d.serial.toUpperCase().endsWith(fixLayout(q)));
+  const byName = busy.filter(d => d.holder && d.holder.toUpperCase().includes(q));
+
+  const candidates = exact.length ? exact : (bySn.length ? bySn : byName);
+
+  if (!candidates.length) {
+    beep('err');
+    showToast('НЕ НАЙДЕНО', `"${q}" среди выданных нет`, 'err');
+    $('retQuery').classList.add('err');
+    setTimeout(() => $('retQuery').classList.remove('err'), 1200);
+    return;
+  }
+
+  if (candidates.length === 1) {
+    await doReturn(candidates[0].serial);
+    return;
+  }
+
+  $('pickList').innerHTML = candidates.map(d => `
+    <div class="drop-item" data-sn="${esc(d.serial)}" style="padding:10px 14px;">
+      <div>
+        <span class="mono" style="color:var(--neon-cyan); font-weight:700;">${esc(d.serial)}</span>
+        <span style="color:#cbd5e1; margin-left:8px;">${esc(d.holder)}</span>
+      </div>
+      <span class="mono" style="font-size:11px; color:${hoursSince(d.issued_at)>=OVERDUE_H?'var(--neon-rose)':'var(--neon-amber)'};">${fmtHours(hoursSince(d.issued_at))}</span>
+    </div>
+  `).join('');
+  $('pickList').querySelectorAll('.drop-item').forEach(el => {
+    el.onclick = () => {
+      closeModal('pickModal');
+      doReturn(el.dataset.sn);
+    };
+  });
+  openModal('pickModal');
+}
+
+async function doReturn(sn) {
+  const dev = state.devices.find(d => d.serial === sn);
+  if (!dev) return;
+
+  const holder = dev.holder;
+  const ts = nowIso();
+  const updated = {
+    ...dev,
+    status: 'free',
+    holder: '',
+    shift: '—',
+    issued_at: null,
+    last_move: ts
+  };
+
+  await saveDevice(updated, 'Возврат', holder);
+
+  beep('return');
+  showToast(`ПРИБОР ${sn} ПРИНЯТ`, `Сотрудник: ${holder}`);
+  logMsg(`ПРИНЯТО: ${sn} от ${holder}`);
+
+  $('retQuery').value = '';$('retQuery').focus();
+
+  if (state.filter === 'overdue' || state.filter === 'day' || state.filter === 'night') {
+    state.filter = 'all';
+    document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
+    const allCard = document.querySelector('.hud-stat-card[data-filter="all"]');
+    if (allCard) allCard.classList.add('active');
+  }
+
+  renderTable();
+
+  setTimeout(() => {
+    const row = $(`row-${cssId(sn)}`);
+    if (row) {
+      row.classList.add('just-returned');
+      setTimeout(() => row.classList.remove('just-returned'), 2400);
+    }
+  }, 50);
+}
+
+/* ============================================================
+   РЕНДЕР ТАБЛИЦЫ
+   ============================================================ */
+function renderTable() {
+  const q = ($('searchTable').value ? $('searchTable').value : '').trim().toUpperCase();
+  let free = 0, issued = 0, overdue = 0, dayCount = 0, nightCount = 0;
+
+  state.devices.forEach(d => {
+    if (d.status === 'issued') {
+      issued++;
+      if (hoursSince(d.issued_at) >= OVERDUE_H) overdue++;
+      if (d.shift === 'Ночная') nightCount++;
+      else dayCount++;
+    } else {
+      free++;
+    }
+  });
+
+  $('mTotal').innerText = state.devices.length;
+  $('mFree').innerText = free;
+  $('mIssued').innerText = issued;
+  $('mOverdue').innerText = overdue;
+  $('mDay').innerText = dayCount;
+  $('mNight').innerText = nightCount;
+
+  const filtered = state.devices.filter(d => {
+    if (state.filter === 'free' && d.status !== 'free') return false;
+    if (state.filter === 'issued' && d.status !== 'issued') return false;
+    if (state.filter === 'overdue') {
+      if (d.status !== 'issued' || hoursSince(d.issued_at) < OVERDUE_H) return false;
+    }
+    if (state.filter === 'day') {
+      if (d.status !== 'issued' || d.shift === 'Ночная') return false;
+    }
+    if (state.filter === 'night') {
+      if (d.status !== 'issued' || d.shift !== 'Ночная') return false;
+    }
+    if (q) {
+      const hay = (d.serial + ' ' + (d.holder ? d.holder : '')).toUpperCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  filtered.sort((a, b) => {
+    const aOver = a.status === 'issued' && hoursSince(a.issued_at) >= OVERDUE_H;
+    const bOver = b.status === 'issued' && hoursSince(b.issued_at) >= OVERDUE_H;
+    if (aOver !== bOver) return aOver ? -1 : 1;
+
+    const order = { issued: 0, free: 1 };
+    const aOrd = order[a.status] !== undefined ? order[a.status] : 2;
+    const bOrd = order[b.status] !== undefined ? order[b.status] : 2;
+    if (aOrd !== bOrd) return aOrd - bOrd;
+
+    return a.serial.localeCompare(b.serial);
+  });
+
+  $('tbody').innerHTML = filtered.map(d => {
+    const busy = d.status === 'issued';
+    const h = busy ? hoursSince(d.issued_at) : 0;
+    const over = busy && h >= OVERDUE_H;
+
+    let badge = '';
+    if (busy && over) badge = '<span class="badge-chip chip-over">🚨 ДОЛГ (>12ч)</span>';
+    else if (busy)    badge = '<span class="badge-chip chip-busy">НА РУКАХ</span>';
+    else              badge = '<span class="badge-chip chip-free">НА СКЛАДЕ</span>';
+
+    let action = busy
+      ? `<button class="btn-hud" style="background:#059669; color:#fff; border:none; padding:4px 10px;" onclick="quickReturnFromRow('${esc(d.serial)}')">Принять</button>`
+      : `<button class="btn-hud" style="padding:4px 10px;" onclick="pickForIssue('${esc(d.serial)}')">Выдать</button>`;
+
+    const timeTxt = busy
+      ? `<b class="mono" style="color:${over?'var(--neon-rose)':'#fff'};">${fmtHours(h)}</b> <span style="font-size:10px; color:var(--text-secondary);">(${esc(d.shift ? d.shift : 'Смена')})</span>`
+      : `<span style="font-size:10.5px; color:var(--text-secondary);">${d.last_move ? new Date(d.last_move).toLocaleDateString('ru-RU') : '—'}</span>`;
+
+    return `
+      <tr id="row-${cssId(d.serial)}" class="${over ? 'row-overdue' : ''}">
+        <td><b class="mono sn-link" style="color:var(--neon-cyan);" onclick="openAudit('${esc(d.serial)}')">${esc(d.serial)}</b></td>
+        <td><b>${esc(d.model)}</b></td>
+        <td>${badge}</td>
+        <td><b>${d.holder ? esc(d.holder) : '<span style="color:var(--text-muted); font-weight:400;">—</span>'}</b></td>
+        <td>${timeTxt}</td>
+        <td style="text-align:right;">${action}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function cssId(sn) { return String(sn).replace(/[^a-zA-Z0-9_-]/g, '_'); }
+function quickReturnFromRow(sn) { $('retQuery').value = sn; quickReturn(); }
+
+function pickForIssue(sn) {
+  $('issSn').value = sn;
+  $('issSn').classList.remove('err');$('issWorker').focus();
+}
+
+async function openAudit(sn) {
+  const dev = state.devices.find(d => d.serial === sn);
+  if (!dev) return;
+
+  $('audSn').innerText = dev.serial;
+  $('audModel').innerText = dev.model ? dev.model : '—';
+  $('audHolder').innerText = dev.holder ? dev.holder : 'На складе';
+
+  const badge = $('audStatusBadge');
+  if (dev.status === 'issued') {
+    badge.className = 'badge-chip chip-busy';
+    badge.innerText = 'На руках';
+  } else {
+    badge.className = 'badge-chip chip-free';
+    badge.innerText = 'На складе';
+  }
+
+  const dur = dev.status === 'issued' && dev.issued_at ? fmtHours(hoursSince(dev.issued_at)) + ' (' + (dev.shift ? dev.shift : '—') + ')' : '—';
+  $('audDuration').innerText = dur;
+
+  $('auditOverlay').classList.add('show');$('auditDrawer').classList.add('open');
+
+  let moves = [];
+  if (cloud && navigator.onLine) {
+    try {
+      const { data } = await cloud.from('movements').select('*').eq('serial', sn).order('id', { ascending: false }).limit(25);
+      if (data) moves = data;
+    } catch(e) {}
+  }
+  if (!moves.length) {
+    const local = await idb.all('moves');
+    moves = local.filter(m => m.serial === sn).reverse();
+  }
+
+  const tl = $('audTimeline');
+  if (!moves.length) {
+    tl.innerHTML = '<div style="color:var(--text-muted); font-size:12px; text-align:center; padding:15px;">Записей перемещений пока нет.</div>';
+    return;
+  }
+
+  tl.innerHTML = moves.map(h => {
+    const isRet = h.action && h.action.startsWith('Возврат');
+    const t = h.created_at ? new Date(h.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : (h.at ? new Date(h.at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—');
+    const actColor = isRet ? 'var(--neon-emerald)' : 'var(--neon-cyan)';
+    return `
+      <div class="timeline-item ${isRet ? 'return' : ''}">
+        <div class="timeline-dot"></div>
+        <div class="timeline-time">${t}</div>
+        <div class="timeline-action" style="color:${actColor}">${esc(h.action)}</div>
+        <div class="timeline-actor">👤 ${esc(h.worker ? h.worker : '—')}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function closeAuditDrawer() {
+  $('auditDrawer').classList.remove('open');$('auditOverlay').classList.remove('show');
+}
+
+/* ============================================================
+   ОТЧЁТ СМЕНЫ И ЭКСПОРТ
+   ============================================================ */
+function buildShiftReport() {
+  const nowStr = new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  let free = 0, issued = 0;
+  const debtors = [];
+
+  state.devices.forEach(d => {
+    if (d.status === 'issued') {
+      issued++;
+      const h = hoursSince(d.issued_at);
+      if (h >= OVERDUE_H) debtors.push({ sn: d.serial, holder: d.holder, h: Math.round(h * 10) / 10, shift: d.shift ? d.shift : '—' });
+    } else free++;
+  });
+
+  debtors.sort((a, b) => b.h - a.h);
+
+  let txt = `ИТОГИ СМЕНЫ [${getShift().toUpperCase()} — ${nowStr}]\n` +
+    `${'─'.repeat(45)}\n` +
+    `Всего сканеров:        ${state.devices.length} шт.\n` +
+    `🟢 На складе (свободно): ${free} шт.\n` +
+    `🔵 На руках у смены:    ${issued} шт.\n` +
+    `🚨 Должников (> 12ч):    ${debtors.length} чел.\n\n`;
+
+  if (debtors.length) {
+    txt += `СПИСОК ДОЛЖНИКОВ:\n` + debtors.map((d, i) => `  ${i + 1}. ${d.holder} — ${d.sn} (${d.h} ч)`).join('\n') + `\n\n`;
+  } else {
+    txt += `✅ Все сканеры сданы вовремя, долгов нет.\n\n`;
+  }
+
+  txt += `${'─'.repeat(45)}\nОтчёт сформирован в Terminal HUD`;
+  $('reportText').value = txt;
+  openModal('reportModal');
+}
+
+function copyReportText() {
+  navigator.clipboard.writeText($('reportText').value).then(() => {
+    showToast('СКОПИРОВАНО', 'Отчёт в буфере обмена');
+  });
+}
+
+function exportExcel() {
+  let csv = '\uFEFFСерийный номер;Модель;Статус;Сотрудник;Смена;Выдан;Активность\n';
+  state.devices.forEach(d => {
+    const s = v => String(v ? v : '').replace(/"/g, '""');
+    csv += `"${s(d.serial)}";"${s(d.model)}";"${s(d.status)}";"${s(d.holder)}";"${s(d.shift)}";"${s(d.issued_at)}";"${s(d.last_move)}"\n`;
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `sklad_export_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+}
+
+function processImport() {
+  const text = $('impText').value.trim();
+  const list = [...new Set(text.split(/\r?\n/).map(fixLayout).filter(Boolean))];
+  if (!list.length) return;
+
+  const ts = nowIso();
+  const txm = db.transaction(["devices", "queue"], "readwrite");
+  const ds = txm.objectStore("devices");
+  const qs = txm.objectStore("queue");
+  let added = 0, skipped = 0;
+
+  list.forEach(sn => {
+    if (state.devices.find(d => d.serial === sn)) { skipped++; return; }
+    const d = { serial: sn, model: detectModel(sn), status: 'free', holder: '', last_move: ts };
+    ds.put(d);
+    qs.add({ type: 'upsert', dev: d, action: 'Импорт', worker: '', ts });
+    added++;
+  });
+
+  txm.oncomplete = () => {
+    closeModal('impModal');
+    $('impText').value = '';
+    beep('issue');
+    showToast('ИМПОРТ ЗАВЕРШЁН', `Добавлено: ${added}, пропущено: ${skipped}`);
+    loadLocal();
+    syncNow();
+  };
+}
+
+function showDiag() {
+  idb.count('queue').then(n => {
+    $('diagContent').innerHTML = `
+      <div>SUPABASE: <span style="color:#fff;">${SUPABASE_URL.replace('https://','').split('.')[0]}...</span></div>
+      <div>ОЧЕРЕДЬ ПАКЕТОВ: <span style="color:var(--neon-cyan);">${n}</span></div>
+      <div>ПОСЛЕДНЯЯ ОШИБКА: <span style="color:var(--neon-rose);">${esc(state.lastError)}</span></div>
+    `;
+    openModal('diagModal');
+  });
+}
+
+function openModal(id) { $(id).classList.add('show'); }
+function closeModal(id) { $(id).classList.remove('show'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+});
+
+function showToast(title, desc, kind = 'ok') {
+  const el = $('toast');$('tTitle').innerText = title;
+  $('tDesc').innerText = desc ? desc : '';
+  $('tIcon').innerText = kind === 'err' ? '✕' : (kind === 'warn' ? '!' : '✓');
+  el.className = kind === 'err' ? 'err' : (kind === 'warn' ? 'warn' : '');
+  el.classList.add('show');
+  clearTimeout(window._toastT);
+  window._toastT = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* EVENT LISTENERS */
+$('issSn').addEventListener('input', debounce(handleIssSnInput, 60));$('issSn').addEventListener('keydown', handleIssSnKeydown);
+$('issWorker').addEventListener('keydown', handleIssWorkerKeydown);$('issueForm').addEventListener('submit', e => { e.preventDefault(); submitIssue(); });
+
+$('retQuery').addEventListener('input', debounce(handleRetInput, 60));
+$('retQuery').addEventListener('keydown', handleRetKeydown);$('retBtn').addEventListener('click', quickReturn);
+
+$('searchTable').addEventListener('input', debounce(renderTable, 100));
+
+document.querySelectorAll('.hud-stat-card').forEach(s => {
+  s.addEventListener('click', () => {
+    document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
+    s.classList.add('active');
+    state.filter = s.dataset.filter;
+    renderTable();
+  });
+});
+
+$('swapConfirm').addEventListener('click', confirmSwap);
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.hud-group')) {
+    $('issDrop').classList.remove('show');$('retDrop').classList.remove('show');
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if ($('swapModal').classList.contains('show') && e.key === 'Enter') { e.preventDefault(); confirmSwap(); return; }
+
+  if (e.key === 'F1') { e.preventDefault(); $('issSn').focus(); }
+  else if (e.key === 'F2') { e.preventDefault(); $('retQuery').focus(); }
+  else if (e.ctrlKey && e.key.toLowerCase() === 'k') { e.preventDefault(); $('searchTable').focus(); }
+  else if (e.ctrlKey && e.key.toLowerCase() === 'e') { e.preventDefault(); exportExcel(); }
+  else if (e.ctrlKey && e.key.toLowerCase() === 'r') { e.preventDefault(); buildShiftReport(); }
+  else if (e.ctrlKey && e.key.toLowerCase() === 'i') { e.preventDefault(); openModal('impModal'); }
+  else if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+    closeAuditDrawer();
+  }
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  $('issSn').focus();
+});
+
+setInterval(syncNow, 8000);
+setInterval(renderTable, 30000);
+window.addEventListener('online', syncNow);
+window.addEventListener('offline', () => setSync(false, 'Офлайн'));
+</script>
+</body>
+</html>
+
