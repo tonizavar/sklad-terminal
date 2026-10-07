@@ -251,7 +251,7 @@
 <div class="app-shell">
   <header class="hud-header">
     <div class="brand-zone">
-      <div id="brandTag" class="brand-tag mono" title="v8.26">TERMINAL</div>
+      <div id="brandTag" class="brand-tag mono" title="v8.28">TERMINAL</div>
       <div class="brand-title">
         <h1>Учёт Оборудования</h1>
         <p>Двухпостовой Cloud • Автономная работа • Экспресс-замена</p>
@@ -411,7 +411,7 @@
 </div>
 
 <div id="diagModal" class="modal-overlay">
-  <div class="modal-card">
+  <div class="modal-card" style="max-width:560px;">
     <h3 style="font-size:14px; margin-bottom:10px; color:var(--neon-cyan);">⚡ СТАТУС СИНХРОНИЗАЦИИ</h3>
     <div id="diagContent" class="mono" style="font-size:12px; line-height:1.8; color:#94a3b8; margin-bottom:14px;"></div>
     <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
@@ -465,6 +465,11 @@ const RECENT_LOCAL_TTL = 60 * 1000;
 const AUTO_SWAP_KEY = 'sklad_auto_swap_v2';
 const SN_REGEX = /^[A-Z0-9\-_.]{2,60}$/;
 
+// ⭐ Таймауты (страховка от зависших сетевых вызовов Supabase и IDB-транзакций)
+const NET_TIMEOUT_MS = 15000;   // один сетевой вызов
+const SYNC_TIMEOUT_MS = 45000;  // вся синхронизация
+const SYNC_INTERVAL_MS = 20000; // интервал автосинка
+
 const state = {
   devices: [], filter: 'all', shift: 'auto',
   issueShift: 'Дневная', issueShiftAuto: true, workerShifts: {},
@@ -473,7 +478,14 @@ const state = {
   justIssued: null, justReturned: null,
   autoSwap: true,
   lastSwap: null,
-  undoTimeout: null
+  undoTimeout: null,
+  // ⭐ Точное значение, для которого построен текущий дропдаун.
+  // Защита от «выстрела» старым элементом на быстрый Enter от сканера.
+  lastDropQuery: null,
+  lastRetDropQuery: null,
+  // ⭐ Генерация синхронизации. Сбрасывается при watchdog / forceSync,
+  // чтобы «зомби-синк» не сбрасывал флаг у нового запуска.
+  syncToken: 0
 };
 
 try {
@@ -491,6 +503,15 @@ function esc(s) {
   return String(s !== null && s !== undefined ? s : '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+/* ⭐ Гонка с таймаутом: страхует от зависших сетевых вызовов Supabase */
+function withTimeout(promise, ms, label) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`⏱ Таймаут: ${label} (${ms}мс)`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
 
 const RU = {'й':'q','ц':'w','у':'e','к':'r','е':'t','н':'y','г':'u','ш':'i','щ':'o','з':'p','х':'[','ъ':']','ф':'a','ы':'s','в':'d','а':'f','п':'g','р':'h','о':'j','л':'k','д':'l','ж':';','э':'\'','я':'z','ч':'x','с':'c','м':'v','и':'b','т':'n','ь':'m','б':',','ю':'.','ё':'`'};
 function fixLayout(s) {
@@ -549,14 +570,11 @@ function computeSmartShift(worker) {
   const hm = now.getHours() * 60 + now.getMinutes();
   const w = String(worker || '').trim().toUpperCase();
 
-  // 1. Если у сотрудника уже есть выданный ТСД — берём его смену
   if (w) {
     const existing = state.devices.find(d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === w && d.shift && d.shift !== '—');
     if (existing) return existing.shift;
   }
-  // 2. Иначе — сохранённая смена сотрудника имеет приоритет
   if (w && state.workerShifts[w]) return state.workerShifts[w];
-  // 3. Иначе — по времени суток
   if (hm >= 5*60 && hm < 6*60) return 'Дневная';
   if (hm >= 17*60 && hm < 19*60) return 'Ночная';
   return (hm >= 6*60 && hm < 18*60) ? 'Дневная' : 'Ночная';
@@ -662,8 +680,6 @@ DB_REQ.onerror = e => {
   showToast('ОШИБКА БАЗЫ', e.target.error ? e.target.error.message : '?', 'err');
 };
 
-function txStore(store, mode = 'readonly') { return db.transaction(store, mode).objectStore(store); }
-
 function loadLocal() {
   return new Promise(resolve => {
     if (!db) return resolve();
@@ -677,11 +693,11 @@ function loadLocal() {
         resolve();
       };
       req.onerror = () => { state.devices = []; renderTable(); resolve(); };
+      tx.onabort = () => { state.devices = []; renderTable(); resolve(); };
     } catch(e) { state.devices = []; renderTable(); resolve(); }
   });
 }
 
-/* ⭐ saveDevice — атомарная запись: devices + queue + moves */
 function saveDevice(dev, actionName, workerName) {
   return new Promise((resolve, reject) => {
     if (!db || !state.dbReady) {
@@ -721,7 +737,7 @@ function saveDevice(dev, actionName, workerName) {
   });
 }
 
-/* ⭐ Очередь: чтение значений + ключей одной транзакцией */
+/* ⭐ Очередь: чтение значений + ключей одной транзакцией, с onabort */
 function readQueueWithKeys() {
   return new Promise(resolve => {
     if (!db) return resolve([]);
@@ -736,6 +752,8 @@ function readQueueWithKeys() {
         else resolve(out);
       };
       req.onerror = () => resolve([]);
+      t.onabort = () => resolve([]);
+      t.onerror = () => resolve([]);
     } catch(e) { resolve([]); }
   });
 }
@@ -747,6 +765,7 @@ function deleteQueueKey(key) {
       t.objectStore('queue').delete(key);
       t.oncomplete = r;
       t.onerror = r;
+      t.onabort = r;
     } catch(e) { r(); }
   });
 }
@@ -758,7 +777,6 @@ async function deleteSerial(sn) {
   if (!sn) throw new Error('Пустой серийник');
   if (!db) throw new Error('База не готова');
 
-  // Фаза 1: собрать ключи для удаления (readonly)
   const { queueKeys, moveKeys } = await new Promise((resolve, reject) => {
     const t = db.transaction(['queue', 'moves'], 'readonly');
     const qKeys = [], mKeys = [];
@@ -767,7 +785,6 @@ async function deleteSerial(sn) {
       const cur = e.target.result;
       if (cur) {
         const v = cur.value;
-        // удаляем только upsert'ы этого SN, но НЕ delete-маркеры
         if (v && v.type !== 'delete' && ((v.dev && v.dev.serial === sn) || (v.serial === sn && !v.dev))) {
           qKeys.push(cur.primaryKey);
         }
@@ -784,9 +801,9 @@ async function deleteSerial(sn) {
     };
     t.oncomplete = () => resolve({ queueKeys: qKeys, moveKeys: mKeys });
     t.onerror = () => reject(t.error);
+    t.onabort = () => reject(t.error || new Error('Транзакция чтения отменена'));
   });
 
-  // Фаза 2: удалить + добавить delete-маркер
   await new Promise((resolve, reject) => {
     const t = db.transaction(['devices', 'queue', 'moves'], 'readwrite');
     t.objectStore('devices').delete(sn);
@@ -797,6 +814,7 @@ async function deleteSerial(sn) {
     qs.add({ type: 'delete', serial: sn, ts: nowIso() });
     t.oncomplete = resolve;
     t.onerror = () => reject(t.error);
+    t.onabort = () => reject(t.error || new Error('Транзакция удаления отменена'));
   });
 
   recentLocal.delete(sn);
@@ -835,35 +853,72 @@ function normalizeCloudDevice(row) {
 }
 
 /* ============================================================
-   СИНХРОНИЗАЦИЯ
+   СИНХРОНИЗАЦИЯ — с watchdog, токеном генерации и таймаутами
    ============================================================ */
 async function syncNow() {
   if (state.syncing) return;
   if (!cloud || !navigator.onLine) { setSync(false, 'Офлайн'); return; }
   if (!state.dbReady) { setSync(false, 'БД не готова'); return; }
+
+  const token = ++state.syncToken;
   state.syncing = true;
   setSync(true, 'Синхронизация...', true);
+
+  const alive = () => token === state.syncToken;
+
+  // ⭐ Watchdog: если что-то зависло — принудительно отпускаем флаг,
+  // чтобы следующий цикл по интервалу смог стартовать.
+  const watchdog = setTimeout(() => {
+    if (!alive()) return;
+    console.warn(`[sync] Watchdog сработал (token=${token})`);
+    state.syncing = false;
+    state.lastError = 'Таймаут синхронизации (watchdog)';
+    setSync(false, 'Таймаут sync');
+  }, SYNC_TIMEOUT_MS);
+
   try {
     const items = await readQueueWithKeys();
+    if (!alive()) return;
+
     const recentlySent = new Set();
     let failCount = 0;
+
     for (const item of items) {
+      if (!alive()) return;
       const it = item.value;
       const key = item.key;
       if (!it) { await deleteQueueKey(key); continue; }
+
+      // --- DELETE ---
       if (it.type === 'delete') {
-        const { error: delDevErr } = await cloud.from('devices').delete().eq('serial', it.serial);
-        if (delDevErr) {
-          state.lastError = 'delete: ' + delDevErr.message;
+        try {
+          const { error: delDevErr } = await withTimeout(
+            cloud.from('devices').delete().eq('serial', it.serial),
+            NET_TIMEOUT_MS, `del device ${it.serial}`
+          );
+          if (delDevErr) {
+            state.lastError = 'del: ' + delDevErr.message;
+            failCount++;
+            continue;
+          }
+          try {
+            await withTimeout(
+              cloud.from('movements').delete().eq('serial', it.serial),
+              NET_TIMEOUT_MS, 'del movements'
+            );
+          } catch(e) { /* best-effort */ }
+          await deleteQueueKey(key);
+        } catch(e) {
+          state.lastError = 'del: ' + e.message;
           failCount++;
-          continue;
         }
-        try { await cloud.from('movements').delete().eq('serial', it.serial); } catch(e) {}
-        await deleteQueueKey(key);
         continue;
       }
+
+      // --- UPSERT ---
       if (!it.dev || !it.dev.serial) { await deleteQueueKey(key); continue; }
       recentlySent.add(it.dev.serial);
+
       const cleanDev = {
         serial: it.dev.serial, model: it.dev.model, status: it.dev.status,
         holder: it.dev.status === 'free' ? null : (it.dev.holder || null),
@@ -871,25 +926,63 @@ async function syncNow() {
         issued_at: it.dev.status === 'free' ? null : it.dev.issued_at,
         last_move: it.dev.last_move || it.ts
       };
-      const { error: devErr } = await cloud.from('devices').upsert(cleanDev, { onConflict: 'serial' });
-      if (devErr) { state.lastError = devErr.message; failCount++; continue; }
-      const fullMove = { serial: it.dev.serial, action: it.action, worker: it.worker || (it.dev.holder || ''), created_at: it.ts };
-      try { await cloud.from('movements').insert(fullMove); } catch(e) {}
+
+      try {
+        const { error: devErr } = await withTimeout(
+          cloud.from('devices').upsert(cleanDev, { onConflict: 'serial' }),
+          NET_TIMEOUT_MS, `upsert ${cleanDev.serial}`
+        );
+        if (devErr) {
+          state.lastError = 'upsert: ' + devErr.message;
+          failCount++;
+          continue;
+        }
+      } catch(e) {
+        state.lastError = 'upsert: ' + e.message;
+        failCount++;
+        continue;
+      }
+
+      // movements — best-effort: ошибка НЕ блокирует очистку очереди
+      const fullMove = {
+        serial: it.dev.serial, action: it.action,
+        worker: it.worker || (it.dev.holder || ''), created_at: it.ts
+      };
+      try {
+        await withTimeout(
+          cloud.from('movements').insert(fullMove),
+          NET_TIMEOUT_MS, `move ${fullMove.serial}`
+        );
+      } catch(e) { console.warn('[sync] movement insert skipped:', e.message); }
+
       await deleteQueueKey(key);
     }
 
+    if (!alive()) return;
+
+    // --- PULL ---
     const allData = await pullAllDevices();
-    if (allData === null) { setSync(false, 'Ошибка загрузки'); state.syncing = false; return; }
+    if (!alive()) return;
+    if (allData === null) {
+      setSync(false, 'Ошибка загрузки');
+      return;
+    }
     const norm = allData.map(normalizeCloudDevice).filter(Boolean);
     await applyPull(norm, recentlySent);
+    if (!alive()) return;
 
     state.lastError = failCount ? `отложено: ${failCount}` : '—';
-    setSync(true, 'Онлайн');
+    setSync(true, failCount ? `Онлайн (${failCount} отложено)` : 'Онлайн');
     setTimeout(() => { checkAutoBackup(); }, 2000);
   } catch(e) {
-    state.lastError = e.message || 'Ошибка сети';
-    setSync(false, 'Сбой сети');
-  } finally { state.syncing = false; }
+    if (alive()) {
+      state.lastError = e.message || 'Ошибка сети';
+      setSync(false, 'Сбой сети');
+    }
+  } finally {
+    clearTimeout(watchdog);
+    if (alive()) state.syncing = false;
+  }
 }
 
 async function pullAllDevices() {
@@ -898,7 +991,10 @@ async function pullAllDevices() {
   let from = 0;
   try {
     while (true) {
-      const { data, error } = await cloud.from('devices').select('*').range(from, from + pageSize - 1);
+      const { data, error } = await withTimeout(
+        cloud.from('devices').select('*').range(from, from + pageSize - 1),
+        NET_TIMEOUT_MS, 'pull devices'
+      );
       if (error) { state.lastError = error.message; return null; }
       if (!data || !data.length) break;
       all = all.concat(data);
@@ -913,7 +1009,6 @@ async function pullAllDevices() {
 async function applyPull(data, protectedSerials) {
   if (!data) return;
 
-  // Защищённые SN: в очереди / недавно изменены локально / явно защищены caller'ом
   const queuedSerials = await new Promise(r => {
     const t = db.transaction('queue', 'readonly');
     const set = new Set();
@@ -928,40 +1023,53 @@ async function applyPull(data, protectedSerials) {
       } else r(set);
     };
     req.onerror = () => r(set);
+    t.onabort = () => r(set);
+    t.onerror = () => r(set);
   });
 
   const cloudSet = new Set(data.map(d => d.serial));
   const now = Date.now();
 
   return new Promise(resolve => {
-    const t = db.transaction("devices", "readwrite");
-    const s = t.objectStore("devices");
+    let settled = false;
+    const done = () => { if (!settled) { settled = true; resolve(); } };
 
-    // 1. Удаляем локальные устройства, которых больше нет в облаке
-    const keysReq = s.getAllKeys();
-    keysReq.onsuccess = () => {
-      const localKeys = keysReq.result || [];
-      localKeys.forEach(sn => {
-        if (cloudSet.has(sn)) return;
-        if (queuedSerials.has(sn)) return;
-        if (protectedSerials && protectedSerials.has(sn)) return;
-        const recent = recentLocal.get(sn);
-        if (recent && now - recent < RECENT_LOCAL_TTL) return;
-        s.delete(sn);
-      });
+    try {
+      const t = db.transaction("devices", "readwrite");
+      const s = t.objectStore("devices");
 
-      // 2. Заливаем облачные данные с защитой
-      data.forEach(d => {
-        if (protectedSerials && protectedSerials.has(d.serial)) return;
-        if (queuedSerials.has(d.serial)) return;
-        const recent = recentLocal.get(d.serial);
-        if (recent && now - recent < RECENT_LOCAL_TTL) return;
-        s.put(d);
-      });
-    };
+      const keysReq = s.getAllKeys();
+      keysReq.onsuccess = () => {
+        try {
+          const localKeys = keysReq.result || [];
+          localKeys.forEach(sn => {
+            if (cloudSet.has(sn)) return;
+            if (queuedSerials.has(sn)) return;
+            if (protectedSerials && protectedSerials.has(sn)) return;
+            const recent = recentLocal.get(sn);
+            if (recent && now - recent < RECENT_LOCAL_TTL) return;
+            s.delete(sn);
+          });
+          data.forEach(d => {
+            if (protectedSerials && protectedSerials.has(d.serial)) return;
+            if (queuedSerials.has(d.serial)) return;
+            const recent = recentLocal.get(d.serial);
+            if (recent && now - recent < RECENT_LOCAL_TTL) return;
+            s.put(d);
+          });
+        } catch(e) {
+          console.error('[applyPull] handler error:', e);
+        }
+      };
+      keysReq.onerror = () => {};
 
-    t.oncomplete = () => loadLocal().then(resolve);
-    t.onerror = () => resolve();
+      t.oncomplete = () => { loadLocal().then(done).catch(done); };
+      t.onerror = () => { console.error('[applyPull] TX error:', t.error); done(); };
+      t.onabort = () => { console.error('[applyPull] TX aborted'); done(); };
+    } catch(e) {
+      console.error('[applyPull] Exception:', e);
+      done();
+    }
   });
 }
 
@@ -970,7 +1078,44 @@ function setSync(ok, txt, busy = false) {
   p.className = 'pill-badge ' + (busy ? 'pill-busy' : (ok ? 'pill-online' : 'pill-offline'));
   $('syncText').innerText = txt;
 }
-async function forceSync() { closeModal('diagModal'); state.syncing = false; await syncNow(); }
+
+async function forceSync() {
+  closeModal('diagModal');
+  state.syncToken++;      // инвалидируем текущий запущенный синк
+  state.syncing = false;  // снимаем блокировку
+  await syncNow();
+}
+
+/* Очистка застрявшей очереди (данные локально/в облаке не трогаем) */
+async function clearStuckQueue() {
+  const items = await readQueueWithKeys();
+  if (!items.length) { showToast('ОЧЕРЕДЬ', 'Пусто', 'warn'); return; }
+  if (!confirm(`Удалить все пакеты из очереди синхронизации?\n\nНайдено: ${items.length}\n\nЛокальная база и облако НЕ пострадают.`)) return;
+  for (const item of items) await deleteQueueKey(item.key);
+  showToast('ОЧЕРЕДЬ ОЧИЩЕНА', `Удалено ${items.length} пакетов`, 'warn');
+  closeModal('diagModal');
+  setTimeout(syncNow, 200);
+}
+
+/* Превью очереди для диагностики */
+async function renderQueuePreview() {
+  const items = await readQueueWithKeys();
+  if (!items.length) return '<div style="color:var(--text-muted); padding:6px 0;">Пусто</div>';
+  return items.slice(0, 30).map(item => {
+    const it = item.value || {};
+    const type = it.type || 'upsert';
+    const sn = (it.dev && it.dev.serial) || it.serial || '?';
+    const action = it.action || type;
+    const t = it.ts ? new Date(it.ts).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : '';
+    const color = type === 'delete' ? 'var(--neon-rose)' : 'var(--neon-cyan)';
+    return `<div style="font-size:11px; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; gap:8px;">
+      <span style="color:${color}; min-width:52px;">${esc(type)}</span>
+      <span style="color:#fff; font-family:'JetBrains Mono'; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(sn)}</span>
+      <span style="color:var(--text-muted); font-size:10px;">${esc(action)}</span>
+      <span style="color:var(--text-muted); font-size:10px;">${t}</span>
+    </div>`;
+  }).join('') + (items.length > 30 ? `<div style="font-size:10px; color:var(--text-muted); padding:4px 0;">… ещё ${items.length - 30}</div>` : '');
+}
 
 async function hardReset() {
   if (!confirm('Это очистит локальную базу, кэш и очередь.\n\nОблако Supabase не пострадает.\n\nПродолжить?')) return;
@@ -982,9 +1127,11 @@ async function hardReset() {
       const stores = ['devices', 'queue', 'moves'];
       const t = db.transaction(stores, 'readwrite');
       stores.forEach(s => t.objectStore(s).clear());
-      await new Promise(r => { t.oncomplete = r; t.onerror = r; });
+      await new Promise(r => { t.oncomplete = r; t.onerror = r; t.onabort = r; });
     }
     state.devices = [];
+    state.lastDropQuery = null;
+    state.lastRetDropQuery = null;
     recentLocal.clear();
     renderTable();
     showToast('СБРОШЕНО', 'Данные очищены. Нажмите F5 для полной перезагрузки', 'warn');
@@ -1026,7 +1173,10 @@ async function doBackup(trigger) {
     const time = new Date().toISOString().slice(11, 16).replace(':', '');
     const filename = `backup-${date}-${time}.json`;
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-    const { error } = await cloud.storage.from(BACKUP_BUCKET).upload(filename, blob, { upsert: true, contentType: 'application/json' });
+    const { error } = await withTimeout(
+      cloud.storage.from(BACKUP_BUCKET).upload(filename, blob, { upsert: true, contentType: 'application/json' }),
+      NET_TIMEOUT_MS, 'backup upload'
+    );
     if (error) throw error;
     localStorage.setItem('sklad_last_backup_date', date);
     localStorage.setItem('sklad_last_backup_time', String(Date.now()));
@@ -1046,12 +1196,15 @@ async function doBackup(trigger) {
 
 async function cleanupOldBackups() {
   try {
-    const { data, error } = await cloud.storage.from(BACKUP_BUCKET).list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
+    const { data, error } = await withTimeout(
+      cloud.storage.from(BACKUP_BUCKET).list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } }),
+      NET_TIMEOUT_MS, 'backup list'
+    );
     if (error || !data) return;
     const backups = data.filter(f => f.name.startsWith('backup-') && f.name.endsWith('.json')).sort((a, b) => b.name.localeCompare(a.name));
     if (backups.length <= BACKUP_KEEP) return;
     for (const f of backups.slice(BACKUP_KEEP)) {
-      try { await cloud.storage.from(BACKUP_BUCKET).remove([f.name]); } catch(e) {}
+      try { await withTimeout(cloud.storage.from(BACKUP_BUCKET).remove([f.name]), NET_TIMEOUT_MS, 'backup remove'); } catch(e) {}
     }
   } catch(e) {}
 }
@@ -1059,7 +1212,10 @@ async function cleanupOldBackups() {
 async function listBackups() {
   if (!cloud) return [];
   try {
-    const { data, error } = await cloud.storage.from(BACKUP_BUCKET).list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
+    const { data, error } = await withTimeout(
+      cloud.storage.from(BACKUP_BUCKET).list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } }),
+      NET_TIMEOUT_MS, 'backup list'
+    );
     if (error || !data) return [];
     return data.filter(f => f.name.startsWith('backup-') && f.name.endsWith('.json')).sort((a, b) => b.name.localeCompare(a.name));
   } catch(e) { return []; }
@@ -1093,7 +1249,10 @@ async function renderBackupList() {
 async function restoreFromBackup(filename) {
   if (!cloud) return;
   try {
-    const { data, error } = await cloud.storage.from(BACKUP_BUCKET).download(filename);
+    const { data, error } = await withTimeout(
+      cloud.storage.from(BACKUP_BUCKET).download(filename),
+      NET_TIMEOUT_MS, 'backup download'
+    );
     if (error) throw error;
     const text = await data.text();
     const backup = JSON.parse(text);
@@ -1104,13 +1263,13 @@ async function restoreFromBackup(filename) {
     await new Promise((res, rej) => {
       const t = db.transaction(['devices', 'queue'], 'readwrite');
       t.objectStore('devices').clear(); t.objectStore('queue').clear();
-      t.oncomplete = res; t.onerror = () => rej(t.error);
+      t.oncomplete = res; t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
     });
     await new Promise((res, rej) => {
       const t = db.transaction('devices', 'readwrite');
       const s = t.objectStore('devices');
       devices.forEach(d => { if (d && d.serial) s.put(d); });
-      t.oncomplete = res; t.onerror = () => rej(t.error);
+      t.oncomplete = res; t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
     });
     await loadLocal();
     closeModal('backupModal');
@@ -1121,7 +1280,10 @@ async function restoreFromBackup(filename) {
 async function deleteBackup(filename) {
   if (!confirm(`Удалить бэкап "${filename}"?`)) return;
   try {
-    const { error } = await cloud.storage.from(BACKUP_BUCKET).remove([filename]);
+    const { error } = await withTimeout(
+      cloud.storage.from(BACKUP_BUCKET).remove([filename]),
+      NET_TIMEOUT_MS, 'backup remove'
+    );
     if (error) throw error;
     showToast('УДАЛЕНО', filename, 'warn'); renderBackupList();
   } catch(e) { showToast('ОШИБКА', e.message || '?', 'err'); }
@@ -1130,17 +1292,47 @@ async function deleteBackup(filename) {
 function openBackupModal() { openModal('backupModal'); renderBackupList(); }
 
 /* ============================================================
-   ВЫДАЧА
+   ВЫДАЧА — дропдаун + защита от стейл-элементов
    ============================================================ */
+function resetIssueDropdown() {
+  const drop = $('issDrop');
+  drop.classList.remove('show');
+  drop.innerHTML = '';
+  state.lastDropQuery = null;
+}
+function resetRetDropdown() {
+  const drop = $('retDrop');
+  drop.classList.remove('show');
+  drop.innerHTML = '';
+  state.lastRetDropQuery = null;
+}
+
 function handleIssSnInput() {
   const el = $('issSn');
   const fixed = fixLayout(el.value);
   if (fixed !== el.value) el.value = fixed;
+
   const drop = $('issDrop');
-  if (fixed.length < 2) { drop.classList.remove('show'); $('modelHint').innerText = "F1 • Скан ➔ ID ➔ Enter"; return; }
+
+  if (fixed.length < 2) {
+    drop.classList.remove('show');
+    drop.innerHTML = '';
+    state.lastDropQuery = null;
+    $('modelHint').innerText = "F1 • Скан ➔ ID ➔ Enter";
+    return;
+  }
+
   const freeDevs = state.devices.filter(d => d.status === 'free');
   const matches = freeDevs.filter(d => d.serial.toUpperCase().endsWith(fixed) || d.serial.toUpperCase().includes(fixed));
-  if (!matches.length) { drop.classList.remove('show'); $('modelHint').innerText = `⚡ Новый: создастся как ${detectModel(fixed)}`; return; }
+
+  if (!matches.length) {
+    drop.classList.remove('show');
+    drop.innerHTML = '';
+    state.lastDropQuery = fixed;
+    $('modelHint').innerText = `⚡ Новый: создастся как ${detectModel(fixed)}`;
+    return;
+  }
+
   drop.innerHTML = matches.slice(0, 8).map((d, i) => `
     <div class="drop-item ${i === 0 ? 'selected' : ''}" data-sn="${esc(d.serial)}">
       <div><span class="mono" style="font-weight:700; color:var(--neon-cyan);">${esc(d.serial)}</span> <span style="font-size:11px; color:#cbd5e1;">(${esc(d.model)})</span></div>
@@ -1148,29 +1340,44 @@ function handleIssSnInput() {
     </div>
   `).join('');
   drop.classList.add('show');
+  state.lastDropQuery = fixed;
 }
 
 function handleIssSnKeydown(e) {
+  const el = $('issSn');
   const drop = $('issDrop');
   const items = Array.from(drop.querySelectorAll('.drop-item'));
   const cur = items.findIndex(it => it.classList.contains('selected'));
+  const curVal = fixLayout(el.value);
+
   if (e.key === 'Enter') {
     e.preventDefault();
-    if (cur >= 0 && items[cur]) $('issSn').value = items[cur].dataset.sn;
-    drop.classList.remove('show'); $('issWorker').focus(); return;
+
+    // ⭐ КРИТИЧНО: используем дропдаун ТОЛЬКО если он построен для текущего значения.
+    const dropIsFresh = state.lastDropQuery !== null && state.lastDropQuery === curVal;
+    if (dropIsFresh && drop.classList.contains('show') && cur >= 0 && items[cur]) {
+      el.value = items[cur].dataset.sn;
+    }
+    resetIssueDropdown();
+    $('issWorker').focus();
+    return;
   }
+
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-    if (!items.length) return; e.preventDefault();
+    if (!items.length) return;
+    e.preventDefault();
     if (cur >= 0) items[cur].classList.remove('selected');
     const next = e.key === 'ArrowDown' ? (cur + 1) % items.length : (cur - 1 + items.length) % items.length;
-    items[next].classList.add('selected'); items[next].scrollIntoView({ block: 'nearest' }); return;
+    items[next].classList.add('selected');
+    items[next].scrollIntoView({ block: 'nearest' });
+    return;
   }
-  if (e.key === 'Escape') drop.classList.remove('show');
+
+  if (e.key === 'Escape') resetIssueDropdown();
 }
 
 function handleIssWorkerKeydown(e) { if (e.key === 'Enter') { e.preventDefault(); submitIssue(); } }
 
-/* ⭐ ГЛАВНАЯ ФУНКЦИЯ ВЫДАЧИ */
 async function submitIssue() {
   if (!state.dbReady) {
     showToast('БАЗА НЕ ГОТОВА', 'Подождите пару секунд и попробуйте снова', 'err');
@@ -1183,7 +1390,6 @@ async function submitIssue() {
   if (!rawSn) { $('issSn').classList.add('err'); beep('err'); return; }
   if (!worker) { $('issWorker').classList.add('err'); beep('err'); return; }
 
-  // ⭐ Валидация SN на входе
   const cleanRaw = fixLayout(rawSn);
   if (!SN_REGEX.test(cleanRaw)) {
     $('issSn').classList.add('err');
@@ -1198,7 +1404,6 @@ async function submitIssue() {
     const tailMatches = freeDevs.filter(d => d.serial.toUpperCase().endsWith(cleanRaw));
     const sn = tailMatches.length === 1 ? tailMatches[0].serial : cleanRaw;
 
-    // ⭐ Повторная валидация итогового SN (на случай tail-матча)
     if (!SN_REGEX.test(sn)) {
       $('issSn').classList.add('err');
       beep('err');
@@ -1280,7 +1485,8 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
   setTimeout(() => { state.justIssued = null; }, 2500);
   renderTable();
   $('issSn').value = ''; $('issWorker').value = '';
-  $('issDrop').classList.remove('show'); $('modelHint').innerText = "F1 • Скан ➔ ID ➔ Enter";
+  resetIssueDropdown();
+  $('modelHint').innerText = "F1 • Скан ➔ ID ➔ Enter";
   if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
   updateShiftBanner();
   $('issSn').focus();
@@ -1331,6 +1537,7 @@ async function confirmSwap() {
 
     state.pendingSwap = null;
     $('issSn').value = ''; $('issWorker').value = '';
+    resetIssueDropdown();
     if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
     updateShiftBanner();
     $('issSn').focus();
@@ -1342,7 +1549,6 @@ async function confirmSwap() {
   }
 }
 
-/* ⭐ ТОСТ С ОТМЕНОЙ */
 function showSwapToast(title, desc) {
   const el = $('toast');
   $('tIcon').innerText = '🔁';
@@ -1378,7 +1584,6 @@ function showSwapToast(title, desc) {
   }, 7000);
 }
 
-/* ⭐ ОТМЕНА */
 async function undoSwap() {
   if (!state.lastSwap) return;
   const s = state.lastSwap;
@@ -1388,7 +1593,6 @@ async function undoSwap() {
   state.undoTimeout = null;
 
   try {
-    // 1. Новый сканер: если был создан в процессе замены — УДАЛЯЕМ; иначе восстанавливаем снапшот
     if (!s.newDevSnapshot) {
       await deleteSerial(s.newSn);
       logMsg(`↩ Отмена: удалён созданный ${s.newSn}`);
@@ -1396,7 +1600,6 @@ async function undoSwap() {
       await saveDevice({ ...s.newDevSnapshot, last_move: ts }, 'Отмена замены (восстановление нового)', s.worker);
     }
 
-    // 2. Старый сканер: возвращаем его прежнее состояние
     if (s.oldDevSnapshot) {
       await saveDevice({ ...s.oldDevSnapshot, last_move: ts }, 'Отмена замены (восстановление старого)', s.worker);
     }
@@ -1426,7 +1629,12 @@ function handleRetInput() {
   if (!hasCyr(raw)) { const fixed = fixLayout(raw); if (fixed !== raw) el.value = fixed; }
   const q = el.value.trim();
   const drop = $('retDrop');
-  if (q.length < 1) { drop.classList.remove('show'); return; }
+  if (q.length < 1) {
+    drop.classList.remove('show');
+    drop.innerHTML = '';
+    state.lastRetDropQuery = null;
+    return;
+  }
   const busy = state.devices.filter(d => d.status === 'issued');
   const qu = q.toUpperCase();
   const qNoSpace = qu.replace(/\s+/g, '');
@@ -1441,7 +1649,12 @@ function handleRetInput() {
     if (s.includes(qFixed)) return true;
     return false;
   });
-  if (!matches.length) { drop.classList.remove('show'); return; }
+  if (!matches.length) {
+    drop.classList.remove('show');
+    drop.innerHTML = '';
+    state.lastRetDropQuery = qFixed;
+    return;
+  }
   drop.innerHTML = matches.slice(0, 8).map(d => {
     const sh = d.shift === 'Ночная' ? '🌙' : (d.shift === 'Дневная' ? '☀' : '');
     return `<div class="drop-item" data-sn="${esc(d.serial)}">
@@ -1450,13 +1663,14 @@ function handleRetInput() {
     </div>`;
   }).join('');
   drop.classList.add('show');
+  state.lastRetDropQuery = qFixed;
 }
 
 function handleRetKeydown(e) {
   if (e.key === 'Enter') {
     e.preventDefault();
-    const drop = $('retDrop');
-    if (drop.classList.contains('show')) { const first = drop.querySelector('.drop-item'); if (first) { first.click(); return; } }
+    // ⭐ НЕ доверяем содержимому дропдауна на Enter (сканер шлёт Enter раньше дебаунса).
+    resetRetDropdown();
     quickReturn();
   }
 }
@@ -1465,7 +1679,7 @@ async function quickReturn() {
   if (!state.dbReady) { showToast('БАЗА НЕ ГОТОВА', '', 'err'); return; }
   const raw = $('retQuery').value.trim();
   if (!raw) return;
-  $('retDrop').classList.remove('show');
+  resetRetDropdown();
   const qu = raw.toUpperCase();
   const qNoSpace = qu.replace(/\s+/g, '');
   const qFixed = hasCyr(raw) ? qu : fixLayout(raw);
@@ -1506,6 +1720,7 @@ async function doReturn(sn) {
     showToast(`ПРИБОР ${sn} ПРИНЯТ`, `Сотрудник: ${holder}`);
     logMsg(`ПРИНЯТО: ${sn} от ${holder}`);
     $('retQuery').value = ''; $('retQuery').focus();
+    resetRetDropdown();
     if (state.filter === 'overdue' || state.filter === 'day' || state.filter === 'night') {
       state.filter = 'all';
       document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
@@ -1586,7 +1801,6 @@ function renderRow(d, busy) {
   if (busy && d.shift === 'Дневная') shiftChip = ' <span class="badge-chip chip-day">☀ День</span>';
   else if (busy && d.shift === 'Ночная') shiftChip = ' <span class="badge-chip chip-night">🌙 Ночь</span>';
 
-  // ⭐ Без строковых onclick — только data-атрибуты
   let action = busy
     ? `<button class="btn-hud" style="background:#059669; color:#fff; border:none; padding:5px 12px; font-size:11px;" data-action="return" data-sn="${esc(d.serial)}">Принять</button>`
     : `<button class="btn-hud" style="padding:5px 12px; font-size:11px;" data-action="issue" data-sn="${esc(d.serial)}">Выдать</button>`;
@@ -1653,9 +1867,12 @@ async function openAudit(sn) {
   let moves = [];
   if (cloud && navigator.onLine) {
     try {
-      const { data } = await cloud.from('movements').select('*').eq('serial', sn).order('id', { ascending: false }).limit(25);
+      const { data } = await withTimeout(
+        cloud.from('movements').select('*').eq('serial', sn).order('id', { ascending: false }).limit(25),
+        NET_TIMEOUT_MS, 'audit query'
+      );
       if (data) moves = data;
-    } catch(e) {}
+    } catch(e) { console.warn('[audit]', e.message); }
   }
   if (!moves.length) {
     const local = await new Promise(r => {
@@ -1665,6 +1882,7 @@ async function openAudit(sn) {
         const req = t.objectStore('moves').getAll();
         req.onsuccess = () => r(req.result || []);
         req.onerror = () => r([]);
+        t.onabort = () => r([]);
       } catch(e) { r([]); }
     });
     moves = local.filter(m => m.serial === sn).reverse();
@@ -1730,21 +1948,33 @@ function processImport() {
       loadLocal().then(() => syncNow());
     };
     txm.onerror = () => showToast('ОШИБКА ИМПОРТА', txm.error ? txm.error.message : '?', 'err');
+    txm.onabort = () => showToast('ИМПОРТ ОТМЕНЁН', 'Транзакция прервана', 'err');
   } catch(e) {
     showToast('ОШИБКА ИМПОРТА', e.message, 'err');
   }
 }
 
 function showDiag() {
-  const countReq = db ? (() => new Promise(r => { try { const t = db.transaction('queue','readonly'); const q = t.objectStore('queue').count(); q.onsuccess = () => r(q.result); q.onerror = () => r(0); } catch(e) { r(0); } }))() : Promise.resolve(0);
-  countReq.then(n => {
+  const countReq = db ? (() => new Promise(r => {
+    try {
+      const t = db.transaction('queue','readonly');
+      const q = t.objectStore('queue').count();
+      q.onsuccess = () => r(q.result);
+      q.onerror = () => r(0);
+      t.onabort = () => r(0);
+    } catch(e) { r(0); }
+  }))() : Promise.resolve(0);
+
+  Promise.all([countReq, renderQueuePreview()]).then(([n, preview]) => {
     const lastBk = localStorage.getItem('sklad_last_backup_date') || '—';
     const autoSwapTxt = state.autoSwap ? 'ВКЛ (без окна)' : 'выкл (с окном)';
     const autoSwapColor = state.autoSwap ? 'var(--neon-emerald)' : 'var(--text-muted)';
     const dbOk = state.dbReady ? '✅ OK' : '❌ не готова';
     const dbColor = state.dbReady ? 'var(--neon-emerald)' : 'var(--neon-rose)';
+    const syncTxt = state.syncing ? '<span style="color:var(--neon-amber);">● идёт</span>' : '<span style="color:var(--neon-emerald);">○ idle</span>';
+
     $('diagContent').innerHTML = `
-      <div>БД: <span style="color:${dbColor};">${dbOk}</span></div>
+      <div>БД: <span style="color:${dbColor};">${dbOk}</span> &nbsp; SYNC: ${syncTxt}</div>
       <div>ЛОКАЛЬНО: <span style="color:var(--neon-cyan);">${state.devices.length}</span> шт.</div>
       <div>SUPABASE: <span style="color:#fff;">${SUPABASE_URL.replace('https://','').split('.')[0]}...</span></div>
       <div>ОЧЕРЕДЬ ПАКЕТОВ: <span style="color:var(--neon-cyan);">${n}</span></div>
@@ -1752,6 +1982,17 @@ function showDiag() {
       <div>АВТО-ЗАМЕНА: <span style="color:${autoSwapColor};">${autoSwapTxt}</span> <button class="btn-hud" style="padding:2px 8px; font-size:10px; margin-left:8px;" onclick="toggleAutoSwap()">${state.autoSwap ? 'Отключить' : 'Включить'}</button></div>
       <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--neon-emerald);">${lastBk}</span></div>
       <div>ПОСЛЕДНЯЯ ОШИБКА: <span style="color:var(--neon-rose);">${esc(state.lastError)}</span></div>
+      ${n ? `
+        <div style="margin-top:12px; border-top:1px solid rgba(255,255,255,0.08); padding-top:8px;">
+          <div style="font-size:11px; font-weight:800; color:var(--neon-amber); margin-bottom:6px;">⚠ ОЧЕРЕДЬ (первые 30):</div>
+          <div style="max-height:220px; overflow-y:auto; background:rgba(0,0,0,0.35); border-radius:6px; padding:6px 10px;">
+            ${preview}
+          </div>
+          <div style="margin-top:8px;">
+            <button class="btn-hud" style="border-color:rgba(244,63,94,0.4); color:var(--neon-rose); font-size:10px;" onclick="clearStuckQueue()">🗑 Очистить очередь (данные не тронем)</button>
+          </div>
+        </div>
+      ` : ''}
     `;
     openModal('diagModal');
   });
@@ -1808,7 +2049,6 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 });
 
 function showToast(title, desc, kind = 'ok') {
-  // ⭐ Любой обычный тост сбрасывает ожидающую отмену замены
   clearTimeout(state.undoTimeout);
   state.undoTimeout = null;
   state.lastSwap = null;
@@ -1830,10 +2070,9 @@ function showToast(title, desc, kind = 'ok') {
 }
 
 /* ============================================================
-   ДЕЛЕГИРОВАНИЕ СОБЫТИЙ (защита от XSS)
+   ДЕЛЕГИРОВАНИЕ СОБЫТИЙ (защита от XSS + быстрый клик по дропу)
    ============================================================ */
 function setupDelegation() {
-  // Таблица: аудит / принять / выдать
   $('tbody').addEventListener('click', e => {
     const target = e.target.closest('[data-action]');
     if (!target) return;
@@ -1844,25 +2083,22 @@ function setupDelegation() {
     else if (action === 'issue')  pickForIssue(sn);
   });
 
-  // Drop выдачи
   $('issDrop').addEventListener('click', e => {
     const item = e.target.closest('.drop-item');
     if (!item) return;
     $('issSn').value = item.dataset.sn;
-    $('issDrop').classList.remove('show');
+    resetIssueDropdown();
     $('issWorker').focus();
   });
 
-  // Drop сдачи
   $('retDrop').addEventListener('click', e => {
     const item = e.target.closest('.drop-item');
     if (!item) return;
     $('retQuery').value = item.dataset.sn;
-    $('retDrop').classList.remove('show');
+    resetRetDropdown();
     quickReturn();
   });
 
-  // Список уточнения (несколько совпадений)
   $('pickList').addEventListener('click', e => {
     const item = e.target.closest('.drop-item');
     if (!item) return;
@@ -1870,14 +2106,12 @@ function setupDelegation() {
     doReturn(item.dataset.sn);
   });
 
-  // Список удаления
   $('delList').addEventListener('click', e => {
     const btn = e.target.closest('[data-del-sn]');
     if (!btn) return;
     confirmDelete(btn.dataset.delSn);
   });
 
-  // Список бэкапов
   $('backupList').addEventListener('click', e => {
     const btn = e.target.closest('[data-bk-action]');
     if (!btn) return;
@@ -1974,7 +2208,8 @@ window.addEventListener('DOMContentLoaded', () => {
   $('issSn').focus();
 });
 
-setInterval(syncNow, 8000);
+// ⭐ Автосинк: 20 сек (было 8) — очередь успевает разгрузиться между итерациями
+setInterval(syncNow, SYNC_INTERVAL_MS);
 setInterval(renderTable, 30000);
 window.addEventListener('online', syncNow);
 window.addEventListener('offline', () => setSync(false, 'Офлайн'));
