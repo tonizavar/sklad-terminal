@@ -149,47 +149,20 @@
   .chip-day { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
   .chip-night { background: rgba(192,132,252,0.15); color: #c084fc; border: 1px solid rgba(192,132,252,0.3); }
 
-  /* ⭐ НОВОЕ ОТОБРАЖЕНИЕ ВРЕМЕНИ */
-  .time-cell {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 3px;
-  }
-  .time-value {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 15px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 1;
-  }
+  /* НОВОЕ ОТОБРАЖЕНИЕ ВРЕМЕНИ */
+  .time-cell { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .time-value { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
   .time-value.fresh { color: var(--neon-emerald); }
   .time-value.mid { color: #fbbf24; }
   .time-value.late { color: #fb923c; }
   .time-value.over { color: var(--neon-rose); text-shadow: 0 0 10px rgba(244,63,94,0.4); }
-  .time-bar {
-    width: 60px;
-    height: 4px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 2px;
-    overflow: hidden;
-    position: relative;
-  }
-  .time-bar-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 0.3s;
-  }
+  .time-bar { width: 60px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+  .time-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
   .time-bar-fill.fresh { background: linear-gradient(90deg, #10b981, #34d399); }
   .time-bar-fill.mid { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
   .time-bar-fill.late { background: linear-gradient(90deg, #f97316, #fb923c); }
   .time-bar-fill.over { background: linear-gradient(90deg, #f43f5e, #fb7185); }
-  .time-issued {
-    font-size: 9.5px;
-    color: var(--text-muted);
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.02em;
-  }
+  .time-issued { font-size: 9.5px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
 
   #toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-120px); background: #091724; border: 2px solid var(--neon-emerald); border-radius: 14px; padding: 14px 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(16,185,129,0.4); display: flex; align-items: center; gap: 16px; z-index: 10000; opacity: 0; transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; max-width: 90vw; }
   #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
@@ -245,6 +218,18 @@
   .del-row .del-btn:hover { background: var(--neon-rose); color: #fff; }
   .del-empty { padding: 30px 20px; text-align: center; color: var(--text-muted); font-size: 12px; }
 
+  /* Backup modal */
+  .backup-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; gap: 10px; }
+  .backup-row:last-child { border-bottom: none; }
+  .backup-row:hover { background: rgba(56,189,248,0.05); }
+  .backup-info { flex: 1; min-width: 0; }
+  .backup-name { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--neon-cyan); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .backup-meta { font-size: 10.5px; color: var(--text-secondary); margin-top: 2px; }
+  .backup-btn-restore { padding: 4px 10px; border-radius: 6px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: var(--neon-emerald); font-size: 10.5px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .backup-btn-restore:hover { background: var(--neon-emerald); color: #fff; }
+  .backup-btn-delete { padding: 4px 10px; border-radius: 6px; background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.4); color: var(--neon-rose); font-size: 10.5px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .backup-btn-delete:hover { background: var(--neon-rose); color: #fff; }
+
   @media print {
     body { background: #fff !important; color: #000 !important; overflow: visible !important; height: auto !important; padding: 0 !important; }
     .hud-header, .metrics-grid, .terminal-grid, .hud-actions, .reg-head input, .btn-hud, #toast, .drop-box, #logStatus { display: none !important; }
@@ -263,7 +248,7 @@
 <div class="app-shell">
   <header class="hud-header">
     <div class="brand-zone">
-      <div id="brandTag" class="brand-tag mono" title="v8.13">TERMINAL</div>
+      <div id="brandTag" class="brand-tag mono" title="v8.14">TERMINAL</div>
       <div class="brand-title">
         <h1>Учёт Оборудования</h1>
         <p>Двухпостовой Cloud • Автономная работа • Экспресс-замена</p>
@@ -274,6 +259,7 @@
         <span class="dot-ping"></span>
         <span id="syncText">Онлайн</span>
       </div>
+      <button class="btn-hud" onclick="openBackupModal()" title="Резервные копии">💾 Бэкап</button>
       <button class="btn-hud" onclick="exportExcel()" title="Ctrl+E">📊 Excel</button>
       <button class="btn-hud" onclick="openModal('impModal')" title="Ctrl+I">📥 Импорт</button>
     </div>
@@ -440,6 +426,23 @@
   </div>
 </div>
 
+<div id="backupModal" class="modal-overlay">
+  <div class="modal-card" style="max-width:640px;">
+    <h3 style="font-size:14px; margin-bottom:6px; color:var(--neon-cyan);">💾 РЕЗЕРВНЫЕ КОПИИ</h3>
+    <p style="font-size:11.5px; color:var(--text-secondary); margin-bottom:14px;">
+      Автосохранение раз в день в Supabase Storage. Хранятся последние 7 файлов.
+    </p>
+    <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+      <button class="btn-hud" style="border-color:rgba(0,242,254,0.4); color:var(--neon-cyan);" onclick="doBackup('manual')">💾 Создать бэкап сейчас</button>
+      <button class="btn-hud" onclick="renderBackupList()">🔄 Обновить список</button>
+    </div>
+    <div id="backupList" style="max-height:50vh; overflow-y:auto; border:1px solid rgba(255,255,255,0.06); border-radius:10px;"></div>
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+      <button class="btn-hud" onclick="closeModal('backupModal')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ============================================================
    КОНФИГ
@@ -447,6 +450,10 @@
 const SUPABASE_URL = "https://sgpkvnymkqwuhepkaoxw.supabase.co";
 const SUPABASE_KEY = "sb_publishable_dqlmOngeOHVYMFUG1s4kLw_N1Pxi9KW";
 const OVERDUE_H = 12;
+
+const BACKUP_BUCKET = 'sklad-backups';
+const BACKUP_KEEP = 7;
+const BACKUP_MIN_INTERVAL = 6 * 60 * 60 * 1000; // 6 часов
 
 const state = {
   devices: [],
@@ -488,9 +495,7 @@ function detectModel(sn) {
   return 'Point Mobile';
 }
 function hoursSince(iso) { return iso ? (Date.now() - Date.parse(iso)) / 3600000 : 0; }
-function fmtHours(h) { if (h < 1) return Math.round(h * 60) + ' мин'; return (Math.round(h * 10) / 10) + ' ч'; }
 
-/* ⭐ НОВОЕ: короткое отображение времени */
 function fmtHoursShort(h) {
   const totalMin = Math.round(h * 60);
   const hours = Math.floor(totalMin / 60);
@@ -506,7 +511,6 @@ function timeClass(h) {
   return 'fresh';
 }
 function timeBarWidth(h) {
-  // 0-12ч → 0-100%
   const pct = Math.min(100, (h / OVERDUE_H) * 100);
   return Math.max(3, pct);
 }
@@ -756,6 +760,9 @@ function normalizeCloudDevice(row) {
   return { serial: String(sn), model: row.model || detectModel(sn), status, holder: cleanHolder, issued_at: issuedAt, last_move: lastMove, shift };
 }
 
+/* ============================================================
+   СИНХРОНИЗАЦИЯ
+   ============================================================ */
 async function syncNow() {
   if (state.syncing) return;
   if (!cloud || !navigator.onLine) { setSync(false, 'Офлайн'); return; }
@@ -809,6 +816,9 @@ async function syncNow() {
 
     state.lastError = failCount ? `отложено: ${failCount}` : '—';
     setSync(true, 'Онлайн');
+
+    // Авто-бэкап раз в день
+    setTimeout(() => { checkAutoBackup(); }, 2000);
   } catch(e) {
     state.lastError = e.message || 'Ошибка сети';
     setSync(false, 'Сбой сети');
@@ -838,6 +848,217 @@ function setSync(ok, txt, busy = false) {
   $('syncText').innerText = txt;
 }
 async function forceSync() { closeModal('diagModal'); state.syncing = false; await syncNow(); }
+
+/* ============================================================
+   АВТО-БЭКАП В SUPABASE STORAGE
+   ============================================================ */
+async function checkAutoBackup() {
+  if (!cloud || !navigator.onLine) return;
+  if (!state.devices.length) return;
+
+  const lastDate = localStorage.getItem('sklad_last_backup_date');
+  const today = new Date().toISOString().slice(0, 10);
+  if (lastDate === today) return;
+
+  const lastTime = parseInt(localStorage.getItem('sklad_last_backup_time') || '0');
+  if (Date.now() - lastTime < BACKUP_MIN_INTERVAL) return;
+
+  await doBackup('auto');
+}
+
+async function doBackup(trigger) {
+  if (!cloud || !navigator.onLine) {
+    if (trigger === 'manual') showToast('БЭКАП', 'Нет соединения', 'warn');
+    return;
+  }
+  if (!state.devices.length) {
+    if (trigger === 'manual') showToast('БЭКАП', 'Нет данных для сохранения', 'warn');
+    return;
+  }
+
+  try {
+    const backup = {
+      version: 1,
+      created_at: nowIso(),
+      total: state.devices.length,
+      devices: state.devices.map(d => ({
+        serial: d.serial,
+        model: d.model,
+        status: d.status,
+        holder: d.holder,
+        shift: d.shift,
+        issued_at: d.issued_at,
+        last_move: d.last_move
+      }))
+    };
+
+    const date = new Date().toISOString().slice(0, 10);
+    const time = new Date().toISOString().slice(11, 16).replace(':', '');
+    const filename = `backup-${date}-${time}.json`;
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+
+    const { error } = await cloud.storage
+      .from(BACKUP_BUCKET)
+      .upload(filename, blob, { upsert: true, contentType: 'application/json' });
+
+    if (error) throw error;
+
+    localStorage.setItem('sklad_last_backup_date', date);
+    localStorage.setItem('sklad_last_backup_time', String(Date.now()));
+
+    logMsg(`💾 бэкап: ${filename} (${state.devices.length} ТСД)`);
+    console.log('[backup] OK', filename);
+
+    if (trigger === 'manual') {
+      showToast('БЭКАП СОЗДАН', `${state.devices.length} ТСД → ${filename}`);
+      renderBackupList();
+    }
+
+    await cleanupOldBackups();
+  } catch(e) {
+    console.error('[backup]', e);
+    const msg = e.message || '?';
+    state.lastError = 'backup: ' + msg;
+
+    if (trigger === 'manual') {
+      if (/bucket.*not.*found|does not exist/i.test(msg)) {
+        showToast('НЕТ БАКЕТА', 'Создайте bucket "sklad-backups" в Supabase Storage', 'err');
+      } else if (/permission|policy|unauthorized/i.test(msg)) {
+        showToast('НЕТ ДОСТУПА', 'Проверьте RLS-политику для bucket', 'err');
+      } else {
+        showToast('ОШИБКА БЭКАПА', msg, 'err');
+      }
+    }
+  }
+}
+
+async function cleanupOldBackups() {
+  try {
+    const { data, error } = await cloud.storage
+      .from(BACKUP_BUCKET)
+      .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
+    if (error || !data) return;
+
+    const backups = data
+      .filter(f => f.name.startsWith('backup-') && f.name.endsWith('.json'))
+      .sort((a, b) => b.name.localeCompare(a.name));
+
+    if (backups.length <= BACKUP_KEEP) return;
+
+    const toDelete = backups.slice(BACKUP_KEEP);
+    for (const f of toDelete) {
+      try {
+        await cloud.storage.from(BACKUP_BUCKET).remove([f.name]);
+        console.log('[backup] удалён старый:', f.name);
+      } catch(e) { console.warn('[backup] не удалить:', f.name); }
+    }
+  } catch(e) { console.warn('[backup] cleanup:', e); }
+}
+
+async function listBackups() {
+  if (!cloud) return [];
+  try {
+    const { data, error } = await cloud.storage
+      .from(BACKUP_BUCKET)
+      .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } });
+    if (error || !data) return [];
+    return data
+      .filter(f => f.name.startsWith('backup-') && f.name.endsWith('.json'))
+      .sort((a, b) => b.name.localeCompare(a.name));
+  } catch(e) { return []; }
+}
+
+async function renderBackupList() {
+  const wrap = $('backupList');
+  if (!wrap) return;
+  wrap.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8; font-size:12px;">Загрузка...</div>';
+
+  const files = await listBackups();
+  if (!files.length) {
+    wrap.innerHTML = '<div style="padding:30px 20px; text-align:center; color:#475569; font-size:12px;">Бэкапов пока нет<br><span style="font-size:10.5px;">Первый создастся автоматически в течение дня</span></div>';
+    return;
+  }
+
+  wrap.innerHTML = files.map(f => {
+    const sizeKb = Math.round((f.metadata?.size || 0) / 1024);
+    const date = new Date(f.created_at || f.updated_at || Date.now());
+    const dateStr = date.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return `<div class="backup-row">
+      <div class="backup-info">
+        <div class="backup-name">${esc(f.name)}</div>
+        <div class="backup-meta">${dateStr} · ${sizeKb} КБ</div>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button class="backup-btn-restore" onclick="restoreFromBackup('${esc(f.name)}')">📥 Восстановить</button>
+        <button class="backup-btn-delete" onclick="deleteBackup('${esc(f.name)}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function restoreFromBackup(filename) {
+  if (!cloud) return;
+  try {
+    const { data, error } = await cloud.storage.from(BACKUP_BUCKET).download(filename);
+    if (error) throw error;
+
+    const text = await data.text();
+    const backup = JSON.parse(text);
+    const devices = backup.devices || [];
+    if (!devices.length) throw new Error('Пустой бэкап');
+
+    const dateStr = backup.created_at ? new Date(backup.created_at).toLocaleString('ru-RU') : '—';
+    const ok = confirm(
+      `Восстановить данные из бэкапа?\n\n` +
+      `📁 Файл: ${filename}\n` +
+      `📅 Дата: ${dateStr}\n` +
+      `📦 ТСД: ${devices.length}\n\n` +
+      `⚠️ Текущие локальные данные будут заменены.\n` +
+      `Облако Supabase не затрагивается.`
+    );
+    if (!ok) return;
+
+    await new Promise((resolve, reject) => {
+      const t = db.transaction(['devices', 'queue'], 'readwrite');
+      t.objectStore('devices').clear();
+      t.objectStore('queue').clear();
+      t.oncomplete = resolve;
+      t.onerror = () => reject(t.error);
+    });
+
+    await new Promise((resolve, reject) => {
+      const t = db.transaction('devices', 'readwrite');
+      const s = t.objectStore('devices');
+      devices.forEach(d => { if (d && d.serial) s.put(d); });
+      t.oncomplete = resolve;
+      t.onerror = () => reject(t.error);
+    });
+
+    await loadLocal();
+    closeModal('backupModal');
+    showToast('ВОССТАНОВЛЕНО', `${devices.length} ТСД из ${filename}`);
+    logMsg(`📥 восстановлено из ${filename}: ${devices.length}`);
+  } catch(e) {
+    showToast('ОШИБКА', e.message || '?', 'err');
+  }
+}
+
+async function deleteBackup(filename) {
+  if (!confirm(`Удалить бэкап "${filename}"?`)) return;
+  try {
+    const { error } = await cloud.storage.from(BACKUP_BUCKET).remove([filename]);
+    if (error) throw error;
+    showToast('УДАЛЕНО', filename, 'warn');
+    renderBackupList();
+  } catch(e) {
+    showToast('ОШИБКА', e.message || '?', 'err');
+  }
+}
+
+function openBackupModal() {
+  openModal('backupModal');
+  renderBackupList();
+}
 
 /* ============================================================
    ВЫДАЧА
@@ -1170,7 +1391,6 @@ function renderTable() {
       ? `<button class="btn-hud" style="background:#059669; color:#fff; border:none; padding:4px 10px;" onclick="quickReturnFromRow('${esc(d.serial)}')">Принять</button>`
       : `<button class="btn-hud" style="padding:4px 10px;" onclick="pickForIssue('${esc(d.serial)}')">Выдать</button>`;
 
-    // ⭐ НОВОЕ ОТОБРАЖЕНИЕ ВРЕМЕНИ
     let timeHtml = '';
     if (busy) {
       const cls = timeClass(h);
@@ -1298,10 +1518,12 @@ function processImport() {
 
 function showDiag() {
   idb.count('queue').then(n => {
+    const lastBk = localStorage.getItem('sklad_last_backup_date') || '—';
     $('diagContent').innerHTML = `
       <div>SUPABASE: <span style="color:#fff;">${SUPABASE_URL.replace('https://','').split('.')[0]}...</span></div>
       <div>ОЧЕРЕДЬ ПАКЕТОВ: <span style="color:var(--neon-cyan);">${n}</span></div>
       <div>СМЕНА ВЫДАЧИ: <span style="color:${state.issueShift==='Ночная'?'var(--neon-purple)':'#fbbf24'};">${state.issueShift}</span> (${state.issueShiftAuto ? 'авто' : 'вручную'})</div>
+      <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--neon-emerald);">${lastBk}</span></div>
       <div>ПОСЛЕДНЯЯ ОШИБКА: <span style="color:var(--neon-rose);">${esc(state.lastError)}</span></div>
     `;
     openModal('diagModal');
@@ -1434,6 +1656,12 @@ document.addEventListener('keydown', e => {
   if ($('delModal').classList.contains('show') && e.key === 'Escape') {
     e.preventDefault();
     closeModal('delModal');
+    return;
+  }
+
+  if ($('backupModal').classList.contains('show') && e.key === 'Escape') {
+    e.preventDefault();
+    closeModal('backupModal');
     return;
   }
 
