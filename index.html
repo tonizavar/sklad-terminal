@@ -127,30 +127,9 @@
   .reg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
   .reg-wrap { overflow-y: auto; flex: 1; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); min-height: 0; }
 
-  /* ⭐ ТАБЛИЦА ПО СКРИНШОТУ */
   table { width: 100%; border-collapse: collapse; font-size: 12.5px; background: rgba(4,7,15,0.4); table-layout: auto; }
-  th {
-    background: rgba(13,20,36,0.98);
-    font-size: 10.5px;
-    font-weight: 800;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-    letter-spacing: 0.08em;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    padding: 14px 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    text-align: left;
-    vertical-align: middle;
-  }
-  td {
-    padding: 11px 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    text-align: left;
-    vertical-align: middle;
-    line-height: 1.3;
-  }
+  th { background: rgba(13,20,36,0.98); font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.08em; position: sticky; top: 0; z-index: 2; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; vertical-align: middle; }
+  td { padding: 11px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: left; vertical-align: middle; line-height: 1.3; }
   tbody tr { height: 42px; }
   tbody tr:hover { background: rgba(56,189,248,0.06); }
   tbody tr.row-overdue { background: rgba(244,63,94,0.12); }
@@ -169,21 +148,13 @@
   .chip-day { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
   .chip-night { background: rgba(192,132,252,0.15); color: #c084fc; border: 1px solid rgba(192,132,252,0.3); }
 
-  .time-inline {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 9px;
-    font-family: 'JetBrains Mono', monospace;
-    vertical-align: middle;
-  }
+  .time-inline { display: inline-flex; align-items: center; justify-content: flex-end; gap: 9px; font-family: 'JetBrains Mono', monospace; vertical-align: middle; }
   .time-inline .val { font-size: 14px; font-weight: 800; letter-spacing: -0.02em; min-width: 68px; text-align: right; }
   .time-inline .val.fresh { color: var(--neon-emerald); }
   .time-inline .val.mid { color: #fbbf24; }
   .time-inline .val.late { color: #fb923c; }
   .time-inline .val.over { color: var(--neon-rose); text-shadow: 0 0 8px rgba(244,63,94,0.4); }
   .time-inline .val.empty { color: var(--text-muted); font-weight: 500; font-size: 12px; }
-
   .time-inline .bar { width: 48px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
   .time-inline .bar-fill { height: 100%; border-radius: 2px; display: block; }
   .time-inline .bar-fill.fresh { background: #34d399; }
@@ -191,11 +162,11 @@
   .time-inline .bar-fill.late { background: #fb923c; }
   .time-inline .bar-fill.over { background: #f43f5e; }
   .time-inline .bar-fill.zero { background: rgba(255,255,255,0.05); }
-
   .time-inline .sub { font-size: 10.5px; color: var(--text-muted); min-width: 96px; text-align: right; letter-spacing: 0.02em; }
+  .time-inline .inherit-mark { font-size: 12px; color: var(--neon-cyan); cursor: help; margin-left: -2px; filter: drop-shadow(0 0 4px rgba(0, 242, 254, 0.5)); }
 
   #toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-120px); background: #091724; border: 2px solid var(--neon-emerald); border-radius: 14px; padding: 14px 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(16,185,129,0.4); display: flex; align-items: center; gap: 16px; z-index: 10000; opacity: 0; transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; max-width: 90vw; }
-  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
   #toast.err { border-color: var(--neon-rose); box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(244,63,94,0.4); }
   #toast.err .t-icon { background: rgba(244,63,94,0.2); border-color: var(--neon-rose); color: var(--neon-rose); }
   #toast.warn { border-color: var(--neon-amber); box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(245,158,11,0.4); }
@@ -205,6 +176,8 @@
   #toast.err .t-body h4 { color: #fb7185; }
   #toast.warn .t-body h4 { color: #fbbf24; }
   .t-body p { font-size: 12px; color: #cbd5e1; margin-top: 2px; }
+  .t-undo { margin-left: 8px; padding: 5px 12px; background: rgba(0,242,254,0.15); border: 1px solid rgba(0,242,254,0.5); color: #67e8f9; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; pointer-events: auto; font-family: 'Plus Jakarta Sans', sans-serif; white-space: nowrap; }
+  .t-undo:hover { background: var(--neon-cyan); color: #030712; border-color: var(--neon-cyan); }
 
   .audit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); display: none; z-index: 9998; opacity: 0; transition: opacity 0.25s ease; }
   .audit-overlay.show { display: block; opacity: 1; }
@@ -235,6 +208,7 @@
   .swap-card.old .sn { color: #fb7185; }
   .swap-card.new .sn { color: #34d399; }
   .swap-arrow { font-size: 26px; color: var(--neon-amber); }
+  .swap-inherit-note { display: flex; align-items: center; gap: 8px; background: rgba(0,242,254,0.08); border: 1px solid rgba(0,242,254,0.3); border-radius: 8px; padding: 9px 12px; font-size: 11.5px; color: #67e8f9; margin-bottom: 8px; }
 
   .del-search { width: 100%; padding: 10px 14px; background: rgba(5,9,18,0.85); border: 1px solid rgba(255,255,255,0.12); border-radius: 9px; color: #fff; font-size: 13px; outline: none; font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; }
   .del-search:focus { border-color: var(--neon-rose); box-shadow: 0 0 0 2px rgba(244,63,94,0.15); }
@@ -277,7 +251,7 @@
 <div class="app-shell">
   <header class="hud-header">
     <div class="brand-zone">
-      <div id="brandTag" class="brand-tag mono" title="v8.22">TERMINAL</div>
+      <div id="brandTag" class="brand-tag mono" title="v8.25">TERMINAL</div>
       <div class="brand-title">
         <h1>Учёт Оборудования</h1>
         <p>Двухпостовой Cloud • Автономная работа • Экспресс-замена</p>
@@ -307,7 +281,7 @@
     <div class="deck-card">
       <div class="deck-header">
         <span class="deck-title" style="color:var(--neon-cyan);">📤 1. ВЫДАЧА СКАНЕРА</span>
-        <span id="modelHint" class="mono" style="font-size:11px; color:var(--text-secondary);">F1 • Скан сканера ➔ Enter к ID</span>
+        <span id="modelHint" class="mono" style="font-size:11px; color:var(--text-secondary);">F1 • Скан ➔ ID ➔ Enter</span>
       </div>
       <form id="issueForm" autocomplete="off">
         <div class="form-row">
@@ -372,7 +346,7 @@
         <tbody id="tbody"></tbody>
       </table>
     </div>
-    <div style="margin-top:6px; font-family:'JetBrains Mono'; font-size:11px; color:#94a3b8;" id="logStatus">[SYSTEM] Пульт готов к работе.</div>
+    <div style="margin-top:6px; font-family:'JetBrains Mono'; font-size:11px; color:#94a3b8;" id="logStatus">[SYSTEM] Инициализация...</div>
   </section>
 </div>
 
@@ -399,11 +373,15 @@
 <div id="swapModal" class="modal-overlay">
   <div class="modal-card">
     <h3 style="font-size:15px; margin-bottom:10px; color:var(--neon-amber);">🔄 ЭКСПРЕСС-ЗАМЕНА СКАНЕРА</h3>
-    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:6px;">На сотруднике <b id="swapWorker" style="color:#fff;"></b> уже числится прибор. Сдадим старый и выдадим новый в 1 шаг:</p>
+    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:6px;">На сотруднике <b id="swapWorker" style="color:#fff;"></b> уже числится прибор:</p>
     <div class="swap-grid">
       <div class="swap-card old"><div class="label">Сдать на склад</div><div class="sn" id="swapOldSn">—</div><div class="model" id="swapOldModel" style="font-size:11px; color:var(--text-secondary); margin-top:2px;">—</div></div>
       <div class="swap-arrow">→</div>
       <div class="swap-card new"><div class="label">Выдать в работу</div><div class="sn" id="swapNewSn">—</div><div class="model" id="swapNewModel" style="font-size:11px; color:var(--text-secondary); margin-top:2px;">—</div></div>
+    </div>
+    <div class="swap-inherit-note">
+      <span style="font-size:16px;">🔁</span>
+      <span>Время на руках: <b id="swapInheritTime" style="color:#fff;">—</b> — переносится со старого сканера</span>
     </div>
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
       <button class="btn-hud" onclick="closeModal('swapModal')">Отмена</button>
@@ -436,9 +414,10 @@
   <div class="modal-card">
     <h3 style="font-size:14px; margin-bottom:10px; color:var(--neon-cyan);">⚡ СТАТУС СИНХРОНИЗАЦИИ</h3>
     <div id="diagContent" class="mono" style="font-size:12px; line-height:1.8; color:#94a3b8; margin-bottom:14px;"></div>
-    <div style="display:flex; justify-content:flex-end; gap:8px;">
+    <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
       <button class="btn-hud" onclick="closeModal('diagModal')">Закрыть</button>
-      <button class="btn-submit btn-issue" style="width:auto; padding:6px 14px;" onclick="forceSync()">Форсировать синхронизацию</button>
+      <button class="btn-hud" style="border-color:rgba(244,63,94,0.4); color:var(--neon-rose);" onclick="hardReset()">🔥 Жёсткий сброс</button>
+      <button class="btn-submit btn-issue" style="width:auto; padding:6px 14px;" onclick="forceSync()">Форсировать sync</button>
     </div>
   </div>
 </div>
@@ -479,18 +458,27 @@
 const SUPABASE_URL = "https://sgpkvnymkqwuhepkaoxw.supabase.co";
 const SUPABASE_KEY = "sb_publishable_dqlmOngeOHVYMFUG1s4kLw_N1Pxi9KW";
 const OVERDUE_H = 12;
-
 const BACKUP_BUCKET = 'sklad-backups';
 const BACKUP_KEEP = 7;
 const BACKUP_MIN_INTERVAL = 6 * 60 * 60 * 1000;
 const RECENT_LOCAL_TTL = 60 * 1000;
+const AUTO_SWAP_KEY = 'sklad_auto_swap_v2';
 
 const state = {
   devices: [], filter: 'all', shift: 'auto',
   issueShift: 'Дневная', issueShiftAuto: true, workerShifts: {},
-  syncing: false, lastError: '—', pendingSwap: null,
-  justIssued: null, justReturned: null
+  syncing: false, dbReady: false, lastError: '—',
+  pendingSwap: null,
+  justIssued: null, justReturned: null,
+  autoSwap: true,
+  lastSwap: null,
+  undoTimeout: null
 };
+
+try {
+  const v = localStorage.getItem(AUTO_SWAP_KEY);
+  state.autoSwap = v === null ? true : v === 'true';
+} catch(e) { state.autoSwap = true; }
 
 try { state.workerShifts = JSON.parse(localStorage.getItem('sklad_worker_shifts') || '{}'); } catch(e) { state.workerShifts = {}; }
 
@@ -539,12 +527,21 @@ function timeBarWidth(h) {
   const pct = Math.min(100, (h / OVERDUE_H) * 100);
   return Math.max(3, pct);
 }
+function isInheritedTime(d) {
+  if (!d || d.status !== 'issued' || !d.issued_at || !d.last_move) return false;
+  const diff = Math.abs(Date.parse(d.last_move) - Date.parse(d.issued_at));
+  return diff > 60 * 1000;
+}
 
 function logMsg(msg) {
   const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const el = $('logStatus'); if (el) el.innerText = `[${t}] ${msg}`;
+  console.log(`[LOG ${t}] ${msg}`);
 }
 
+/* ============================================================
+   СМЕНЫ
+   ============================================================ */
 function computeSmartShift(worker) {
   const now = new Date();
   const hm = now.getHours() * 60 + now.getMinutes();
@@ -577,20 +574,17 @@ function updateShiftBanner() {
 function saveShiftPref() {
   try { localStorage.setItem('sklad_shift_pref', JSON.stringify({ auto: state.issueShiftAuto, shift: state.issueShift })); } catch(e) {}
 }
-
 function toggleShift() {
   state.issueShift = (state.issueShift === 'Дневная') ? 'Ночная' : 'Дневная';
   state.issueShiftAuto = false;
   saveShiftPref(); updateShiftBanner();
 }
-
 function resetShiftToAuto() {
   state.issueShiftAuto = true;
   state.issueShift = computeSmartShift($('issWorker').value.trim());
   saveShiftPref(); updateShiftBanner();
   showToast('АВТОРЕЖИМ', 'Смена определяется по времени', 'warn');
 }
-
 function refreshSmartShift() {
   if (!state.issueShiftAuto) { updateShiftBanner(); return; }
   const worker = $('issWorker').value.trim();
@@ -598,7 +592,6 @@ function refreshSmartShift() {
   if (smart !== state.issueShift) state.issueShift = smart;
   updateShiftBanner();
 }
-
 function rememberWorkerShift(worker, shift) {
   if (!worker) return;
   const key = String(worker).trim().toUpperCase();
@@ -608,6 +601,9 @@ function rememberWorkerShift(worker, shift) {
   try { localStorage.setItem('sklad_worker_shifts', JSON.stringify(state.workerShifts)); } catch(e) {}
 }
 
+/* ============================================================
+   AUDIO
+   ============================================================ */
 let audioCtx = null;
 function beep(type) {
   try {
@@ -635,6 +631,9 @@ function beep(type) {
   if (navigator.vibrate) navigator.vibrate(type === 'err' ? [60, 40, 60] : 40);
 }
 
+/* ============================================================
+   SUPABASE + IDB
+   ============================================================ */
 let cloud = null;
 try { cloud = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } }); } catch (e) {}
 
@@ -647,8 +646,18 @@ DB_REQ.onupgradeneeded = e => {
   if (!d.objectStoreNames.contains("moves"))   d.createObjectStore("moves",   { autoIncrement: true });
 };
 DB_REQ.onblocked = () => showToast('БАЗА ЗАНЯТА', 'Закройте другие вкладки и нажмите F5', 'warn');
-DB_REQ.onsuccess = async e => { db = e.target.result; loadLocal(); syncNow(); };
-DB_REQ.onerror = () => showToast('ОШИБКА ХРАНИЛИЩА', 'Локальная база недоступна', 'err');
+DB_REQ.onsuccess = async e => {
+  db = e.target.result;
+  state.dbReady = true;
+  console.log('[DB] Открыта');
+  loadLocal();
+  syncNow();
+};
+DB_REQ.onerror = e => {
+  state.dbReady = false;
+  console.error('[DB] Ошибка:', e.target.error);
+  showToast('ОШИБКА БАЗЫ', e.target.error ? e.target.error.message : '?', 'err');
+};
 
 function txStore(store, mode = 'readonly') { return db.transaction(store, mode).objectStore(store); }
 const idb = {
@@ -658,29 +667,65 @@ const idb = {
 };
 
 function loadLocal() {
-  const tx = db.transaction("devices", "readonly");
-  const req = tx.objectStore("devices").getAll();
-  req.onsuccess = () => { state.devices = req.result || []; renderTable(); };
-}
-
-function saveDevice(dev, actionName, workerName) {
-  return new Promise((resolve, reject) => {
-    const t = db.transaction(["devices", "queue", "moves"], "readwrite");
-    t.objectStore("devices").put(dev);
-    t.objectStore("queue").add({ type: 'upsert', dev: dev, action: actionName, worker: workerName || '', ts: nowIso() });
-    t.objectStore("moves").add({ serial: dev.serial, action: actionName, worker: workerName || '', created_at: nowIso() });
-    t.oncomplete = () => {
-      recentLocal.set(dev.serial, Date.now());
-      if (recentLocal.size > 300) {
-        const cutoff = Date.now() - RECENT_LOCAL_TTL;
-        for (const [k, v] of recentLocal) if (v < cutoff) recentLocal.delete(k);
-      }
-      loadLocal(); syncNow(); resolve();
-    };
-    t.onerror = () => reject(t.error);
+  return new Promise(resolve => {
+    if (!db) return resolve();
+    try {
+      const tx = db.transaction("devices", "readonly");
+      const req = tx.objectStore("devices").getAll();
+      req.onsuccess = () => {
+        state.devices = req.result || [];
+        console.log(`[LOCAL] Загружено ${state.devices.length} устройств`);
+        renderTable();
+        resolve();
+      };
+      req.onerror = () => { state.devices = []; renderTable(); resolve(); };
+    } catch(e) { state.devices = []; renderTable(); resolve(); }
   });
 }
 
+/* ⭐ ГЛАВНОЕ: saveDevice с защитой и подробным логом */
+function saveDevice(dev, actionName, workerName) {
+  return new Promise((resolve, reject) => {
+    if (!db || !state.dbReady) {
+      console.error('[saveDevice] База не готова');
+      return reject(new Error('База данных не готова. Обновите страницу (F5).'));
+    }
+    if (!dev || !dev.serial) {
+      console.error('[saveDevice] Нет serial');
+      return reject(new Error('Не указан серийный номер'));
+    }
+    try {
+      const t = db.transaction(["devices", "queue", "moves"], "readwrite");
+      t.objectStore("devices").put(dev);
+      t.objectStore("queue").add({ type: 'upsert', dev: dev, action: actionName, worker: workerName || '', ts: nowIso() });
+      t.objectStore("moves").add({ serial: dev.serial, action: actionName, worker: workerName || '', created_at: nowIso() });
+      t.oncomplete = () => {
+        recentLocal.set(dev.serial, Date.now());
+        if (recentLocal.size > 300) {
+          const cutoff = Date.now() - RECENT_LOCAL_TTL;
+          for (const [k, v] of recentLocal) if (v < cutoff) recentLocal.delete(k);
+        }
+        console.log(`[saveDevice] ${actionName}: ${dev.serial} (${dev.status}, holder="${dev.holder||''}")`);
+        loadLocal().then(() => { syncNow(); resolve(); });
+      };
+      t.onerror = () => {
+        console.error('[saveDevice] TX error:', t.error);
+        reject(t.error || new Error('Ошибка записи в базу'));
+      };
+      t.onabort = () => {
+        console.error('[saveDevice] TX aborted');
+        reject(t.error || new Error('Транзакция отменена'));
+      };
+    } catch (e) {
+      console.error('[saveDevice] Exception:', e);
+      reject(e);
+    }
+  });
+}
+
+/* ============================================================
+   УДАЛЕНИЕ
+   ============================================================ */
 async function deleteSerial(sn) {
   if (!sn) throw new Error('Пустой серийник');
   if (!db) throw new Error('База не готова');
@@ -723,10 +768,13 @@ async function deleteSerial(sn) {
     t.onerror = () => reject(t.error);
   });
   recentLocal.delete(sn);
-  await new Promise(r => { const t = db.transaction("devices", "readonly"); t.objectStore("devices").getAll().onsuccess = e => { state.devices = e.target.result || []; renderTable(); r(); }; });
+  await loadLocal();
   logMsg(`🗑 УДАЛЕНО: ${sn}`);
 }
 
+/* ============================================================
+   НОРМАЛИЗАЦИЯ ОБЛАКА
+   ============================================================ */
 function normalizeCloudDevice(row) {
   if (!row) return null;
   const sn = row.serial || row.sn || row.serial_number || row.id;
@@ -754,9 +802,13 @@ function normalizeCloudDevice(row) {
   return { serial: String(sn), model: row.model || detectModel(sn), status, holder: cleanHolder, issued_at: issuedAt, last_move: lastMove, shift };
 }
 
+/* ============================================================
+   СИНХРОНИЗАЦИЯ
+   ============================================================ */
 async function syncNow() {
   if (state.syncing) return;
   if (!cloud || !navigator.onLine) { setSync(false, 'Офлайн'); return; }
+  if (!state.dbReady) { setSync(false, 'БД не готова'); return; }
   state.syncing = true;
   setSync(true, 'Синхронизация...', true);
   try {
@@ -771,11 +823,9 @@ async function syncNow() {
         if (delDevErr) {
           state.lastError = 'delete: ' + delDevErr.message;
           failCount++;
-          console.warn('[sync] delete devices failed:', delDevErr.message);
           continue;
         }
-        const { error: delMvErr } = await cloud.from('movements').delete().eq('serial', it.serial);
-        if (delMvErr) console.warn('[sync] delete movements:', delMvErr.message);
+        try { await cloud.from('movements').delete().eq('serial', it.serial); } catch(e) {}
         await new Promise(r => { const t = db.transaction("queue", "readwrite"); t.objectStore("queue").delete(keys[i]); t.oncomplete = r; });
         continue;
       }
@@ -790,8 +840,7 @@ async function syncNow() {
       const { error: devErr } = await cloud.from('devices').upsert(cleanDev, { onConflict: 'serial' });
       if (devErr) { state.lastError = devErr.message; failCount++; continue; }
       const fullMove = { serial: it.dev.serial, action: it.action, worker: it.worker || (it.dev.holder || ''), created_at: it.ts };
-      const { error: mvErr } = await cloud.from('movements').insert(fullMove);
-      if (mvErr) console.warn('[sync] movements:', mvErr.message);
+      try { await cloud.from('movements').insert(fullMove); } catch(e) {}
       await new Promise(r => { const t = db.transaction("queue", "readwrite"); t.objectStore("queue").delete(keys[i]); t.oncomplete = r; });
     }
     const allData = await pullAllDevices();
@@ -855,10 +904,7 @@ async function applyPull(data, protectedSerials) {
       if (recent && Date.now() - recent < RECENT_LOCAL_TTL) { skipped++; return; }
       s.put(d);
     });
-    t.oncomplete = () => {
-      if (skipped) console.log(`[pull] защита: пропущено ${skipped}`);
-      loadLocal(); resolve();
-    };
+    t.oncomplete = () => { if (skipped) console.log(`[pull] защита: пропущено ${skipped}`); loadLocal(); resolve(); };
     t.onerror = () => resolve();
   });
 }
@@ -870,6 +916,26 @@ function setSync(ok, txt, busy = false) {
 }
 async function forceSync() { closeModal('diagModal'); state.syncing = false; await syncNow(); }
 
+/* ⭐ Жёсткий сброс — если что-то не так */
+async function hardReset() {
+  if (!confirm('Это очистит локальную базу, кэш и очередь.\n\nОблако Supabase не пострадает.\n\nПродолжить?')) return;
+  try {
+    localStorage.removeItem('vst_lastPull');
+    localStorage.removeItem('sklad_shift_pref');
+    localStorage.removeItem('sklad_auto_swap_v2');
+    if (db) {
+      const stores = ['devices', 'queue', 'moves'];
+      const t = db.transaction(stores, 'readwrite');
+      stores.forEach(s => t.objectStore(s).clear());
+      await new Promise(r => { t.oncomplete = r; t.onerror = r; });
+    }
+    showToast('СБРОШЕНО', 'Обновите страницу (F5)', 'warn');
+  } catch(e) { showToast('ОШИБКА', e.message, 'err'); }
+}
+
+/* ============================================================
+   БЭКАПЫ
+   ============================================================ */
 async function checkAutoBackup() {
   if (!cloud || !navigator.onLine) return;
   if (!state.devices.length) return;
@@ -1005,12 +1071,15 @@ async function deleteBackup(filename) {
 
 function openBackupModal() { openModal('backupModal'); renderBackupList(); }
 
+/* ============================================================
+   ВЫДАЧА
+   ============================================================ */
 function handleIssSnInput() {
   const el = $('issSn');
   const fixed = fixLayout(el.value);
   if (fixed !== el.value) el.value = fixed;
   const drop = $('issDrop');
-  if (fixed.length < 2) { drop.classList.remove('show'); $('modelHint').innerText = "F1 • Скан сканера ➔ Enter к ID"; return; }
+  if (fixed.length < 2) { drop.classList.remove('show'); $('modelHint').innerText = "F1 • Скан ➔ ID ➔ Enter"; return; }
   const freeDevs = state.devices.filter(d => d.status === 'free');
   const matches = freeDevs.filter(d => d.serial.toUpperCase().endsWith(fixed) || d.serial.toUpperCase().includes(fixed));
   if (!matches.length) { drop.classList.remove('show'); $('modelHint').innerText = `⚡ Новый: создастся как ${detectModel(fixed)}`; return; }
@@ -1046,36 +1115,97 @@ function handleIssSnKeydown(e) {
 
 function handleIssWorkerKeydown(e) { if (e.key === 'Enter') { e.preventDefault(); submitIssue(); } }
 
+/* ⭐ ГЛАВНАЯ ФУНКЦИЯ ВЫДАЧИ */
 async function submitIssue() {
+  console.log('[submitIssue] Старт');
+  if (!state.dbReady) {
+    showToast('БАЗА НЕ ГОТОВА', 'Подождите пару секунд и попробуйте снова', 'err');
+    return;
+  }
   const rawSn = $('issSn').value.trim();
   const worker = $('issWorker').value.trim();
   $('issSn').classList.remove('err'); $('issWorker').classList.remove('err');
+
   if (!rawSn) { $('issSn').classList.add('err'); beep('err'); return; }
   if (!worker) { $('issWorker').classList.add('err'); beep('err'); return; }
-  const existing = state.devices.find(d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === worker.toUpperCase());
-  const clean = fixLayout(rawSn);
-  const freeDevs = state.devices.filter(d => d.status === 'free');
-  const tailMatches = freeDevs.filter(d => d.serial.toUpperCase().endsWith(clean));
-  const sn = tailMatches.length === 1 ? tailMatches[0].serial : clean;
-  const dev = state.devices.find(d => d.serial === sn);
-  if (dev && dev.status === 'issued') { beep('err'); showToast('ЗАНЯТ', `${sn} уже выдан: ${dev.holder}`, 'err'); return; }
-  let shift = state.issueShift;
-  if (state.issueShiftAuto) shift = computeSmartShift(worker);
-  if (existing) {
-    state.pendingSwap = { worker, oldSn: existing.serial, newSn: sn, isNew: !dev, shift };
-    $('swapWorker').innerText = worker; $('swapOldSn').innerText = existing.serial;
-    $('swapOldModel').innerText = existing.model || '—'; $('swapNewSn').innerText = sn;
-    $('swapNewModel').innerText = dev ? dev.model : detectModel(sn);
-    openModal('swapModal'); setTimeout(() => $('swapConfirm').focus(), 80);
-    return;
+
+  try {
+    const existing = state.devices.find(d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === worker.toUpperCase());
+    const clean = fixLayout(rawSn);
+    const freeDevs = state.devices.filter(d => d.status === 'free');
+    const tailMatches = freeDevs.filter(d => d.serial.toUpperCase().endsWith(clean));
+    const sn = tailMatches.length === 1 ? tailMatches[0].serial : clean;
+    const dev = state.devices.find(d => d.serial === sn);
+
+    if (dev && dev.status === 'issued') {
+      beep('err');
+      showToast('ЗАНЯТ', `${sn} уже выдан: ${dev.holder}`, 'err');
+      return;
+    }
+
+    let shift = state.issueShift;
+    if (state.issueShiftAuto) shift = computeSmartShift(worker);
+
+    if (existing) {
+      /* ⭐ ЗАМЕНА */
+      console.log(`[submitIssue] Замена: ${existing.serial} → ${sn} у ${worker}`);
+      const pending = {
+        worker,
+        oldSn: existing.serial,
+        newSn: sn,
+        isNew: !dev,
+        shift,
+        originalIssuedAt: existing.issued_at,
+        originalShift: existing.shift
+      };
+
+      if (state.autoSwap) {
+        state.pendingSwap = pending;
+        await confirmSwap();
+        return;
+      }
+
+      /* Показать модалку */
+      state.pendingSwap = pending;
+      const hoursOnHands = existing.issued_at ? hoursSince(existing.issued_at) : 0;
+      $('swapWorker').innerText = worker;
+      $('swapOldSn').innerText = existing.serial;
+      $('swapOldModel').innerText = existing.model || '—';
+      $('swapNewSn').innerText = sn;
+      $('swapNewModel').innerText = dev ? dev.model : detectModel(sn);
+      $('swapInheritTime').innerText = fmtHoursShort(hoursOnHands);
+      openModal('swapModal');
+      setTimeout(() => $('swapConfirm').focus(), 80);
+      return;
+    }
+
+    /* ⭐ ОБЫЧНАЯ ВЫДАЧА */
+    console.log(`[submitIssue] Обычная выдача: ${sn} → ${worker}`);
+    await performIssue(sn, worker, dev, shift);
+  } catch(e) {
+    console.error('[submitIssue] Ошибка:', e);
+    beep('err');
+    showToast('ОШИБКА ВЫДАЧИ', e.message || 'Не удалось', 'err');
+    state.pendingSwap = null;
   }
-  await performIssue(sn, worker, dev, shift);
 }
 
-async function performIssue(sn, worker, dev, shift) {
+async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
   const isNew = !dev, ts = nowIso();
-  const updated = { serial: sn, model: dev ? dev.model : detectModel(sn), status: 'issued', holder: worker, issued_at: ts, last_move: ts, shift: shift };
-  await saveDevice(updated, isNew ? 'Создан и выдан' : 'Выдан', worker);
+  const issuedAt = inheritedIssuedAt || ts;
+  const updated = {
+    serial: sn,
+    model: dev ? dev.model : detectModel(sn),
+    status: 'issued',
+    holder: worker,
+    issued_at: issuedAt,
+    last_move: ts,
+    shift: shift
+  };
+  const actionName = inheritedIssuedAt
+    ? (isNew ? 'Создан и выдан (время перенесено)' : 'Выдан (время перенесено)')
+    : (isNew ? 'Создан и выдан' : 'Выдан');
+  await saveDevice(updated, actionName, worker);
   rememberWorkerShift(worker, shift);
   beep('issue');
   showToast('ВЫДАНО', `${sn} ➔ ${worker} (${shift})`);
@@ -1084,31 +1214,150 @@ async function performIssue(sn, worker, dev, shift) {
   setTimeout(() => { state.justIssued = null; }, 2500);
   renderTable();
   $('issSn').value = ''; $('issWorker').value = '';
-  $('issDrop').classList.remove('show'); $('modelHint').innerText = "F1 • Скан сканера ➔ Enter к ID";
+  $('issDrop').classList.remove('show'); $('modelHint').innerText = "F1 • Скан ➔ ID ➔ Enter";
   if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
   updateShiftBanner();
   $('issSn').focus();
 }
 
+/* ⭐ ПОДТВЕРЖДЕНИЕ ЗАМЕНЫ */
 async function confirmSwap() {
-  const p = state.pendingSwap; if (!p) return;
+  const p = state.pendingSwap;
+  if (!p) { console.warn('[confirmSwap] Нет pendingSwap'); return; }
   closeModal('swapModal');
-  const oldDev = state.devices.find(d => d.serial === p.oldSn);
-  const newDev = state.devices.find(d => d.serial === p.newSn);
-  const ts = nowIso();
-  if (oldDev) await saveDevice({ ...oldDev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts }, 'Возврат (замена)', p.worker);
-  await saveDevice({ serial: p.newSn, model: newDev ? newDev.model : detectModel(p.newSn), status: 'issued', holder: p.worker, issued_at: ts, last_move: ts, shift: p.shift }, p.isNew ? 'Создан и выдан (замена)' : 'Выдача (замена)', p.worker);
-  rememberWorkerShift(p.worker, p.shift);
-  beep('swap');
-  showToast('ЗАМЕНА ВЫПОЛНЕНА', `${p.oldSn} ➔ ${p.newSn}`, 'warn');
-  logMsg(`🔄 ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn}`);
-  state.pendingSwap = null;
-  $('issSn').value = ''; $('issWorker').value = '';
-  if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
-  updateShiftBanner();
-  $('issSn').focus();
+
+  try {
+    const oldDev = state.devices.find(d => d.serial === p.oldSn);
+    const newDev = state.devices.find(d => d.serial === p.newSn);
+    const ts = nowIso();
+    const inheritedIssuedAt = p.originalIssuedAt || ts;
+
+    /* Снимок для отмены */
+    state.lastSwap = {
+      oldDevSnapshot: oldDev ? JSON.parse(JSON.stringify(oldDev)) : null,
+      newDevSnapshot: newDev ? JSON.parse(JSON.stringify(newDev)) : null,
+      worker: p.worker,
+      newSn: p.newSn,
+      oldSn: p.oldSn,
+      isNew: p.isNew
+    };
+
+    console.log(`[confirmSwap] ${p.oldSn} → ${p.newSn} у ${p.worker}, время ${inheritedIssuedAt}`);
+
+    if (oldDev) {
+      await saveDevice({
+        ...oldDev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts
+      }, 'Возврат (замена)', p.worker);
+    }
+
+    await saveDevice({
+      serial: p.newSn,
+      model: newDev ? newDev.model : detectModel(p.newSn),
+      status: 'issued', holder: p.worker,
+      issued_at: inheritedIssuedAt, last_move: ts, shift: p.shift
+    }, p.isNew ? 'Создан и выдан (замена, время сохранено)' : 'Выдача (замена, время сохранено)', p.worker);
+
+    rememberWorkerShift(p.worker, p.shift);
+    beep('swap');
+
+    const hoursOnHands = hoursSince(inheritedIssuedAt);
+    showSwapToast(
+      `ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn}`,
+      `${p.worker} · время ${fmtHoursShort(hoursOnHands)} сохранено`
+    );
+    logMsg(`🔄 ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn} у ${p.worker} · время ${fmtHoursShort(hoursOnHands)}`);
+
+    state.pendingSwap = null;
+    $('issSn').value = ''; $('issWorker').value = '';
+    if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
+    updateShiftBanner();
+    $('issSn').focus();
+  } catch(e) {
+    console.error('[confirmSwap] Ошибка:', e);
+    beep('err');
+    showToast('ОШИБКА ЗАМЕНЫ', e.message || '?', 'err');
+    state.pendingSwap = null;
+  }
 }
 
+/* ⭐ ТОСТ С ОТМЕНОЙ */
+function showSwapToast(title, desc) {
+  const el = $('toast');
+  $('tIcon').innerText = '🔁';
+  $('tIcon').style.background = 'rgba(0,242,254,0.15)';
+  $('tIcon').style.borderColor = 'var(--neon-cyan)';
+  $('tIcon').style.color = 'var(--neon-cyan)';
+  $('tTitle').innerText = title;
+  $('tTitle').style.color = '#67e8f9';
+  $('tDesc').innerText = desc;
+
+  const oldBtn = el.querySelector('.t-undo');
+  if (oldBtn) oldBtn.remove();
+
+  const btn = document.createElement('button');
+  btn.className = 't-undo';
+  btn.innerText = '↩ Отменить (Ctrl+Z)';
+  btn.onclick = undoSwap;
+  el.appendChild(btn);
+
+  el.className = '';
+  el.classList.add('show');
+
+  clearTimeout(window._toastT);
+  clearTimeout(state.undoTimeout);
+  state.undoTimeout = setTimeout(() => {
+    el.classList.remove('show');
+    state.lastSwap = null;
+    setTimeout(() => {
+      const b = el.querySelector('.t-undo');
+      if (b) b.remove();
+    }, 400);
+  }, 7000);
+}
+
+/* ⭐ ОТМЕНА */
+async function undoSwap() {
+  if (!state.lastSwap) return;
+  const s = state.lastSwap;
+  const ts = nowIso();
+  try {
+    console.log(`[undoSwap] Откат ${s.oldSn} → ${s.newSn}`);
+
+    if (s.newDevSnapshot) {
+      await saveDevice({ ...s.newDevSnapshot, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts }, 'Отмена замены', s.worker);
+    } else {
+      const newDev = state.devices.find(d => d.serial === s.newSn);
+      if (newDev) {
+        await saveDevice({ ...newDev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts }, 'Отмена замены (созданный)', s.worker);
+      }
+    }
+
+    if (s.oldDevSnapshot) {
+      await saveDevice({ ...s.oldDevSnapshot }, 'Отмена замены (восстановление)', s.worker);
+    }
+
+    state.lastSwap = null;
+    clearTimeout(state.undoTimeout);
+
+    const el = $('toast');
+    el.classList.remove('show');
+    setTimeout(() => {
+      const b = el.querySelector('.t-undo');
+      if (b) b.remove();
+    }, 400);
+
+    beep('return');
+    showToast('ОТМЕНЕНО', 'Замена откачена');
+    logMsg(`↩ ОТМЕНА: ${s.oldSn} ➔ ${s.newSn}`);
+  } catch(e) {
+    console.error('[undoSwap] Ошибка:', e);
+    showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err');
+  }
+}
+
+/* ============================================================
+   ПРИЁМ
+   ============================================================ */
 function handleRetInput() {
   const el = $('retQuery');
   const raw = el.value;
@@ -1154,6 +1403,7 @@ function handleRetKeydown(e) {
 }
 
 async function quickReturn() {
+  if (!state.dbReady) { showToast('БАЗА НЕ ГОТОВА', '', 'err'); return; }
   const raw = $('retQuery').value.trim();
   if (!raw) return;
   $('retDrop').classList.remove('show');
@@ -1189,25 +1439,34 @@ async function quickReturn() {
 
 async function doReturn(sn) {
   const dev = state.devices.find(d => d.serial === sn);
-  if (!dev) return;
+  if (!dev) { showToast('ОШИБКА', 'Устройство не найдено', 'err'); return; }
   const holder = dev.holder, ts = nowIso();
-  const updated = { ...dev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts };
-  await saveDevice(updated, 'Возврат', holder);
-  beep('return');
-  showToast(`ПРИБОР ${sn} ПРИНЯТ`, `Сотрудник: ${holder}`);
-  logMsg(`ПРИНЯТО: ${sn} от ${holder}`);
-  $('retQuery').value = ''; $('retQuery').focus();
-  if (state.filter === 'overdue' || state.filter === 'day' || state.filter === 'night') {
-    state.filter = 'all';
-    document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
-    const allCard = document.querySelector('.hud-stat-card[data-filter="all"]');
-    if (allCard) allCard.classList.add('active');
+  try {
+    const updated = { ...dev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts };
+    await saveDevice(updated, 'Возврат', holder);
+    beep('return');
+    showToast(`ПРИБОР ${sn} ПРИНЯТ`, `Сотрудник: ${holder}`);
+    logMsg(`ПРИНЯТО: ${sn} от ${holder}`);
+    $('retQuery').value = ''; $('retQuery').focus();
+    if (state.filter === 'overdue' || state.filter === 'day' || state.filter === 'night') {
+      state.filter = 'all';
+      document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
+      const allCard = document.querySelector('.hud-stat-card[data-filter="all"]');
+      if (allCard) allCard.classList.add('active');
+    }
+    state.justReturned = sn;
+    setTimeout(() => { state.justReturned = null; }, 2500);
+    renderTable();
+  } catch(e) {
+    console.error('[doReturn] Ошибка:', e);
+    beep('err');
+    showToast('ОШИБКА ПРИЁМА', e.message || '?', 'err');
   }
-  state.justReturned = sn;
-  setTimeout(() => { state.justReturned = null; }, 2500);
-  renderTable();
 }
 
+/* ============================================================
+   РЕНДЕР
+   ============================================================ */
 function renderTable() {
   const q = ($('searchTable').value || '').trim().toUpperCase();
   let free = 0, issued = 0, overdue = 0, dayCount = 0, nightCount = 0;
@@ -1242,8 +1501,8 @@ function renderTable() {
     const aIssued = a.status === 'issued' ? 0 : 1;
     const bIssued = b.status === 'issued' ? 0 : 1;
     if (aIssued !== bIssued) return aIssued - bIssued;
-    const aTime = a.status === 'issued' ? parseTime(a.issued_at) : parseTime(a.last_move);
-    const bTime = b.status === 'issued' ? parseTime(b.issued_at) : parseTime(b.last_move);
+    const aTime = parseTime(a.last_move) || parseTime(a.issued_at);
+    const bTime = parseTime(b.last_move) || parseTime(b.issued_at);
     if (aTime !== bTime) return bTime - aTime;
     return String(a.serial).localeCompare(String(b.serial));
   });
@@ -1258,6 +1517,7 @@ function renderTable() {
 function renderRow(d, busy) {
   const h = busy ? hoursSince(d.issued_at) : 0;
   const over = busy && h >= OVERDUE_H;
+  const inherited = busy && isInheritedTime(d);
 
   let badge = '';
   if (busy && over) badge = '<span class="badge-chip chip-over">🚨 ДОЛГ (>12ч)</span>';
@@ -1279,10 +1539,14 @@ function renderRow(d, busy) {
     const issuedStr = d.issued_at
       ? new Date(d.issued_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '')
       : '—';
+    const inheritMark = inherited
+      ? '<span class="inherit-mark" title="Время перенесено с предыдущего сканера">🔁</span>'
+      : '';
     timeHtml = `
       <div class="time-inline">
         <span class="val ${cls}">${fmtHoursShort(h)}</span>
         <span class="bar"><span class="bar-fill ${cls}" style="width:${barW}%"></span></span>
+        ${inheritMark}
         <span class="sub">с ${issuedStr}</span>
       </div>
     `;
@@ -1354,6 +1618,9 @@ async function openAudit(sn) {
 
 function closeAuditDrawer() { $('auditDrawer').classList.remove('open'); $('auditOverlay').classList.remove('show'); }
 
+/* ============================================================
+   ЭКСПОРТ / ИМПОРТ / ДИАГ
+   ============================================================ */
 function exportExcel() {
   let csv = '\uFEFFСерийный номер;Модель;Статус;Сотрудник;Смена;Выдан;Активность\n';
   state.devices.forEach(d => {
@@ -1367,6 +1634,7 @@ function exportExcel() {
 }
 
 function processImport() {
+  if (!state.dbReady) { showToast('БАЗА НЕ ГОТОВА', '', 'err'); return; }
   const text = $('impText').value.trim();
   const raw = [...new Set(text.split(/\r?\n/).map(fixLayout).filter(Boolean))];
   if (!raw.length) return;
@@ -1374,37 +1642,56 @@ function processImport() {
   const rejected = raw.length - valid.length;
   if (!valid.length) { showToast('ВСЁ БИТОЕ', `Отклонено: ${rejected}`, 'err'); return; }
   const ts = nowIso();
-  const txm = db.transaction(["devices", "queue"], "readwrite");
-  const ds = txm.objectStore("devices");
-  const qs = txm.objectStore("queue");
-  let added = 0, skipped = 0;
-  valid.forEach(sn => {
-    if (state.devices.find(d => d.serial === sn)) { skipped++; return; }
-    const d = { serial: sn, model: detectModel(sn), status: 'free', holder: '', last_move: ts };
-    ds.put(d);
-    qs.add({ type: 'upsert', dev: d, action: 'Импорт', worker: '', ts });
-    added++;
-  });
-  txm.oncomplete = () => {
-    closeModal('impModal'); $('impText').value = '';
-    beep('issue');
-    showToast('ИМПОРТ', `+${added}, пропущено ${skipped}${rejected ? `, битых ${rejected}` : ''}`);
-    loadLocal(); syncNow();
-  };
+  try {
+    const txm = db.transaction(["devices", "queue"], "readwrite");
+    const ds = txm.objectStore("devices");
+    const qs = txm.objectStore("queue");
+    let added = 0, skipped = 0;
+    valid.forEach(sn => {
+      if (state.devices.find(d => d.serial === sn)) { skipped++; return; }
+      const d = { serial: sn, model: detectModel(sn), status: 'free', holder: '', last_move: ts };
+      ds.put(d);
+      qs.add({ type: 'upsert', dev: d, action: 'Импорт', worker: '', ts });
+      added++;
+    });
+    txm.oncomplete = () => {
+      closeModal('impModal'); $('impText').value = '';
+      beep('issue');
+      showToast('ИМПОРТ', `+${added}, пропущено ${skipped}${rejected ? `, битых ${rejected}` : ''}`);
+      loadLocal().then(() => syncNow());
+    };
+    txm.onerror = () => showToast('ОШИБКА ИМПОРТА', txm.error ? txm.error.message : '?', 'err');
+  } catch(e) {
+    showToast('ОШИБКА ИМПОРТА', e.message, 'err');
+  }
 }
 
 function showDiag() {
   idb.count('queue').then(n => {
     const lastBk = localStorage.getItem('sklad_last_backup_date') || '—';
+    const autoSwapTxt = state.autoSwap ? 'ВКЛ (без окна)' : 'выкл (с окном)';
+    const autoSwapColor = state.autoSwap ? 'var(--neon-emerald)' : 'var(--text-muted)';
+    const dbOk = state.dbReady ? '✅ OK' : '❌ не готова';
+    const dbColor = state.dbReady ? 'var(--neon-emerald)' : 'var(--neon-rose)';
     $('diagContent').innerHTML = `
+      <div>БД: <span style="color:${dbColor};">${dbOk}</span></div>
+      <div>ЛОКАЛЬНО: <span style="color:var(--neon-cyan);">${state.devices.length}</span> шт.</div>
       <div>SUPABASE: <span style="color:#fff;">${SUPABASE_URL.replace('https://','').split('.')[0]}...</span></div>
       <div>ОЧЕРЕДЬ ПАКЕТОВ: <span style="color:var(--neon-cyan);">${n}</span></div>
-      <div>СМЕНА ВЫДАЧИ: <span style="color:${state.issueShift==='Ночная'?'var(--neon-purple)':'#fbbf24'};">${state.issueShift}</span> (${state.issueShiftAuto ? 'авто' : 'вручную'})</div>
+      <div>СМЕНА: <span style="color:${state.issueShift==='Ночная'?'var(--neon-purple)':'#fbbf24'};">${state.issueShift}</span> (${state.issueShiftAuto ? 'авто' : 'вручную'})</div>
+      <div>АВТО-ЗАМЕНА: <span style="color:${autoSwapColor};">${autoSwapTxt}</span> <button class="btn-hud" style="padding:2px 8px; font-size:10px; margin-left:8px;" onclick="toggleAutoSwap()">${state.autoSwap ? 'Отключить' : 'Включить'}</button></div>
       <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--neon-emerald);">${lastBk}</span></div>
       <div>ПОСЛЕДНЯЯ ОШИБКА: <span style="color:var(--neon-rose);">${esc(state.lastError)}</span></div>
     `;
     openModal('diagModal');
   });
+}
+
+function toggleAutoSwap() {
+  state.autoSwap = !state.autoSwap;
+  try { localStorage.setItem(AUTO_SWAP_KEY, state.autoSwap ? 'true' : 'false'); } catch(e) {}
+  showToast('АВТО-ЗАМЕНА', state.autoSwap ? 'Включена — без окна' : 'Отключена — с окном', 'warn');
+  closeModal('diagModal');
 }
 
 function openDeleteModal() {
@@ -1441,6 +1728,9 @@ async function confirmDelete(sn) {
   catch(e) { showToast('ОШИБКА УДАЛЕНИЯ', e.message || '?', 'err'); }
 }
 
+/* ============================================================
+   МОДАЛКИ / ТОСТ
+   ============================================================ */
 function openModal(id) { const el = $(id); if (el) el.classList.add('show'); }
 function closeModal(id) { const el = $(id); if (el) el.classList.remove('show'); }
 document.querySelectorAll('.modal-overlay').forEach(m => {
@@ -1452,12 +1742,21 @@ function showToast(title, desc, kind = 'ok') {
   $('tTitle').innerText = title;
   $('tDesc').innerText = desc || '';
   $('tIcon').innerText = kind === 'err' ? '✕' : (kind === 'warn' ? '!' : '✓');
+  $('tIcon').style.background = '';
+  $('tIcon').style.borderColor = '';
+  $('tIcon').style.color = '';
+  $('tTitle').style.color = '';
+  const oldBtn = el.querySelector('.t-undo');
+  if (oldBtn) oldBtn.remove();
   el.className = kind === 'err' ? 'err' : (kind === 'warn' ? 'warn' : '');
   el.classList.add('show');
   clearTimeout(window._toastT);
   window._toastT = setTimeout(() => el.classList.remove('show'), 2800);
 }
 
+/* ============================================================
+   СОБЫТИЯ
+   ============================================================ */
 $('issSn').addEventListener('input', debounce(handleIssSnInput, 60));
 $('issSn').addEventListener('keydown', handleIssSnKeydown);
 $('issWorker').addEventListener('keydown', handleIssWorkerKeydown);
@@ -1496,6 +1795,13 @@ $('brandTag').addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', e => {
+  if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z') {
+    if (state.lastSwap) {
+      e.preventDefault();
+      undoSwap();
+      return;
+    }
+  }
   if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'd') { e.preventDefault(); openDeleteModal(); return; }
   if ($('delModal').classList.contains('show') && e.key === 'Escape') { e.preventDefault(); closeModal('delModal'); return; }
   if ($('backupModal').classList.contains('show') && e.key === 'Escape') { e.preventDefault(); closeModal('backupModal'); return; }
