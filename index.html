@@ -480,11 +480,9 @@ const state = {
   lastSwap: null,
   undoTimeout: null,
   // ⭐ Точное значение, для которого построен текущий дропдаун.
-  // Защита от «выстрела» старым элементом на быстрый Enter от сканера.
   lastDropQuery: null,
   lastRetDropQuery: null,
-  // ⭐ Генерация синхронизации. Сбрасывается при watchdog / forceSync,
-  // чтобы «зомби-синк» не сбрасывал флаг у нового запуска.
+  // ⭐ Генерация синхронизации. Сбрасывается при watchdog / forceSync.
   syncToken: 0
 };
 
@@ -866,8 +864,6 @@ async function syncNow() {
 
   const alive = () => token === state.syncToken;
 
-  // ⭐ Watchdog: если что-то зависло — принудительно отпускаем флаг,
-  // чтобы следующий цикл по интервалу смог стартовать.
   const watchdog = setTimeout(() => {
     if (!alive()) return;
     console.warn(`[sync] Watchdog сработал (token=${token})`);
@@ -889,7 +885,6 @@ async function syncNow() {
       const key = item.key;
       if (!it) { await deleteQueueKey(key); continue; }
 
-      // --- DELETE ---
       if (it.type === 'delete') {
         try {
           const { error: delDevErr } = await withTimeout(
@@ -915,7 +910,6 @@ async function syncNow() {
         continue;
       }
 
-      // --- UPSERT ---
       if (!it.dev || !it.dev.serial) { await deleteQueueKey(key); continue; }
       recentlySent.add(it.dev.serial);
 
@@ -943,7 +937,6 @@ async function syncNow() {
         continue;
       }
 
-      // movements — best-effort: ошибка НЕ блокирует очистку очереди
       const fullMove = {
         serial: it.dev.serial, action: it.action,
         worker: it.worker || (it.dev.holder || ''), created_at: it.ts
@@ -960,7 +953,6 @@ async function syncNow() {
 
     if (!alive()) return;
 
-    // --- PULL ---
     const allData = await pullAllDevices();
     if (!alive()) return;
     if (allData === null) {
@@ -1081,12 +1073,11 @@ function setSync(ok, txt, busy = false) {
 
 async function forceSync() {
   closeModal('diagModal');
-  state.syncToken++;      // инвалидируем текущий запущенный синк
-  state.syncing = false;  // снимаем блокировку
+  state.syncToken++;
+  state.syncing = false;
   await syncNow();
 }
 
-/* Очистка застрявшей очереди (данные локально/в облаке не трогаем) */
 async function clearStuckQueue() {
   const items = await readQueueWithKeys();
   if (!items.length) { showToast('ОЧЕРЕДЬ', 'Пусто', 'warn'); return; }
@@ -1097,7 +1088,6 @@ async function clearStuckQueue() {
   setTimeout(syncNow, 200);
 }
 
-/* Превью очереди для диагностики */
 async function renderQueuePreview() {
   const items = await readQueueWithKeys();
   if (!items.length) return '<div style="color:var(--text-muted); padding:6px 0;">Пусто</div>';
@@ -1352,7 +1342,6 @@ function handleIssSnKeydown(e) {
 
   if (e.key === 'Enter') {
     e.preventDefault();
-
     // ⭐ КРИТИЧНО: используем дропдаун ТОЛЬКО если он построен для текущего значения.
     const dropIsFresh = state.lastDropQuery !== null && state.lastDropQuery === curVal;
     if (dropIsFresh && drop.classList.contains('show') && cur >= 0 && items[cur]) {
@@ -1669,7 +1658,7 @@ function handleRetInput() {
 function handleRetKeydown(e) {
   if (e.key === 'Enter') {
     e.preventDefault();
-    // ⭐ НЕ доверяем содержимому дропдауна на Enter (сканер шлёт Enter раньше дебаунса).
+    // ⭐ НЕ доверяем содержимому дропдауна на Enter — quickReturn сам найдёт.
     resetRetDropdown();
     quickReturn();
   }
@@ -2070,7 +2059,7 @@ function showToast(title, desc, kind = 'ok') {
 }
 
 /* ============================================================
-   ДЕЛЕГИРОВАНИЕ СОБЫТИЙ (защита от XSS + быстрый клик по дропу)
+   ДЕЛЕГИРОВАНИЕ СОБЫТИЙ
    ============================================================ */
 function setupDelegation() {
   $('tbody').addEventListener('click', e => {
@@ -2208,7 +2197,7 @@ window.addEventListener('DOMContentLoaded', () => {
   $('issSn').focus();
 });
 
-// ⭐ Автосинк: 20 сек (было 8) — очередь успевает разгрузиться между итерациями
+// ⭐ Автосинк: 20 сек
 setInterval(syncNow, SYNC_INTERVAL_MS);
 setInterval(renderTable, 30000);
 window.addEventListener('online', syncNow);
