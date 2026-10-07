@@ -124,48 +124,45 @@
   .drop-item { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 12px; }
   .drop-item:hover, .drop-item.selected { background: rgba(56,189,248,0.15); }
   .registry-deck { background: var(--card-surface); backdrop-filter: blur(20px); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 12px 18px; display: flex; flex-direction: column; flex: 1; min-height: 0; }
-  .reg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+  .reg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
   .reg-wrap { overflow-y: auto; flex: 1; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); min-height: 0; }
 
-  /* ⭐ КОМФОРТНАЯ ТАБЛИЦА — СТРОКИ ДЫШАТ */
-  table { width: 100%; border-collapse: collapse; font-size: 12px; background: rgba(4,7,15,0.4); table-layout: auto; }
-  th, td {
-    padding: 9px 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    text-align: left; vertical-align: middle;
+  /* ⭐ ТАБЛИЦА ПО СКРИНШОТУ */
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; background: rgba(4,7,15,0.4); table-layout: auto; }
+  th {
+    background: rgba(13,20,36,0.98);
+    font-size: 10.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    letter-spacing: 0.08em;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    text-align: left;
+    vertical-align: middle;
+  }
+  td {
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    text-align: left;
+    vertical-align: middle;
     line-height: 1.3;
   }
-  th {
-    background: rgba(13,20,36,0.98); font-size: 10px; font-weight: 800;
-    text-transform: uppercase; color: var(--text-secondary);
-    letter-spacing: 0.06em; position: sticky; top: 0; z-index: 2;
-    padding: 10px 12px;
-  }
   tbody tr { height: 42px; }
-  tbody tr:hover { background: rgba(56,189,248,0.05); }
+  tbody tr:hover { background: rgba(56,189,248,0.06); }
   tbody tr.row-overdue { background: rgba(244,63,94,0.12); }
+  tbody tr.row-overdue:hover { background: rgba(244,63,94,0.18); }
   tbody tr.just-returned { animation: glow-green 2.5s ease-out; }
   @keyframes glow-green { 0% { background: rgba(16,185,129,0.55); } 100% { background: transparent; } }
   tbody tr.just-issued { animation: glow-blue 2.5s ease-out; }
   @keyframes glow-blue { 0% { background: rgba(56,189,248,0.45); } 100% { background: transparent; } }
 
-  tbody tr.group-label td {
-    padding: 7px 12px;
-    background: rgba(56,189,248,0.05);
-    border-top: 1px solid rgba(56,189,248,0.12);
-    border-bottom: 1px solid rgba(56,189,248,0.12);
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-    font-family: 'JetBrains Mono', monospace;
-  }
-  tbody tr.group-label:hover { background: rgba(56,189,248,0.05); }
-
   .sn-link { cursor: pointer; text-decoration: underline; text-decoration-color: rgba(0,242,254,0.4); text-underline-offset: 3px; transition: all 0.15s ease; }
   .sn-link:hover { color: #fff !important; text-shadow: 0 0 10px var(--neon-cyan); text-decoration-color: var(--neon-cyan); }
-  .badge-chip { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 9.5px; font-weight: 700; user-select: none; vertical-align: middle; }
+  .badge-chip { display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 10px; font-weight: 700; user-select: none; vertical-align: middle; }
   .chip-free { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
   .chip-busy { background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); }
   .chip-over { background: rgba(244,63,94,0.22); color: #f43f5e; border: 1px solid rgba(244,63,94,0.7); font-weight: 800; box-shadow: 0 0 8px rgba(244,63,94,0.4); }
@@ -176,49 +173,26 @@
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 8px;
+    gap: 9px;
     font-family: 'JetBrains Mono', monospace;
     vertical-align: middle;
   }
-  .time-inline .val {
-    font-size: 13px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    min-width: 62px;
-    text-align: right;
-  }
+  .time-inline .val { font-size: 14px; font-weight: 800; letter-spacing: -0.02em; min-width: 68px; text-align: right; }
   .time-inline .val.fresh { color: var(--neon-emerald); }
   .time-inline .val.mid { color: #fbbf24; }
   .time-inline .val.late { color: #fb923c; }
   .time-inline .val.over { color: var(--neon-rose); text-shadow: 0 0 8px rgba(244,63,94,0.4); }
-  .time-inline .val.empty { color: var(--text-muted); font-weight: 500; font-size: 11.5px; }
+  .time-inline .val.empty { color: var(--text-muted); font-weight: 500; font-size: 12px; }
 
-  .time-inline .bar {
-    width: 44px;
-    height: 4px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 2px;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-  .time-inline .bar-fill {
-    height: 100%;
-    border-radius: 2px;
-    display: block;
-  }
+  .time-inline .bar { width: 48px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
+  .time-inline .bar-fill { height: 100%; border-radius: 2px; display: block; }
   .time-inline .bar-fill.fresh { background: #34d399; }
   .time-inline .bar-fill.mid { background: #fbbf24; }
   .time-inline .bar-fill.late { background: #fb923c; }
   .time-inline .bar-fill.over { background: #f43f5e; }
   .time-inline .bar-fill.zero { background: rgba(255,255,255,0.05); }
 
-  .time-inline .sub {
-    font-size: 10px;
-    color: var(--text-muted);
-    min-width: 90px;
-    text-align: right;
-    letter-spacing: 0.02em;
-  }
+  .time-inline .sub { font-size: 10.5px; color: var(--text-muted); min-width: 96px; text-align: right; letter-spacing: 0.02em; }
 
   #toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-120px); background: #091724; border: 2px solid var(--neon-emerald); border-radius: 14px; padding: 14px 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(16,185,129,0.4); display: flex; align-items: center; gap: 16px; z-index: 10000; opacity: 0; transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; max-width: 90vw; }
   #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
@@ -303,7 +277,7 @@
 <div class="app-shell">
   <header class="hud-header">
     <div class="brand-zone">
-      <div id="brandTag" class="brand-tag mono" title="v8.19">TERMINAL</div>
+      <div id="brandTag" class="brand-tag mono" title="v8.22">TERMINAL</div>
       <div class="brand-title">
         <h1>Учёт Оборудования</h1>
         <p>Двухпостовой Cloud • Автономная работа • Экспресс-замена</p>
@@ -380,7 +354,7 @@
 
   <section class="registry-deck">
     <div class="reg-head">
-      <div style="font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;">РЕЕСТР ОБОРУДОВАНИЯ (Свежие — сверху · Клик по SN → История)</div>
+      <div style="font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;">РЕЕСТР ОБОРУДОВАНИЯ (КЛИК ПО SN → ИСТОРИЯ СКАНЕРА)</div>
       <input id="searchTable" class="hud-input mono" style="width:230px; padding:6px 12px; font-size:11.5px;" placeholder="Поиск (Ctrl+K)..." spellcheck="false">
     </div>
     <div class="reg-wrap">
@@ -499,6 +473,9 @@
 </div>
 
 <script>
+/* ============================================================
+   КОНФИГ
+   ============================================================ */
 const SUPABASE_URL = "https://sgpkvnymkqwuhepkaoxw.supabase.co";
 const SUPABASE_KEY = "sb_publishable_dqlmOngeOHVYMFUG1s4kLw_N1Pxi9KW";
 const OVERDUE_H = 12;
@@ -506,6 +483,7 @@ const OVERDUE_H = 12;
 const BACKUP_BUCKET = 'sklad-backups';
 const BACKUP_KEEP = 7;
 const BACKUP_MIN_INTERVAL = 6 * 60 * 60 * 1000;
+const RECENT_LOCAL_TTL = 60 * 1000;
 
 const state = {
   devices: [], filter: 'all', shift: 'auto',
@@ -571,11 +549,8 @@ function computeSmartShift(worker) {
   const now = new Date();
   const hm = now.getHours() * 60 + now.getMinutes();
   const w = String(worker || '').trim().toUpperCase();
-
   if (w) {
-    const existing = state.devices.find(d =>
-      d.status === 'issued' && d.holder && d.holder.toUpperCase() === w && d.shift && d.shift !== '—'
-    );
+    const existing = state.devices.find(d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === w && d.shift && d.shift !== '—');
     if (existing) return existing.shift;
   }
   if (w && state.workerShifts[w]) {
@@ -665,7 +640,6 @@ try { cloud = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persis
 
 let db = null;
 const DB_REQ = indexedDB.open("SkladDB", 3);
-
 DB_REQ.onupgradeneeded = e => {
   const d = e.target.result;
   if (!d.objectStoreNames.contains("devices")) d.createObjectStore("devices", { keyPath: "serial" });
@@ -677,7 +651,6 @@ DB_REQ.onsuccess = async e => { db = e.target.result; loadLocal(); syncNow(); };
 DB_REQ.onerror = () => showToast('ОШИБКА ХРАНИЛИЩА', 'Локальная база недоступна', 'err');
 
 function txStore(store, mode = 'readonly') { return db.transaction(store, mode).objectStore(store); }
-
 const idb = {
   all: store => new Promise(r => { const req = txStore(store).getAll(); req.onsuccess = () => r(req.result || []); req.onerror = () => r([]); }),
   keys: store => new Promise(r => { const req = txStore(store).getAllKeys(); req.onsuccess = () => r(req.result || []); req.onerror = () => r([]); }),
@@ -698,8 +671,8 @@ function saveDevice(dev, actionName, workerName) {
     t.objectStore("moves").add({ serial: dev.serial, action: actionName, worker: workerName || '', created_at: nowIso() });
     t.oncomplete = () => {
       recentLocal.set(dev.serial, Date.now());
-      if (recentLocal.size > 200) {
-        const cutoff = Date.now() - 30000;
+      if (recentLocal.size > 300) {
+        const cutoff = Date.now() - RECENT_LOCAL_TTL;
         for (const [k, v] of recentLocal) if (v < cutoff) recentLocal.delete(k);
       }
       loadLocal(); syncNow(); resolve();
@@ -749,10 +722,6 @@ async function deleteSerial(sn) {
     t.oncomplete = resolve;
     t.onerror = () => reject(t.error);
   });
-  if (cloud && navigator.onLine) {
-    try { await cloud.from('devices').delete().eq('serial', sn); } catch(e) {}
-    try { await cloud.from('movements').delete().eq('serial', sn); } catch(e) {}
-  }
   recentLocal.delete(sn);
   await new Promise(r => { const t = db.transaction("devices", "readonly"); t.objectStore("devices").getAll().onsuccess = e => { state.devices = e.target.result || []; renderTable(); r(); }; });
   logMsg(`🗑 УДАЛЕНО: ${sn}`);
@@ -762,6 +731,10 @@ function normalizeCloudDevice(row) {
   if (!row) return null;
   const sn = row.serial || row.sn || row.serial_number || row.id;
   if (!sn) return null;
+  if (!/^[A-Za-z0-9\-_.]+$/.test(String(sn))) {
+    console.warn('[SECURITY] SN с недопустимыми символами:', sn);
+    return null;
+  }
   const rawHolder = String(row.holder || row.worker || '').trim();
   let status = 'free';
   const s = String(row.status || '').toLowerCase().trim();
@@ -794,10 +767,15 @@ async function syncNow() {
     for (let i = 0; i < q.length; i++) {
       const it = q[i];
       if (it.type === 'delete') {
-        try {
-          await cloud.from('devices').delete().eq('serial', it.serial);
-          await cloud.from('movements').delete().eq('serial', it.serial);
-        } catch(e) {}
+        const { error: delDevErr } = await cloud.from('devices').delete().eq('serial', it.serial);
+        if (delDevErr) {
+          state.lastError = 'delete: ' + delDevErr.message;
+          failCount++;
+          console.warn('[sync] delete devices failed:', delDevErr.message);
+          continue;
+        }
+        const { error: delMvErr } = await cloud.from('movements').delete().eq('serial', it.serial);
+        if (delMvErr) console.warn('[sync] delete movements:', delMvErr.message);
         await new Promise(r => { const t = db.transaction("queue", "readwrite"); t.objectStore("queue").delete(keys[i]); t.oncomplete = r; });
         continue;
       }
@@ -809,17 +787,17 @@ async function syncNow() {
         issued_at: it.dev.status === 'free' ? null : it.dev.issued_at,
         last_move: it.dev.last_move || it.ts
       };
-      let { error: devErr } = await cloud.from('devices').upsert(cleanDev, { onConflict: 'serial' });
+      const { error: devErr } = await cloud.from('devices').upsert(cleanDev, { onConflict: 'serial' });
       if (devErr) { state.lastError = devErr.message; failCount++; continue; }
       const fullMove = { serial: it.dev.serial, action: it.action, worker: it.worker || (it.dev.holder || ''), created_at: it.ts };
       const { error: mvErr } = await cloud.from('movements').insert(fullMove);
       if (mvErr) console.warn('[sync] movements:', mvErr.message);
       await new Promise(r => { const t = db.transaction("queue", "readwrite"); t.objectStore("queue").delete(keys[i]); t.oncomplete = r; });
     }
-    const { data, error } = await cloud.from('devices').select('*').limit(5000);
-    if (error) { state.lastError = error.message; setSync(false, 'Ошибка загрузки'); state.syncing = false; return; }
-    if (data && data.length) {
-      const norm = data.map(normalizeCloudDevice).filter(Boolean);
+    const allData = await pullAllDevices();
+    if (allData === null) { setSync(false, 'Ошибка загрузки'); state.syncing = false; return; }
+    if (allData.length) {
+      const norm = allData.map(normalizeCloudDevice).filter(Boolean);
       await applyPull(norm, recentlySent);
     }
     state.lastError = failCount ? `отложено: ${failCount}` : '—';
@@ -831,19 +809,56 @@ async function syncNow() {
   } finally { state.syncing = false; }
 }
 
+async function pullAllDevices() {
+  const pageSize = 1000;
+  let all = [];
+  let from = 0;
+  try {
+    while (true) {
+      const { data, error } = await cloud.from('devices').select('*').range(from, from + pageSize - 1);
+      if (error) { state.lastError = error.message; return null; }
+      if (!data || !data.length) break;
+      all = all.concat(data);
+      if (data.length < pageSize) break;
+      from += pageSize;
+      if (from > 50000) break;
+    }
+    return all;
+  } catch(e) { state.lastError = e.message; return null; }
+}
+
 async function applyPull(data, protectedSerials) {
   if (!data || !data.length) return;
+  const queuedSerials = await new Promise(r => {
+    const t = db.transaction('queue', 'readonly');
+    const set = new Set();
+    const req = t.objectStore('queue').openCursor();
+    req.onsuccess = (e) => {
+      const cur = e.target.result;
+      if (cur) {
+        const v = cur.value;
+        if (v && v.dev && v.dev.serial) set.add(v.dev.serial);
+        else if (v && v.serial) set.add(v.serial);
+        cur.continue();
+      } else r(set);
+    };
+    req.onerror = () => r(set);
+  });
   return new Promise(resolve => {
     const t = db.transaction("devices", "readwrite");
     const s = t.objectStore("devices");
     let skipped = 0;
     data.forEach(d => {
       if (protectedSerials && protectedSerials.has(d.serial)) { skipped++; return; }
+      if (queuedSerials.has(d.serial)) { skipped++; return; }
       const recent = recentLocal.get(d.serial);
-      if (recent && Date.now() - recent < 5000) { skipped++; return; }
+      if (recent && Date.now() - recent < RECENT_LOCAL_TTL) { skipped++; return; }
       s.put(d);
     });
-    t.oncomplete = () => { loadLocal(); resolve(); };
+    t.oncomplete = () => {
+      if (skipped) console.log(`[pull] защита: пропущено ${skipped}`);
+      loadLocal(); resolve();
+    };
     t.onerror = () => resolve();
   });
 }
@@ -1196,7 +1211,6 @@ async function doReturn(sn) {
 function renderTable() {
   const q = ($('searchTable').value || '').trim().toUpperCase();
   let free = 0, issued = 0, overdue = 0, dayCount = 0, nightCount = 0;
-
   state.devices.forEach(d => {
     if (d.status === 'issued') {
       issued++;
@@ -1204,7 +1218,6 @@ function renderTable() {
       if (d.shift === 'Ночная') nightCount++; else dayCount++;
     } else free++;
   });
-
   $('mTotal').innerText = state.devices.length;
   $('mFree').innerText = free;
   $('mIssued').innerText = issued;
@@ -1225,28 +1238,21 @@ function renderTable() {
     return true;
   });
 
-  const issuedList = filtered.filter(d => d.status === 'issued')
-    .sort((a, b) => parseTime(b.issued_at) - parseTime(a.issued_at));
-  const freeList = filtered.filter(d => d.status !== 'issued')
-    .sort((a, b) => parseTime(b.last_move) - parseTime(a.last_move));
+  filtered.sort((a, b) => {
+    const aIssued = a.status === 'issued' ? 0 : 1;
+    const bIssued = b.status === 'issued' ? 0 : 1;
+    if (aIssued !== bIssued) return aIssued - bIssued;
+    const aTime = a.status === 'issued' ? parseTime(a.issued_at) : parseTime(a.last_move);
+    const bTime = b.status === 'issued' ? parseTime(b.issued_at) : parseTime(b.last_move);
+    if (aTime !== bTime) return bTime - aTime;
+    return String(a.serial).localeCompare(String(b.serial));
+  });
 
-  let html = '';
-
-  if (issuedList.length) {
-    html += `<tr class="group-label"><td colspan="6">▸ НА РУКАХ — ${issuedList.length}</td></tr>`;
-    html += issuedList.map(d => renderRow(d, true)).join('');
+  if (!filtered.length) {
+    $('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">Ничего не найдено</td></tr>';
+    return;
   }
-
-  if (freeList.length) {
-    html += `<tr class="group-label"><td colspan="6">▸ НА СКЛАДЕ — ${freeList.length}</td></tr>`;
-    html += freeList.map(d => renderRow(d, false)).join('');
-  }
-
-  if (!html) {
-    html = '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--text-muted);">Ничего не найдено</td></tr>';
-  }
-
-  $('tbody').innerHTML = html;
+  $('tbody').innerHTML = filtered.map(d => renderRow(d, d.status === 'issued')).join('');
 }
 
 function renderRow(d, busy) {
@@ -1254,7 +1260,7 @@ function renderRow(d, busy) {
   const over = busy && h >= OVERDUE_H;
 
   let badge = '';
-  if (busy && over) badge = '<span class="badge-chip chip-over">🚨 ДОЛГ</span>';
+  if (busy && over) badge = '<span class="badge-chip chip-over">🚨 ДОЛГ (>12ч)</span>';
   else if (busy) badge = '<span class="badge-chip chip-busy">НА РУКАХ</span>';
   else badge = '<span class="badge-chip chip-free">НА СКЛАДЕ</span>';
 
@@ -1263,8 +1269,8 @@ function renderRow(d, busy) {
   else if (busy && d.shift === 'Ночная') shiftChip = ' <span class="badge-chip chip-night">🌙 Ночь</span>';
 
   let action = busy
-    ? `<button class="btn-hud" style="background:#059669; color:#fff; border:none; padding:5px 11px; font-size:11px;" onclick="quickReturnFromRow('${esc(d.serial)}')">Принять</button>`
-    : `<button class="btn-hud" style="padding:5px 11px; font-size:11px;" onclick="pickForIssue('${esc(d.serial)}')">Выдать</button>`;
+    ? `<button class="btn-hud" style="background:#059669; color:#fff; border:none; padding:5px 12px; font-size:11px;" onclick="quickReturnFromRow('${esc(d.serial)}')">Принять</button>`
+    : `<button class="btn-hud" style="padding:5px 12px; font-size:11px;" onclick="pickForIssue('${esc(d.serial)}')">Выдать</button>`;
 
   let timeHtml = '';
   if (busy) {
@@ -1299,10 +1305,10 @@ function renderRow(d, busy) {
   if (state.justReturned === d.serial) rowClass += ' just-returned';
 
   return `<tr id="row-${cssId(d.serial)}" class="${rowClass}">
-    <td><b class="mono sn-link" style="color:var(--neon-cyan); font-size:11.5px;" onclick="openAudit('${esc(d.serial)}')">${esc(d.serial)}</b></td>
-    <td style="font-size:11.5px;"><b>${esc(d.model)}</b></td>
+    <td><b class="mono sn-link" style="color:var(--neon-cyan); font-size:13px; font-weight:700;" onclick="openAudit('${esc(d.serial)}')">${esc(d.serial)}</b></td>
+    <td style="font-size:13px; font-weight:700;">${esc(d.model)}</td>
     <td>${badge}${shiftChip}</td>
-    <td style="font-size:11.5px;"><b>${d.holder ? esc(d.holder) : '<span style="color:var(--text-muted); font-weight:400;">—</span>'}</b></td>
+    <td class="mono" style="font-size:13.5px; font-weight:700;">${d.holder ? esc(d.holder) : '<span style="color:var(--text-muted); font-weight:400;">—</span>'}</td>
     <td style="text-align:right;">${timeHtml}</td>
     <td style="text-align:right;">${action}</td>
   </tr>`;
