@@ -2,7 +2,8 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050811">
 <title>Учёт Оборудования</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,17 +26,58 @@
     --text-muted: #475569;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
-  html, body { height: 100%; }
+  html { height: 100%; }
+  html, body { min-height: 100%; }
   body {
     background-color: var(--bg-space);
     background-image: radial-gradient(circle at 10% 10%, rgba(0, 242, 254, 0.07) 0%, transparent 40%),
       radial-gradient(circle at 90% 90%, rgba(192, 132, 252, 0.06) 0%, transparent 40%),
       linear-gradient(180deg, #050811 0%, #03060c 100%);
-    color: var(--text-primary); padding: 14px 20px;
-    display: flex; flex-direction: column; overflow: hidden;
+    color: var(--text-primary);
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  body.no-scroll { overflow: hidden !important; }
+  @media (min-width: 900px) {
+    html, body { height: 100%; }
+    body { overflow: hidden; }
+    .app-shell { height: 100dvh; }
   }
   .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum"; }
-  .app-shell { max-width: 1600px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; height: 100%; min-height: 0; }
+  .app-shell { max-width: 1600px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+
+  /* ===== BOOT OVERLAY ===== */
+  .boot-overlay {
+    position: fixed; inset: 0;
+    background: linear-gradient(180deg, #050811 0%, #03060c 100%);
+    z-index: 100000;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 22px;
+    transition: opacity 0.4s ease;
+  }
+  .boot-overlay.hide { opacity: 0; pointer-events: none; }
+  .boot-spinner {
+    width: 54px; height: 54px;
+    border: 3px solid rgba(0,242,254,0.15);
+    border-top-color: var(--neon-cyan);
+    border-radius: 50%;
+    animation: bootSpin 0.9s linear infinite;
+    box-shadow: 0 0 30px rgba(0,242,254,0.35);
+  }
+  @keyframes bootSpin { to { transform: rotate(360deg); } }
+  .boot-logo {
+    font-weight: 900; font-size: 26px;
+    letter-spacing: 0.15em;
+    background: linear-gradient(90deg, #fff 40%, var(--neon-cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .boot-text { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-secondary); }
+
+  /* ===== HEADER ===== */
   .hud-header { background: var(--card-surface); backdrop-filter: blur(20px); border: 1px solid var(--border-glow); border-radius: 14px; padding: 10px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.45); }
   .brand-zone { display: flex; align-items: center; gap: 12px; }
   .brand-tag { background: linear-gradient(135deg, var(--neon-cyan), #0284c7); color: #030712; font-weight: 900; font-size: 11px; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.08em; cursor: pointer; user-select: none; }
@@ -51,6 +93,8 @@
   @keyframes pulse { 50% { opacity: 0.3; } }
   .btn-hud { background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); color: #cbd5e1; padding: 6px 13px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s ease; }
   .btn-hud:hover { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.4); color: #fff; transform: translateY(-1px); }
+
+  /* ===== METRICS ===== */
   .metrics-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
   @media(max-width: 1000px) { .metrics-grid { grid-template-columns: repeat(3, 1fr); } }
   @media(max-width: 600px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -59,11 +103,13 @@
   .hud-stat-card.active { border-color: var(--neon-cyan); background: rgba(14, 28, 54, 0.85); box-shadow: 0 0 15px rgba(0, 242, 254, 0.25); }
   .stat-label { font-size: 10px; font-weight: 800; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
   .stat-value { font-size: 22px; font-weight: 800; margin-top: 4px; letter-spacing: -0.02em; }
+
+  /* ===== TERMINAL DECKS ===== */
   .terminal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media(max-width: 850px) { .terminal-grid { grid-template-columns: 1fr; } }
   .deck-card { background: var(--card-surface); backdrop-filter: blur(20px); border: 1px solid rgba(56,189,248,0.25); border-radius: 14px; padding: 14px 18px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
   .deck-card.return-deck { border-color: rgba(16,185,129,0.35); background: radial-gradient(circle at 50% 0%, rgba(16,185,129,0.08) 0%, rgba(13, 20, 36, 0.85) 60%); }
-  .deck-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .deck-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 8px; flex-wrap: wrap; }
   .deck-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 8px; }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media(max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
@@ -73,30 +119,20 @@
   .hud-input:focus { border-color: var(--neon-cyan); box-shadow: 0 0 0 2px rgba(0,242,254,0.15), 0 0 15px rgba(0,242,254,0.15); }
   .return-deck .hud-input:focus { border-color: var(--neon-emerald); box-shadow: 0 0 0 2px rgba(16,185,129,0.15), 0 0 15px rgba(16,185,129,0.2); }
   .hud-input.err { border-color: var(--neon-rose); box-shadow: 0 0 0 2px rgba(244,63,94,0.25); }
-  .btn-submit { width: 100%; padding: 10.5px; border-radius: 9px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; border: none; cursor: pointer; transition: all 0.2s ease; }
+  .btn-submit { width: 100%; padding: 10.5px; border-radius: 9px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; border: none; cursor: pointer; transition: all 0.2s ease; position: relative; }
+  .btn-submit.busy { opacity: 0.65; pointer-events: none; }
+  .btn-submit.busy::after { content: ''; position: absolute; right: 14px; top: 50%; margin-top: -7px; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .btn-issue { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; box-shadow: 0 4px 18px rgba(2,132,199,0.35); }
   .btn-issue:hover { filter: brightness(1.15); transform: translateY(-1px); }
   .btn-return-action { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; box-shadow: 0 4px 18px rgba(16,185,129,0.35); }
   .btn-return-action:hover { filter: brightness(1.15); transform: translateY(-1px); }
 
-  .shift-banner {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 7px 12px; border-radius: 9px;
-    margin-bottom: 10px; cursor: pointer; user-select: none;
-    transition: all 0.15s; border: 1px solid;
-    position: relative;
-  }
+  /* ===== SHIFT BANNER ===== */
+  .shift-banner { display: flex; align-items: center; justify-content: space-between; padding: 7px 12px; border-radius: 9px; margin-bottom: 10px; cursor: pointer; user-select: none; transition: all 0.15s; border: 1px solid; position: relative; }
   .shift-banner:active { transform: scale(0.985); }
-  .shift-banner.day {
-    background: linear-gradient(135deg, rgba(245,158,11,0.14) 0%, rgba(245,158,11,0.04) 100%);
-    border-color: rgba(245,158,11,0.55);
-    box-shadow: 0 0 12px rgba(245,158,11,0.15);
-  }
-  .shift-banner.night {
-    background: linear-gradient(135deg, rgba(192,132,252,0.14) 0%, rgba(192,132,252,0.04) 100%);
-    border-color: rgba(192,132,252,0.55);
-    box-shadow: 0 0 12px rgba(192,132,252,0.15);
-  }
+  .shift-banner.day { background: linear-gradient(135deg, rgba(245,158,11,0.14) 0%, rgba(245,158,11,0.04) 100%); border-color: rgba(245,158,11,0.55); box-shadow: 0 0 12px rgba(245,158,11,0.15); }
+  .shift-banner.night { background: linear-gradient(135deg, rgba(192,132,252,0.14) 0%, rgba(192,132,252,0.04) 100%); border-color: rgba(192,132,252,0.55); box-shadow: 0 0 12px rgba(192,132,252,0.15); }
   .shift-banner .left { display: flex; align-items: center; gap: 8px; }
   .shift-banner .icon { font-size: 16px; }
   .shift-banner .text-main { font-size: 12px; font-weight: 800; letter-spacing: 0.04em; }
@@ -109,22 +145,20 @@
   .shift-banner .auto-badge { font-size: 8.5px; font-weight: 800; padding: 1px 5px; border-radius: 3px; letter-spacing: 0.06em; }
   .shift-banner.day .auto-badge { background: rgba(245,158,11,0.25); color: #fbbf24; }
   .shift-banner.night .auto-badge { background: rgba(192,132,252,0.25); color: var(--neon-purple); }
-  .shift-banner .reset-btn {
-    font-size: 9px; font-weight: 700; padding: 2px 6px;
-    border-radius: 4px; border: 1px solid rgba(255,255,255,0.15);
-    background: rgba(255,255,255,0.04); color: var(--text-secondary);
-    cursor: pointer; transition: all 0.15s;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
+  .shift-banner .reset-btn { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.04); color: var(--text-secondary); cursor: pointer; transition: all 0.15s; font-family: 'Plus Jakarta Sans', sans-serif; }
   .shift-banner .reset-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
   .shift-banner .reset-btn.hidden { display: none; }
 
+  /* ===== DROPDOWN ===== */
   .drop-box { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: rgba(11,18,33,0.98); backdrop-filter: blur(24px); border: 1px solid rgba(56,189,248,0.4); border-radius: 10px; max-height: 220px; overflow-y: auto; z-index: 1000; box-shadow: 0 16px 36px rgba(0,0,0,0.85); display: none; }
   .drop-box.show { display: block; }
   .drop-item { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 12px; }
   .drop-item:hover, .drop-item.selected { background: rgba(56,189,248,0.15); }
-  .registry-deck { background: var(--card-surface); backdrop-filter: blur(20px); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 12px 18px; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+  /* ===== REGISTRY ===== */
+  .registry-deck { background: var(--card-surface); backdrop-filter: blur(20px); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 12px 18px; display: flex; flex-direction: column; flex: 1; min-height: 320px; }
   .reg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+  .reg-stats { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-secondary); }
   .reg-wrap { overflow-y: auto; flex: 1; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); min-height: 0; }
 
   table { width: 100%; border-collapse: collapse; font-size: 12.5px; background: rgba(4,7,15,0.4); table-layout: auto; }
@@ -165,6 +199,7 @@
   .time-inline .sub { font-size: 10.5px; color: var(--text-muted); min-width: 96px; text-align: right; letter-spacing: 0.02em; }
   .time-inline .inherit-mark { font-size: 12px; color: var(--neon-cyan); cursor: help; margin-left: -2px; filter: drop-shadow(0 0 4px rgba(0, 242, 254, 0.5)); }
 
+  /* ===== TOAST ===== */
   #toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-120px); background: #091724; border: 2px solid var(--neon-emerald); border-radius: 14px; padding: 14px 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(16,185,129,0.4); display: flex; align-items: center; gap: 16px; z-index: 10000; opacity: 0; transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; max-width: 90vw; }
   #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
   #toast.err { border-color: var(--neon-rose); box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(244,63,94,0.4); }
@@ -179,12 +214,13 @@
   .t-undo { margin-left: 8px; padding: 5px 12px; background: rgba(0,242,254,0.15); border: 1px solid rgba(0,242,254,0.5); color: #67e8f9; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; pointer-events: auto; font-family: 'Plus Jakarta Sans', sans-serif; white-space: nowrap; }
   .t-undo:hover { background: var(--neon-cyan); color: #030712; border-color: var(--neon-cyan); }
 
+  /* ===== DRAWER ===== */
   .audit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); display: none; z-index: 9998; opacity: 0; transition: opacity 0.25s ease; }
   .audit-overlay.show { display: block; opacity: 1; }
   .audit-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 440px; max-width: 90vw; background: #090e1a; border-left: 1px solid rgba(56,189,248,0.3); box-shadow: -15px 0 40px rgba(0,0,0,0.85); z-index: 9999; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding: 20px; }
   .audit-drawer.open { transform: translateX(0); }
-  .audit-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 14px; }
-  .audit-header h3 { font-size: 17px; font-weight: 800; color: #fff; }
+  .audit-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 14px; gap: 10px; }
+  .audit-header h3 { font-size: 17px; font-weight: 800; color: #fff; word-break: break-all; }
   .audit-summary { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 12px; margin-bottom: 16px; font-size: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .summary-item label { color: var(--text-muted); font-size: 10px; text-transform: uppercase; font-weight: 700; display: block; }
   .summary-item b { color: #fff; font-size: 12.5px; }
@@ -196,15 +232,16 @@
   .timeline-action { font-size: 12px; font-weight: 800; color: #fff; margin-top: 1px; }
   .timeline-actor { font-size: 11.5px; color: #cbd5e1; margin-top: 2px; }
 
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 14px; }
+  /* ===== MODALS ===== */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 14px; overflow-y: auto; }
   .modal-overlay.show { display: flex; }
-  .modal-card { background: #0c111c; border: 1px solid rgba(56,189,248,0.3); border-radius: 14px; width: 100%; max-width: 480px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.9); max-height: 90vh; overflow-y: auto; }
+  .modal-card { background: #0c111c; border: 1px solid rgba(56,189,248,0.3); border-radius: 14px; width: 100%; max-width: 480px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.9); max-height: 90vh; overflow-y: auto; margin: auto; }
   .swap-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin: 14px 0; }
   .swap-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px; text-align: center; }
   .swap-card.old { border-color: rgba(244,63,94,0.4); background: rgba(244,63,94,0.05); }
   .swap-card.new { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.05); }
   .swap-card .label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; }
-  .swap-card .sn { font-size: 16px; font-weight: 800; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+  .swap-card .sn { font-size: 16px; font-weight: 800; margin-top: 4px; font-family: 'JetBrains Mono', monospace; word-break: break-all; }
   .swap-card.old .sn { color: #fb7185; }
   .swap-card.new .sn { color: #34d399; }
   .swap-arrow { font-size: 26px; color: var(--neon-amber); }
@@ -235,7 +272,7 @@
 
   @media print {
     body { background: #fff !important; color: #000 !important; overflow: visible !important; height: auto !important; padding: 0 !important; }
-    .hud-header, .metrics-grid, .terminal-grid, .hud-actions, .reg-head input, .btn-hud, #toast, .drop-box, #logStatus { display: none !important; }
+    .hud-header, .metrics-grid, .terminal-grid, .hud-actions, .reg-head input, .btn-hud, #toast, .drop-box, #logStatus, .reg-stats { display: none !important; }
     .registry-deck { border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 !important; }
     .reg-wrap { border: none !important; overflow: visible !important; }
     table { width: 100% !important; border: 1px solid #000 !important; color: #000 !important; font-size: 10pt !important; }
@@ -248,10 +285,17 @@
 </head>
 <body>
 
+<!-- ===== BOOT OVERLAY ===== -->
+<div class="boot-overlay" id="bootOverlay">
+  <div class="boot-logo">SKLAD OPS</div>
+  <div class="boot-spinner"></div>
+  <div class="boot-text" id="bootText">Инициализация базы данных…</div>
+</div>
+
 <div class="app-shell">
   <header class="hud-header">
     <div class="brand-zone">
-      <div id="brandTag" class="brand-tag mono" title="v8.28">TERMINAL</div>
+      <div id="brandTag" class="brand-tag mono" title="v8.30">TERMINAL</div>
       <div class="brand-title">
         <h1>Учёт Оборудования</h1>
         <p>Двухпостовой Cloud • Автономная работа • Экспресс-замена</p>
@@ -272,9 +316,9 @@
     <div class="hud-stat-card active" data-filter="all"><div class="stat-label">ВСЕГО СКАНЕРОВ</div><div id="mTotal" class="stat-value mono">0</div></div>
     <div class="hud-stat-card" data-filter="free"><div class="stat-label" style="color:var(--neon-emerald);">● НА СКЛАДЕ</div><div id="mFree" class="stat-value mono" style="color:var(--neon-emerald);">0</div></div>
     <div class="hud-stat-card" data-filter="issued"><div class="stat-label" style="color:var(--neon-blue);">● НА РУКАХ</div><div id="mIssued" class="stat-value mono" style="color:var(--neon-blue);">0</div></div>
-    <div class="hud-stat-card" data-filter="overdue"><div class="stat-label" style="color:var(--neon-rose);">🚨 ДОЛГИ (>12Ч)</div><div id="mOverdue" class="stat-value mono" style="color:var(--neon-rose);">0</div></div>
-    <div class="hud-stat-card" data-filter="day"><div class="stat-label" style="color:#fbbf24;">☀️ ДЕНЬ (СМЕНА)</div><div id="mDay" class="stat-value mono" style="color:#fbbf24;">0</div></div>
-    <div class="hud-stat-card" data-filter="night"><div class="stat-label" style="color:var(--neon-purple);">🌙 НОЧЬ (СМЕНА)</div><div id="mNight" class="stat-value mono" style="color:var(--neon-purple);">0</div></div>
+    <div class="hud-stat-card" data-filter="overdue" title="Выдано более 12 часов назад"><div class="stat-label" style="color:var(--neon-rose);">🚨 ДОЛГИ (&gt;12Ч)</div><div id="mOverdue" class="stat-value mono" style="color:var(--neon-rose);">0</div></div>
+    <div class="hud-stat-card" data-filter="day" title="Сейчас на руках у дневной смены"><div class="stat-label" style="color:#fbbf24;">☀️ ДЕНЬ (ВЫДАНО)</div><div id="mDay" class="stat-value mono" style="color:#fbbf24;">0</div></div>
+    <div class="hud-stat-card" data-filter="night" title="Сейчас на руках у ночной смены"><div class="stat-label" style="color:var(--neon-purple);">🌙 НОЧЬ (ВЫДАНО)</div><div id="mNight" class="stat-value mono" style="color:var(--neon-purple);">0</div></div>
   </section>
 
   <section class="terminal-grid">
@@ -308,7 +352,7 @@
           </div>
         </div>
 
-        <button type="submit" class="btn-submit btn-issue">ВЫДАТЬ СКАНЕР (ENTER)</button>
+        <button type="submit" class="btn-submit btn-issue" id="btnIssue">ВЫДАТЬ СКАНЕР (ENTER)</button>
       </form>
     </div>
 
@@ -328,8 +372,11 @@
 
   <section class="registry-deck">
     <div class="reg-head">
-      <div style="font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;">РЕЕСТР ОБОРУДОВАНИЯ (КЛИК ПО SN → ИСТОРИЯ СКАНЕРА)</div>
-      <input id="searchTable" class="hud-input mono" style="width:230px; padding:6px 12px; font-size:11.5px;" placeholder="Поиск (Ctrl+K)..." spellcheck="false">
+      <div style="font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;">РЕЕСТР ОБОРУДОВАНИЯ <span style="color:var(--text-muted); font-weight:500; font-size:10px;">(клик по SN → история · Ctrl+клик → копировать)</span></div>
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <div class="reg-stats" id="regStats">Ср: — · Макс: —</div>
+        <input id="searchTable" class="hud-input mono" style="width:230px; padding:6px 12px; font-size:11.5px;" placeholder="Поиск (Ctrl+K)..." spellcheck="false">
+      </div>
     </div>
     <div class="reg-wrap">
       <table>
@@ -355,7 +402,7 @@
 <div id="auditOverlay" class="audit-overlay" onclick="closeAuditDrawer()"></div>
 <div id="auditDrawer" class="audit-drawer">
   <div class="audit-header">
-    <div>
+    <div style="min-width:0;">
       <h3 id="audSn" class="mono" style="color:var(--neon-cyan);">S10023</h3>
       <span id="audStatusBadge" class="badge-chip chip-free" style="margin-top:4px;">На складе</span>
     </div>
@@ -438,7 +485,8 @@
   <div class="modal-card" style="max-width:640px;">
     <h3 style="font-size:14px; margin-bottom:6px; color:var(--neon-cyan);">💾 РЕЗЕРВНЫЕ КОПИИ</h3>
     <p style="font-size:11.5px; color:var(--text-secondary); margin-bottom:14px;">
-      Автосохранение раз в день в Supabase Storage. Хранятся последние 7 файлов.
+      Автосохранение раз в день в Supabase Storage. Хранятся последние 7 файлов.<br>
+      <span style="color:var(--neon-amber);">⚠ Убедитесь, что RLS на bucket 'sklad-backups' ограничивает доступ.</span>
     </p>
     <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
       <button class="btn-hud" style="border-color:rgba(0,242,254,0.4); color:var(--neon-cyan);" onclick="doBackup('manual')">💾 Создать бэкап сейчас</button>
@@ -463,12 +511,17 @@ const BACKUP_KEEP = 7;
 const BACKUP_MIN_INTERVAL = 6 * 60 * 60 * 1000;
 const RECENT_LOCAL_TTL = 60 * 1000;
 const AUTO_SWAP_KEY = 'sklad_auto_swap_v2';
+const DRAFT_KEY = 'sklad_draft_iss';
+const DRAFT_TTL_MS = 5 * 60 * 1000;
 const SN_REGEX = /^[A-Z0-9\-_.]{2,60}$/;
+const MOVES_ROTATE_THRESHOLD = 6000;
+const MOVES_ROTATE_KEEP = 3000;
 
-// ⭐ Таймауты (страховка от зависших сетевых вызовов Supabase и IDB-транзакций)
-const NET_TIMEOUT_MS = 15000;   // один сетевой вызов
-const SYNC_TIMEOUT_MS = 45000;  // вся синхронизация
-const SYNC_INTERVAL_MS = 20000; // интервал автосинка
+const NET_TIMEOUT_MS = 15000;
+const SYNC_TIMEOUT_MS = 45000;
+const SYNC_BASE_INTERVAL = 20000;
+const SYNC_MAX_INTERVAL = 300000;
+const SYNC_JITTER = 0.25;
 
 const state = {
   devices: [], filter: 'all', shift: 'auto',
@@ -477,13 +530,13 @@ const state = {
   pendingSwap: null,
   justIssued: null, justReturned: null,
   autoSwap: true,
-  lastSwap: null,
-  undoTimeout: null,
-  // ⭐ Точное значение, для которого построен текущий дропдаун.
+  undoAction: null,           // { label, callback, ttl }
+  undoTimer: null,
   lastDropQuery: null,
   lastRetDropQuery: null,
-  // ⭐ Генерация синхронизации. Сбрасывается при watchdog / forceSync.
-  syncToken: 0
+  syncToken: 0,
+  syncBackoff: 0,
+  lastReturn: null            // snapshot для undo приёма
 };
 
 try {
@@ -502,7 +555,6 @@ function esc(s) {
 }
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 
-/* ⭐ Гонка с таймаутом: страхует от зависших сетевых вызовов Supabase */
 function withTimeout(promise, ms, label) {
   let timer;
   const timeout = new Promise((_, reject) => {
@@ -544,20 +596,63 @@ function timeClass(h) {
   if (h >= 4) return 'mid';
   return 'fresh';
 }
-function timeBarWidth(h) {
-  const pct = Math.min(100, (h / OVERDUE_H) * 100);
-  return Math.max(3, pct);
-}
+function timeBarWidth(h) { return Math.max(3, Math.min(100, (h / OVERDUE_H) * 100)); }
 function isInheritedTime(d) {
   if (!d || d.status !== 'issued' || !d.issued_at || !d.last_move) return false;
-  const diff = Math.abs(Date.parse(d.last_move) - Date.parse(d.issued_at));
-  return diff > 60 * 1000;
+  return Math.abs(Date.parse(d.last_move) - Date.parse(d.issued_at)) > 60 * 1000;
 }
 
 function logMsg(msg) {
   const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const el = $('logStatus'); if (el) el.innerText = `[${t}] ${msg}`;
-  console.log(`[LOG ${t}] ${msg}`);
+}
+
+/* ============================================================
+   BOOT OVERLAY
+   ============================================================ */
+function hideBoot() {
+  const el = $('bootOverlay');
+  if (!el) return;
+  el.classList.add('hide');
+  setTimeout(() => { try { el.remove(); } catch(e){} }, 500);
+}
+function bootText(txt) {
+  const el = $('bootText');
+  if (el) el.textContent = txt;
+}
+
+/* ============================================================
+   BODY SCROLL LOCK (для модалок и drawer)
+   ============================================================ */
+function refreshScrollLock() {
+  const anyModal = document.querySelector('.modal-overlay.show');
+  const drawerOpen = $('auditDrawer') && $('auditDrawer').classList.contains('open');
+  document.body.classList.toggle('no-scroll', !!(anyModal || drawerOpen));
+}
+
+/* ============================================================
+   УНИВЕРСАЛЬНЫЙ UNDO-TOAST
+   ============================================================ */
+function setUndo(label, callback, ttl = 7000) {
+  state.undoAction = { label, callback, ttl };
+  clearTimeout(state.undoTimer);
+  state.undoTimer = setTimeout(() => {
+    state.undoAction = null;
+    state.lastReturn = null;
+    const el = $('toast');
+    const b = el.querySelector('.t-undo');
+    if (b) b.remove();
+  }, ttl);
+}
+
+function clearUndo() {
+  state.undoAction = null;
+  clearTimeout(state.undoTimer);
+  state.undoTimer = null;
+  const el = $('toast');
+  if (!el) return;
+  const b = el.querySelector('.t-undo');
+  if (b) b.remove();
 }
 
 /* ============================================================
@@ -668,14 +763,20 @@ DB_REQ.onblocked = () => showToast('БАЗА ЗАНЯТА', 'Закройте д
 DB_REQ.onsuccess = async e => {
   db = e.target.result;
   state.dbReady = true;
-  console.log('[DB] Открыта');
-  loadLocal();
-  syncNow();
+  bootText('Загрузка локальных данных…');
+  await loadLocal();
+  await rotateMovesIfNeeded();
+  hideBoot();
+  restoreDraft();
+  scheduleSync(500);
+  setTimeout(() => checkAutoBackup(), 5000);
 };
 DB_REQ.onerror = e => {
   state.dbReady = false;
+  bootText('Ошибка базы данных');
   console.error('[DB] Ошибка:', e.target.error);
   showToast('ОШИБКА БАЗЫ', e.target.error ? e.target.error.message : '?', 'err');
+  setTimeout(hideBoot, 1500);
 };
 
 function loadLocal() {
@@ -686,7 +787,6 @@ function loadLocal() {
       const req = tx.objectStore("devices").getAll();
       req.onsuccess = () => {
         state.devices = req.result || [];
-        console.log(`[LOCAL] Загружено ${state.devices.length} устройств`);
         renderTable();
         resolve();
       };
@@ -696,16 +796,40 @@ function loadLocal() {
   });
 }
 
+/* Ротация moves: если записей больше порога — удаляем старые */
+async function rotateMovesIfNeeded() {
+  try {
+    const count = await new Promise(r => {
+      const t = db.transaction('moves', 'readonly');
+      const req = t.objectStore('moves').count();
+      req.onsuccess = () => r(req.result || 0);
+      req.onerror = () => r(0);
+      t.onabort = () => r(0);
+    });
+    if (count <= MOVES_ROTATE_THRESHOLD) return;
+    const toDelete = count - MOVES_ROTATE_KEEP;
+    if (toDelete <= 0) return;
+    await new Promise(r => {
+      const t = db.transaction('moves', 'readwrite');
+      const s = t.objectStore('moves');
+      let deleted = 0;
+      const req = s.openCursor();
+      req.onsuccess = e => {
+        const cur = e.target.result;
+        if (cur && deleted < toDelete) { cur.delete(); deleted++; cur.continue(); }
+      };
+      t.oncomplete = () => r();
+      t.onerror = () => r();
+      t.onabort = () => r();
+    });
+    logMsg(`🧹 Ротация истории: удалено ${toDelete} старых записей`);
+  } catch(e) {}
+}
+
 function saveDevice(dev, actionName, workerName) {
   return new Promise((resolve, reject) => {
-    if (!db || !state.dbReady) {
-      console.error('[saveDevice] База не готова');
-      return reject(new Error('База данных не готова. Обновите страницу (F5).'));
-    }
-    if (!dev || !dev.serial) {
-      console.error('[saveDevice] Нет serial');
-      return reject(new Error('Не указан серийный номер'));
-    }
+    if (!db || !state.dbReady) return reject(new Error('База данных не готова. Обновите страницу (F5).'));
+    if (!dev || !dev.serial) return reject(new Error('Не указан серийный номер'));
     try {
       const t = db.transaction(["devices", "queue", "moves"], "readwrite");
       t.objectStore("devices").put(dev);
@@ -717,25 +841,14 @@ function saveDevice(dev, actionName, workerName) {
           const cutoff = Date.now() - RECENT_LOCAL_TTL;
           for (const [k, v] of recentLocal) if (v < cutoff) recentLocal.delete(k);
         }
-        console.log(`[saveDevice] ${actionName}: ${dev.serial} (${dev.status}, holder="${dev.holder||''}")`);
-        loadLocal().then(() => { syncNow(); resolve(); });
+        loadLocal().then(() => { scheduleSync(150); resolve(); });
       };
-      t.onerror = () => {
-        console.error('[saveDevice] TX error:', t.error);
-        reject(t.error || new Error('Ошибка записи в базу'));
-      };
-      t.onabort = () => {
-        console.error('[saveDevice] TX aborted');
-        reject(t.error || new Error('Транзакция отменена'));
-      };
-    } catch (e) {
-      console.error('[saveDevice] Exception:', e);
-      reject(e);
-    }
+      t.onerror = () => reject(t.error || new Error('Ошибка записи в базу'));
+      t.onabort = () => reject(t.error || new Error('Транзакция отменена'));
+    } catch (e) { reject(e); }
   });
 }
 
-/* ⭐ Очередь: чтение значений + ключей одной транзакцией, с onabort */
 function readQueueWithKeys() {
   return new Promise(resolve => {
     if (!db) return resolve([]);
@@ -761,9 +874,7 @@ function deleteQueueKey(key) {
     try {
       const t = db.transaction('queue', 'readwrite');
       t.objectStore('queue').delete(key);
-      t.oncomplete = r;
-      t.onerror = r;
-      t.onabort = r;
+      t.oncomplete = r; t.onerror = r; t.onabort = r;
     } catch(e) { r(); }
   });
 }
@@ -792,10 +903,7 @@ async function deleteSerial(sn) {
     const mReq = t.objectStore('moves').openCursor();
     mReq.onsuccess = e => {
       const cur = e.target.result;
-      if (cur) {
-        if (cur.value && cur.value.serial === sn) mKeys.push(cur.primaryKey);
-        cur.continue();
-      }
+      if (cur) { if (cur.value && cur.value.serial === sn) mKeys.push(cur.primaryKey); cur.continue(); }
     };
     t.oncomplete = () => resolve({ queueKeys: qKeys, moveKeys: mKeys });
     t.onerror = () => reject(t.error);
@@ -827,10 +935,7 @@ function normalizeCloudDevice(row) {
   if (!row) return null;
   const sn = row.serial || row.sn || row.serial_number || row.id;
   if (!sn) return null;
-  if (!/^[A-Za-z0-9\-_.]+$/.test(String(sn))) {
-    console.warn('[SECURITY] SN с недопустимыми символами:', sn);
-    return null;
-  }
+  if (!/^[A-Za-z0-9\-_.]+$/.test(String(sn))) return null;
   const rawHolder = String(row.holder || row.worker || '').trim();
   let status = 'free';
   const s = String(row.status || '').toLowerCase().trim();
@@ -851,22 +956,22 @@ function normalizeCloudDevice(row) {
 }
 
 /* ============================================================
-   СИНХРОНИЗАЦИЯ — с watchdog, токеном генерации и таймаутами
+   СИНХРОНИЗАЦИЯ — с watchdog + backoff + частичный pull
    ============================================================ */
 async function syncNow() {
-  if (state.syncing) return;
-  if (!cloud || !navigator.onLine) { setSync(false, 'Офлайн'); return; }
-  if (!state.dbReady) { setSync(false, 'БД не готова'); return; }
+  if (state.syncing) return false;
+  if (!cloud || !navigator.onLine) { setSync(false, 'Офлайн'); return false; }
+  if (!state.dbReady) { setSync(false, 'БД не готова'); return false; }
 
   const token = ++state.syncToken;
   state.syncing = true;
   setSync(true, 'Синхронизация...', true);
 
   const alive = () => token === state.syncToken;
+  let anyFailure = false;
 
   const watchdog = setTimeout(() => {
     if (!alive()) return;
-    console.warn(`[sync] Watchdog сработал (token=${token})`);
     state.syncing = false;
     state.lastError = 'Таймаут синхронизации (watchdog)';
     setSync(false, 'Таймаут sync');
@@ -874,13 +979,13 @@ async function syncNow() {
 
   try {
     const items = await readQueueWithKeys();
-    if (!alive()) return;
+    if (!alive()) { clearTimeout(watchdog); return false; }
 
     const recentlySent = new Set();
     let failCount = 0;
 
     for (const item of items) {
-      if (!alive()) return;
+      if (!alive()) { clearTimeout(watchdog); return false; }
       const it = item.value;
       const key = item.key;
       if (!it) { await deleteQueueKey(key); continue; }
@@ -891,22 +996,10 @@ async function syncNow() {
             cloud.from('devices').delete().eq('serial', it.serial),
             NET_TIMEOUT_MS, `del device ${it.serial}`
           );
-          if (delDevErr) {
-            state.lastError = 'del: ' + delDevErr.message;
-            failCount++;
-            continue;
-          }
-          try {
-            await withTimeout(
-              cloud.from('movements').delete().eq('serial', it.serial),
-              NET_TIMEOUT_MS, 'del movements'
-            );
-          } catch(e) { /* best-effort */ }
+          if (delDevErr) { state.lastError = 'del: ' + delDevErr.message; failCount++; continue; }
+          try { await withTimeout(cloud.from('movements').delete().eq('serial', it.serial), NET_TIMEOUT_MS, 'del movements'); } catch(e) {}
           await deleteQueueKey(key);
-        } catch(e) {
-          state.lastError = 'del: ' + e.message;
-          failCount++;
-        }
+        } catch(e) { state.lastError = 'del: ' + e.message; failCount++; }
         continue;
       }
 
@@ -926,57 +1019,46 @@ async function syncNow() {
           cloud.from('devices').upsert(cleanDev, { onConflict: 'serial' }),
           NET_TIMEOUT_MS, `upsert ${cleanDev.serial}`
         );
-        if (devErr) {
-          state.lastError = 'upsert: ' + devErr.message;
-          failCount++;
-          continue;
-        }
-      } catch(e) {
-        state.lastError = 'upsert: ' + e.message;
-        failCount++;
-        continue;
-      }
+        if (devErr) { state.lastError = 'upsert: ' + devErr.message; failCount++; continue; }
+      } catch(e) { state.lastError = 'upsert: ' + e.message; failCount++; continue; }
 
       const fullMove = {
         serial: it.dev.serial, action: it.action,
         worker: it.worker || (it.dev.holder || ''), created_at: it.ts
       };
       try {
-        await withTimeout(
-          cloud.from('movements').insert(fullMove),
-          NET_TIMEOUT_MS, `move ${fullMove.serial}`
-        );
-      } catch(e) { console.warn('[sync] movement insert skipped:', e.message); }
+        await withTimeout(cloud.from('movements').insert(fullMove), NET_TIMEOUT_MS, `move ${fullMove.serial}`);
+      } catch(e) {}
 
       await deleteQueueKey(key);
     }
 
-    if (!alive()) return;
+    if (!alive()) { clearTimeout(watchdog); return false; }
 
     const allData = await pullAllDevices();
-    if (!alive()) return;
+    if (!alive()) { clearTimeout(watchdog); return false; }
     if (allData === null) {
       setSync(false, 'Ошибка загрузки');
-      return;
+      return false;
     }
     const norm = allData.map(normalizeCloudDevice).filter(Boolean);
     await applyPull(norm, recentlySent);
-    if (!alive()) return;
+    if (!alive()) { clearTimeout(watchdog); return false; }
 
-    state.lastError = failCount ? `отложено: ${failCount}` : '—';
-    setSync(true, failCount ? `Онлайн (${failCount} отложено)` : 'Онлайн');
-    setTimeout(() => { checkAutoBackup(); }, 2000);
+    anyFailure = failCount > 0;
+    state.lastError = anyFailure ? `отложено: ${failCount}` : '—';
+    setSync(true, anyFailure ? `Онлайн (${failCount} отложено)` : 'Онлайн');
+    return !anyFailure;
   } catch(e) {
-    if (alive()) {
-      state.lastError = e.message || 'Ошибка сети';
-      setSync(false, 'Сбой сети');
-    }
+    if (alive()) { state.lastError = e.message || 'Ошибка сети'; setSync(false, 'Сбой сети'); }
+    return false;
   } finally {
     clearTimeout(watchdog);
     if (alive()) state.syncing = false;
   }
 }
 
+/* Возвращаем массив даже при частичном успехе, иначе null */
 async function pullAllDevices() {
   const pageSize = 1000;
   let all = [];
@@ -987,15 +1069,15 @@ async function pullAllDevices() {
         cloud.from('devices').select('*').range(from, from + pageSize - 1),
         NET_TIMEOUT_MS, 'pull devices'
       );
-      if (error) { state.lastError = error.message; return null; }
+      if (error) { state.lastError = error.message; return all.length ? all : null; }
       if (!data || !data.length) break;
       all = all.concat(data);
       if (data.length < pageSize) break;
       from += pageSize;
-      if (from > 500000) { console.warn('[pull] достигнут предел 500k'); break; }
+      if (from > 500000) break;
     }
     return all;
-  } catch(e) { state.lastError = e.message; return null; }
+  } catch(e) { state.lastError = e.message; return all.length ? all : null; }
 }
 
 async function applyPull(data, protectedSerials) {
@@ -1022,6 +1104,23 @@ async function applyPull(data, protectedSerials) {
   const cloudSet = new Set(data.map(d => d.serial));
   const now = Date.now();
 
+  // Предзагружаем локальные устройства, чтобы сравнить last_move
+  const localMap = new Map();
+  await new Promise(r => {
+    try {
+      const t = db.transaction('devices', 'readonly');
+      const req = t.objectStore('devices').openCursor();
+      req.onsuccess = e => {
+        const cur = e.target.result;
+        if (cur) { localMap.set(cur.value.serial, cur.value); cur.continue(); }
+        else r();
+      };
+      req.onerror = () => r();
+      t.onabort = () => r();
+      t.onerror = () => r();
+    } catch(e) { r(); }
+  });
+
   return new Promise(resolve => {
     let settled = false;
     const done = () => { if (!settled) { settled = true; resolve(); } };
@@ -1047,35 +1146,58 @@ async function applyPull(data, protectedSerials) {
             if (queuedSerials.has(d.serial)) return;
             const recent = recentLocal.get(d.serial);
             if (recent && now - recent < RECENT_LOCAL_TTL) return;
+            // ⭐ last_move конфликт: если локальная запись новее — не перезаписываем
+            const existing = localMap.get(d.serial);
+            if (existing && existing.last_move && d.last_move) {
+              if (Date.parse(existing.last_move) > Date.parse(d.last_move)) return;
+            }
             s.put(d);
           });
-        } catch(e) {
-          console.error('[applyPull] handler error:', e);
-        }
+        } catch(e) {}
       };
       keysReq.onerror = () => {};
 
       t.oncomplete = () => { loadLocal().then(done).catch(done); };
-      t.onerror = () => { console.error('[applyPull] TX error:', t.error); done(); };
-      t.onabort = () => { console.error('[applyPull] TX aborted'); done(); };
-    } catch(e) {
-      console.error('[applyPull] Exception:', e);
-      done();
-    }
+      t.onerror = () => { done(); };
+      t.onabort = () => { done(); };
+    } catch(e) { done(); }
   });
 }
 
 function setSync(ok, txt, busy = false) {
   const p = $('syncStatus');
+  if (!p) return;
   p.className = 'pill-badge ' + (busy ? 'pill-busy' : (ok ? 'pill-online' : 'pill-offline'));
   $('syncText').innerText = txt;
+}
+
+/* ⭐ Планировщик синка с экспоненциальным backoff + jitter */
+let syncScheduledTimer = null;
+function scheduleSync(delay) {
+  clearTimeout(syncScheduledTimer);
+  const d = typeof delay === 'number' ? delay : SYNC_BASE_INTERVAL;
+  syncScheduledTimer = setTimeout(async () => {
+    const ok = await syncNow();
+    if (ok) {
+      state.syncBackoff = 0;
+      scheduleSync(SYNC_BASE_INTERVAL);
+    } else {
+      const exp = Math.min(state.syncBackoff + 1, 5);
+      const base = Math.min(SYNC_BASE_INTERVAL * Math.pow(2, exp), SYNC_MAX_INTERVAL);
+      const jitter = base * SYNC_JITTER * (Math.random() * 2 - 1);
+      state.syncBackoff = exp;
+      scheduleSync(Math.max(SYNC_BASE_INTERVAL, base + jitter));
+    }
+  }, d);
 }
 
 async function forceSync() {
   closeModal('diagModal');
   state.syncToken++;
   state.syncing = false;
+  state.syncBackoff = 0;
   await syncNow();
+  scheduleSync(SYNC_BASE_INTERVAL);
 }
 
 async function clearStuckQueue() {
@@ -1085,7 +1207,7 @@ async function clearStuckQueue() {
   for (const item of items) await deleteQueueKey(item.key);
   showToast('ОЧЕРЕДЬ ОЧИЩЕНА', `Удалено ${items.length} пакетов`, 'warn');
   closeModal('diagModal');
-  setTimeout(syncNow, 200);
+  setTimeout(() => scheduleSync(200), 200);
 }
 
 async function renderQueuePreview() {
@@ -1112,7 +1234,8 @@ async function hardReset() {
   try {
     localStorage.removeItem('vst_lastPull');
     localStorage.removeItem('sklad_shift_pref');
-    localStorage.removeItem('sklad_auto_swap_v2');
+    localStorage.removeItem(AUTO_SWAP_KEY);
+    localStorage.removeItem(DRAFT_KEY);
     if (db) {
       const stores = ['devices', 'queue', 'moves'];
       const t = db.transaction(stores, 'readwrite');
@@ -1124,7 +1247,7 @@ async function hardReset() {
     state.lastRetDropQuery = null;
     recentLocal.clear();
     renderTable();
-    showToast('СБРОШЕНО', 'Данные очищены. Нажмите F5 для полной перезагрузки', 'warn');
+    showToast('СБРОШЕНО', 'Данные очищены. Нажмите F5', 'warn');
   } catch(e) { showToast('ОШИБКА', e.message, 'err'); }
 }
 
@@ -1178,7 +1301,7 @@ async function doBackup(trigger) {
     state.lastError = 'backup: ' + msg;
     if (trigger === 'manual') {
       if (/bucket.*not.*found|does not exist/i.test(msg)) showToast('НЕТ БАКЕТА', 'Создайте bucket "sklad-backups"', 'err');
-      else if (/permission|policy|unauthorized/i.test(msg)) showToast('НЕТ ДОСТУПА', 'Проверьте RLS-политику', 'err');
+      else if (/permission|policy|unauthorized/i.test(msg)) showToast('НЕТ ДОСТУПА', 'Проверьте RLS', 'err');
       else showToast('ОШИБКА БЭКАПА', msg, 'err');
     }
   }
@@ -1270,10 +1393,7 @@ async function restoreFromBackup(filename) {
 async function deleteBackup(filename) {
   if (!confirm(`Удалить бэкап "${filename}"?`)) return;
   try {
-    const { error } = await withTimeout(
-      cloud.storage.from(BACKUP_BUCKET).remove([filename]),
-      NET_TIMEOUT_MS, 'backup remove'
-    );
+    const { error } = await withTimeout(cloud.storage.from(BACKUP_BUCKET).remove([filename]), NET_TIMEOUT_MS, 'backup remove');
     if (error) throw error;
     showToast('УДАЛЕНО', filename, 'warn'); renderBackupList();
   } catch(e) { showToast('ОШИБКА', e.message || '?', 'err'); }
@@ -1282,7 +1402,31 @@ async function deleteBackup(filename) {
 function openBackupModal() { openModal('backupModal'); renderBackupList(); }
 
 /* ============================================================
-   ВЫДАЧА — дропдаун + защита от стейл-элементов
+   DRAFT (автосохранение ввода)
+   ============================================================ */
+function saveDraft() {
+  try {
+    const sn = $('issSn').value;
+    const worker = $('issWorker').value;
+    if (!sn && !worker) { localStorage.removeItem(DRAFT_KEY); return; }
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ sn, worker, ts: Date.now() }));
+  } catch(e) {}
+}
+function restoreDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (!d || !d.ts || Date.now() - d.ts > DRAFT_TTL_MS) { localStorage.removeItem(DRAFT_KEY); return; }
+    if (d.sn) $('issSn').value = d.sn;
+    if (d.worker) $('issWorker').value = d.worker;
+    if (d.sn || d.worker) logMsg('↩ Восстановлен черновик выдачи');
+  } catch(e) {}
+}
+function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); } catch(e) {} }
+
+/* ============================================================
+   DROPDOWN — выдача
    ============================================================ */
 function resetIssueDropdown() {
   const drop = $('issDrop');
@@ -1299,14 +1443,16 @@ function resetRetDropdown() {
 
 function handleIssSnInput() {
   const el = $('issSn');
-  const fixed = fixLayout(el.value);
-  if (fixed !== el.value) el.value = fixed;
-
+  const raw = el.value;
+  const fixed = fixLayout(raw);
+  if (fixed !== el.value) {
+    if (hasCyr(raw)) logMsg(`🔧 layout: "${raw}" → "${fixed}"`);
+    el.value = fixed;
+  }
   const drop = $('issDrop');
 
   if (fixed.length < 2) {
-    drop.classList.remove('show');
-    drop.innerHTML = '';
+    drop.classList.remove('show'); drop.innerHTML = '';
     state.lastDropQuery = null;
     $('modelHint').innerText = "F1 • Скан ➔ ID ➔ Enter";
     return;
@@ -1316,8 +1462,7 @@ function handleIssSnInput() {
   const matches = freeDevs.filter(d => d.serial.toUpperCase().endsWith(fixed) || d.serial.toUpperCase().includes(fixed));
 
   if (!matches.length) {
-    drop.classList.remove('show');
-    drop.innerHTML = '';
+    drop.classList.remove('show'); drop.innerHTML = '';
     state.lastDropQuery = fixed;
     $('modelHint').innerText = `⚡ Новый: создастся как ${detectModel(fixed)}`;
     return;
@@ -1342,7 +1487,6 @@ function handleIssSnKeydown(e) {
 
   if (e.key === 'Enter') {
     e.preventDefault();
-    // ⭐ КРИТИЧНО: используем дропдаун ТОЛЬКО если он построен для текущего значения.
     const dropIsFresh = state.lastDropQuery !== null && state.lastDropQuery === curVal;
     if (dropIsFresh && drop.classList.contains('show') && cur >= 0 && items[cur]) {
       el.value = items[cur].dataset.sn;
@@ -1351,7 +1495,6 @@ function handleIssSnKeydown(e) {
     $('issWorker').focus();
     return;
   }
-
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     if (!items.length) return;
     e.preventDefault();
@@ -1361,17 +1504,16 @@ function handleIssSnKeydown(e) {
     items[next].scrollIntoView({ block: 'nearest' });
     return;
   }
-
   if (e.key === 'Escape') resetIssueDropdown();
 }
 
 function handleIssWorkerKeydown(e) { if (e.key === 'Enter') { e.preventDefault(); submitIssue(); } }
 
+/* ============================================================
+   ВЫДАЧА
+   ============================================================ */
 async function submitIssue() {
-  if (!state.dbReady) {
-    showToast('БАЗА НЕ ГОТОВА', 'Подождите пару секунд и попробуйте снова', 'err');
-    return;
-  }
+  if (!state.dbReady) { showToast('БАЗА НЕ ГОТОВА', 'Подождите пару секунд', 'err'); return; }
   const rawSn = $('issSn').value.trim();
   const worker = $('issWorker').value.trim();
   $('issSn').classList.remove('err'); $('issWorker').classList.remove('err');
@@ -1381,11 +1523,13 @@ async function submitIssue() {
 
   const cleanRaw = fixLayout(rawSn);
   if (!SN_REGEX.test(cleanRaw)) {
-    $('issSn').classList.add('err');
-    beep('err');
-    showToast('НЕВЕРНЫЙ SN', 'Только A-Z, 0-9, дефис, точка, _ (2-60 символов)', 'err');
+    $('issSn').classList.add('err'); beep('err');
+    showToast('НЕВЕРНЫЙ SN', 'Только A-Z, 0-9, дефис, точка, _ (2-60)', 'err');
     return;
   }
+
+  const btn = $('btnIssue');
+  btn.classList.add('busy');
 
   try {
     const existing = state.devices.find(d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === worker.toUpperCase());
@@ -1394,14 +1538,12 @@ async function submitIssue() {
     const sn = tailMatches.length === 1 ? tailMatches[0].serial : cleanRaw;
 
     if (!SN_REGEX.test(sn)) {
-      $('issSn').classList.add('err');
-      beep('err');
+      $('issSn').classList.add('err'); beep('err');
       showToast('НЕВЕРНЫЙ SN', 'Серийник не прошёл проверку', 'err');
       return;
     }
 
     const dev = state.devices.find(d => d.serial === sn);
-
     if (dev && dev.status === 'issued') {
       beep('err');
       showToast('ЗАНЯТ', `${sn} уже выдан: ${dev.holder}`, 'err');
@@ -1413,21 +1555,14 @@ async function submitIssue() {
 
     if (existing) {
       const pending = {
-        worker,
-        oldSn: existing.serial,
-        newSn: sn,
-        isNew: !dev,
-        shift,
-        originalIssuedAt: existing.issued_at,
-        originalShift: existing.shift
+        worker, oldSn: existing.serial, newSn: sn, isNew: !dev, shift,
+        originalIssuedAt: existing.issued_at, originalShift: existing.shift
       };
-
       if (state.autoSwap) {
         state.pendingSwap = pending;
         await confirmSwap();
         return;
       }
-
       state.pendingSwap = pending;
       const hoursOnHands = existing.issued_at ? hoursSince(existing.issued_at) : 0;
       $('swapWorker').innerText = worker;
@@ -1443,10 +1578,11 @@ async function submitIssue() {
 
     await performIssue(sn, worker, dev, shift);
   } catch(e) {
-    console.error('[submitIssue] Ошибка:', e);
     beep('err');
     showToast('ОШИБКА ВЫДАЧИ', e.message || 'Не удалось', 'err');
     state.pendingSwap = null;
+  } finally {
+    btn.classList.remove('busy');
   }
 }
 
@@ -1462,17 +1598,36 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
     last_move: ts,
     shift: shift
   };
+
+  // ⭐ Оптимистичный UI: показываем результат сразу
+  const idx = state.devices.findIndex(d => d.serial === sn);
+  if (idx >= 0) state.devices[idx] = updated; else state.devices.push(updated);
+  state.justIssued = sn;
+  renderTable();
+  setTimeout(() => { state.justIssued = null; }, 2500);
+
   const actionName = inheritedIssuedAt
     ? (isNew ? 'Создан и выдан (время перенесено)' : 'Выдан (время перенесено)')
     : (isNew ? 'Создан и выдан' : 'Выдан');
-  await saveDevice(updated, actionName, worker);
-  rememberWorkerShift(worker, shift);
-  beep('issue');
-  showToast('ВЫДАНО', `${sn} ➔ ${worker} (${shift})`);
-  logMsg(`ВЫДАНО: ${sn} ➔ ${worker} (${shift})`);
-  state.justIssued = sn;
-  setTimeout(() => { state.justIssued = null; }, 2500);
-  renderTable();
+
+  try {
+    await saveDevice(updated, actionName, worker);
+    rememberWorkerShift(worker, shift);
+    beep('issue');
+    showToast('ВЫДАНО', `${sn} ➔ ${worker} (${shift})`);
+    logMsg(`ВЫДАНО: ${sn} ➔ ${worker} (${shift})`);
+    clearDraft();
+  } catch(e) {
+    // откатываем оптимистичное обновление
+    if (isNew) {
+      state.devices = state.devices.filter(d => d.serial !== sn);
+    } else if (idx >= 0) {
+      state.devices[idx] = dev;
+    }
+    renderTable();
+    throw e;
+  }
+
   $('issSn').value = ''; $('issWorker').value = '';
   resetIssueDropdown();
   $('modelHint').innerText = "F1 • Скан ➔ ID ➔ Enter";
@@ -1483,7 +1638,7 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
 
 async function confirmSwap() {
   const p = state.pendingSwap;
-  if (!p) { console.warn('[confirmSwap] Нет pendingSwap'); return; }
+  if (!p) return;
   closeModal('swapModal');
 
   try {
@@ -1492,14 +1647,25 @@ async function confirmSwap() {
     const ts = nowIso();
     const inheritedIssuedAt = p.originalIssuedAt || ts;
 
-    state.lastSwap = {
+    const snapshot = {
       oldDevSnapshot: oldDev ? JSON.parse(JSON.stringify(oldDev)) : null,
       newDevSnapshot: newDev ? JSON.parse(JSON.stringify(newDev)) : null,
-      worker: p.worker,
-      newSn: p.newSn,
-      oldSn: p.oldSn,
-      isNew: p.isNew
+      worker: p.worker, newSn: p.newSn, oldSn: p.oldSn, isNew: p.isNew
     };
+    state.lastReturn = null;
+
+    // Оптимистичный UI
+    if (oldDev) {
+      const oIdx = state.devices.findIndex(d => d.serial === p.oldSn);
+      if (oIdx >= 0) state.devices[oIdx] = { ...oldDev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts };
+    }
+    const nIdx = state.devices.findIndex(d => d.serial === p.newSn);
+    const newRecord = {
+      serial: p.newSn, model: newDev ? newDev.model : detectModel(p.newSn),
+      status: 'issued', holder: p.worker, issued_at: inheritedIssuedAt, last_move: ts, shift: p.shift
+    };
+    if (nIdx >= 0) state.devices[nIdx] = newRecord; else state.devices.push(newRecord);
+    renderTable();
 
     if (oldDev) {
       await saveDevice({
@@ -1507,12 +1673,7 @@ async function confirmSwap() {
       }, 'Возврат (замена)', p.worker);
     }
 
-    await saveDevice({
-      serial: p.newSn,
-      model: newDev ? newDev.model : detectModel(p.newSn),
-      status: 'issued', holder: p.worker,
-      issued_at: inheritedIssuedAt, last_move: ts, shift: p.shift
-    }, p.isNew ? 'Создан и выдан (замена, время сохранено)' : 'Выдача (замена, время сохранено)', p.worker);
+    await saveDevice(newRecord, p.isNew ? 'Создан и выдан (замена, время сохранено)' : 'Выдача (замена, время сохранено)', p.worker);
 
     rememberWorkerShift(p.worker, p.shift);
     beep('swap');
@@ -1520,25 +1681,44 @@ async function confirmSwap() {
     const hoursOnHands = hoursSince(inheritedIssuedAt);
     showSwapToast(
       `ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn}`,
-      `${p.worker} · время ${fmtHoursShort(hoursOnHands)} сохранено`
+      `${p.worker} · время ${fmtHoursShort(hoursOnHands)} сохранено`,
+      async () => {
+        const t = nowIso();
+        try {
+          if (!snapshot.newDevSnapshot) {
+            await deleteSerial(snapshot.newSn);
+          } else {
+            await saveDevice({ ...snapshot.newDevSnapshot, last_move: t }, 'Отмена замены (новый)', snapshot.worker);
+          }
+          if (snapshot.oldDevSnapshot) {
+            await saveDevice({ ...snapshot.oldDevSnapshot, last_move: t }, 'Отмена замены (старый)', snapshot.worker);
+          }
+          beep('return');
+          showToast('ОТМЕНЕНО', 'Замена откачена');
+          logMsg(`↩ ОТМЕНА ЗАМЕНЫ: ${snapshot.oldSn} ➔ ${snapshot.newSn}`);
+        } catch(e) {
+          showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err');
+        }
+      }
     );
     logMsg(`🔄 ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn} у ${p.worker} · время ${fmtHoursShort(hoursOnHands)}`);
 
     state.pendingSwap = null;
     $('issSn').value = ''; $('issWorker').value = '';
     resetIssueDropdown();
+    clearDraft();
     if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
     updateShiftBanner();
     $('issSn').focus();
   } catch(e) {
-    console.error('[confirmSwap] Ошибка:', e);
     beep('err');
     showToast('ОШИБКА ЗАМЕНЫ', e.message || '?', 'err');
     state.pendingSwap = null;
+    await loadLocal();
   }
 }
 
-function showSwapToast(title, desc) {
+function showSwapToast(title, desc, undoCallback) {
   const el = $('toast');
   $('tIcon').innerText = '🔁';
   $('tIcon').style.background = 'rgba(0,242,254,0.15)';
@@ -1551,21 +1731,21 @@ function showSwapToast(title, desc) {
   const oldBtn = el.querySelector('.t-undo');
   if (oldBtn) oldBtn.remove();
 
-  const btn = document.createElement('button');
-  btn.className = 't-undo';
-  btn.innerText = '↩ Отменить (Ctrl+Z)';
-  btn.onclick = undoSwap;
-  el.appendChild(btn);
+  if (undoCallback) {
+    const btn = document.createElement('button');
+    btn.className = 't-undo';
+    btn.innerText = '↩ Отменить (Ctrl+Z)';
+    btn.onclick = () => { clearUndo(); undoCallback(); };
+    el.appendChild(btn);
+    setUndo('Отменить замену', undoCallback, 7000);
+  }
 
   el.className = '';
   el.classList.add('show');
 
   clearTimeout(window._toastT);
-  clearTimeout(state.undoTimeout);
-  state.undoTimeout = setTimeout(() => {
+  window._toastT = setTimeout(() => {
     el.classList.remove('show');
-    state.lastSwap = null;
-    state.undoTimeout = null;
     setTimeout(() => {
       const b = el.querySelector('.t-undo');
       if (b) b.remove();
@@ -1573,40 +1753,14 @@ function showSwapToast(title, desc) {
   }, 7000);
 }
 
-async function undoSwap() {
-  if (!state.lastSwap) return;
-  const s = state.lastSwap;
-  const ts = nowIso();
-  state.lastSwap = null;
-  clearTimeout(state.undoTimeout);
-  state.undoTimeout = null;
-
-  try {
-    if (!s.newDevSnapshot) {
-      await deleteSerial(s.newSn);
-      logMsg(`↩ Отмена: удалён созданный ${s.newSn}`);
-    } else {
-      await saveDevice({ ...s.newDevSnapshot, last_move: ts }, 'Отмена замены (восстановление нового)', s.worker);
-    }
-
-    if (s.oldDevSnapshot) {
-      await saveDevice({ ...s.oldDevSnapshot, last_move: ts }, 'Отмена замены (восстановление старого)', s.worker);
-    }
-
-    const el = $('toast');
-    el.classList.remove('show');
-    setTimeout(() => {
-      const b = el.querySelector('.t-undo');
-      if (b) b.remove();
-    }, 400);
-
-    beep('return');
-    showToast('ОТМЕНЕНО', 'Замена откачена');
-    logMsg(`↩ ОТМЕНА: ${s.oldSn} ➔ ${s.newSn}`);
-  } catch(e) {
-    console.error('[undoSwap] Ошибка:', e);
-    showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err');
+async function undoLast() {
+  if (state.undoAction && state.undoAction.callback) {
+    const cb = state.undoAction.callback;
+    clearUndo();
+    await cb();
+    return true;
   }
+  return false;
 }
 
 /* ============================================================
@@ -1619,8 +1773,7 @@ function handleRetInput() {
   const q = el.value.trim();
   const drop = $('retDrop');
   if (q.length < 1) {
-    drop.classList.remove('show');
-    drop.innerHTML = '';
+    drop.classList.remove('show'); drop.innerHTML = '';
     state.lastRetDropQuery = null;
     return;
   }
@@ -1639,8 +1792,7 @@ function handleRetInput() {
     return false;
   });
   if (!matches.length) {
-    drop.classList.remove('show');
-    drop.innerHTML = '';
+    drop.classList.remove('show'); drop.innerHTML = '';
     state.lastRetDropQuery = qFixed;
     return;
   }
@@ -1658,7 +1810,6 @@ function handleRetInput() {
 function handleRetKeydown(e) {
   if (e.key === 'Enter') {
     e.preventDefault();
-    // ⭐ НЕ доверяем содержимому дропдауна на Enter — quickReturn сам найдёт.
     resetRetDropdown();
     quickReturn();
   }
@@ -1702,11 +1853,46 @@ async function doReturn(sn) {
   const dev = state.devices.find(d => d.serial === sn);
   if (!dev) { showToast('ОШИБКА', 'Устройство не найдено', 'err'); return; }
   const holder = dev.holder, ts = nowIso();
+  const snapshot = JSON.parse(JSON.stringify(dev));
+
+  const btn = $('retBtn');
+  btn.classList.add('busy');
   try {
     const updated = { ...dev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts };
+
+    // Оптимистичный UI
+    const idx = state.devices.findIndex(d => d.serial === sn);
+    if (idx >= 0) state.devices[idx] = updated;
+    state.justReturned = sn;
+    renderTable();
+    setTimeout(() => { state.justReturned = null; }, 2500);
+
     await saveDevice(updated, 'Возврат', holder);
     beep('return');
+
+    // ⭐ Показываем toast с undo
     showToast(`ПРИБОР ${sn} ПРИНЯТ`, `Сотрудник: ${holder}`);
+    setUndo('Отменить приём', async () => {
+      try {
+        const t2 = nowIso();
+        await saveDevice({ ...snapshot, last_move: t2 }, 'Отмена приёма (восстановление)', holder);
+        beep('issue');
+        showToast('ВОЗВРАТ ОТМЕНЁН', `${sn} снова у ${holder}`);
+        logMsg(`↩ ОТМЕНА ПРИЁМА: ${sn} → ${holder}`);
+      } catch(e) {
+        showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err');
+      }
+    }, 7000);
+
+    const el = $('toast');
+    const oldBtn = el.querySelector('.t-undo');
+    if (oldBtn) oldBtn.remove();
+    const undoBtn = document.createElement('button');
+    undoBtn.className = 't-undo';
+    undoBtn.innerText = '↩ Отменить приём (Ctrl+Z)';
+    undoBtn.onclick = () => undoLast();
+    el.appendChild(undoBtn);
+
     logMsg(`ПРИНЯТО: ${sn} от ${holder}`);
     $('retQuery').value = ''; $('retQuery').focus();
     resetRetDropdown();
@@ -1716,13 +1902,15 @@ async function doReturn(sn) {
       const allCard = document.querySelector('.hud-stat-card[data-filter="all"]');
       if (allCard) allCard.classList.add('active');
     }
-    state.justReturned = sn;
-    setTimeout(() => { state.justReturned = null; }, 2500);
-    renderTable();
   } catch(e) {
-    console.error('[doReturn] Ошибка:', e);
+    // откат
+    const idx = state.devices.findIndex(d => d.serial === sn);
+    if (idx >= 0) state.devices[idx] = snapshot;
+    renderTable();
     beep('err');
     showToast('ОШИБКА ПРИЁМА', e.message || '?', 'err');
+  } finally {
+    btn.classList.remove('busy');
   }
 }
 
@@ -1732,10 +1920,13 @@ async function doReturn(sn) {
 function renderTable() {
   const q = ($('searchTable').value || '').trim().toUpperCase();
   let free = 0, issued = 0, overdue = 0, dayCount = 0, nightCount = 0;
+  const issuedTimes = [];
   state.devices.forEach(d => {
     if (d.status === 'issued') {
       issued++;
-      if (hoursSince(d.issued_at) >= OVERDUE_H) overdue++;
+      const h = hoursSince(d.issued_at);
+      issuedTimes.push(h);
+      if (h >= OVERDUE_H) overdue++;
       if (d.shift === 'Ночная') nightCount++; else dayCount++;
     } else free++;
   });
@@ -1745,6 +1936,21 @@ function renderTable() {
   $('mOverdue').innerText = overdue;
   $('mDay').innerText = dayCount;
   $('mNight').innerText = nightCount;
+
+  // ⭐ Статистика среднего/макс времени
+  const statsEl = $('regStats');
+  if (statsEl) {
+    if (issuedTimes.length) {
+      const avg = issuedTimes.reduce((a, b) => a + b, 0) / issuedTimes.length;
+      const max = Math.max(...issuedTimes);
+      const avgCls = timeClass(avg);
+      const maxCls = timeClass(max);
+      const colors = { fresh: '#34d399', mid: '#fbbf24', late: '#fb923c', over: '#f43f5e' };
+      statsEl.innerHTML = `Ср: <span style="color:${colors[avgCls]}">${fmtHoursShort(avg)}</span> · Макс: <span style="color:${colors[maxCls]}">${fmtHoursShort(max)}</span>`;
+    } else {
+      statsEl.textContent = 'Ср: — · Макс: —';
+    }
+  }
 
   const filtered = state.devices.filter(d => {
     if (state.filter === 'free' && d.status !== 'free') return false;
@@ -1852,7 +2058,9 @@ async function openAudit(sn) {
   if (dev.status === 'issued') { badge.className = 'badge-chip chip-busy'; badge.innerText = 'На руках'; }
   else { badge.className = 'badge-chip chip-free'; badge.innerText = 'На складе'; }
   $('audDuration').innerText = dev.status === 'issued' && dev.issued_at ? fmtHoursShort(hoursSince(dev.issued_at)) + ' (' + (dev.shift || '—') + ')' : '—';
-  $('auditOverlay').classList.add('show'); $('auditDrawer').classList.add('open');
+  $('auditOverlay').classList.add('show');
+  $('auditDrawer').classList.add('open');
+  refreshScrollLock();
   let moves = [];
   if (cloud && navigator.onLine) {
     try {
@@ -1861,7 +2069,7 @@ async function openAudit(sn) {
         NET_TIMEOUT_MS, 'audit query'
       );
       if (data) moves = data;
-    } catch(e) { console.warn('[audit]', e.message); }
+    } catch(e) {}
   }
   if (!moves.length) {
     const local = await new Promise(r => {
@@ -1892,16 +2100,25 @@ async function openAudit(sn) {
   }).join('');
 }
 
-function closeAuditDrawer() { $('auditDrawer').classList.remove('open'); $('auditOverlay').classList.remove('show'); }
+function closeAuditDrawer() {
+  $('auditDrawer').classList.remove('open');
+  $('auditOverlay').classList.remove('show');
+  refreshScrollLock();
+}
 
 /* ============================================================
-   ЭКСПОРТ / ИМПОРТ / ДИАГ
+   ЭКСПОРТ (с защитой от CSV-инъекций) / ИМПОРТ / ДИАГ
    ============================================================ */
+function csvSafe(v) {
+  let str = String(v === null || v === undefined ? '' : v);
+  if (/^[=+\-@\t\r]/.test(str)) str = "'" + str;
+  return '"' + str.replace(/"/g, '""') + '"';
+}
+
 function exportExcel() {
   let csv = '\uFEFFСерийный номер;Модель;Статус;Сотрудник;Смена;Выдан;Активность\n';
   state.devices.forEach(d => {
-    const s = v => String(v || '').replace(/"/g, '""');
-    csv += `"${s(d.serial)}";"${s(d.model)}";"${s(d.status)}";"${s(d.holder)}";"${s(d.shift)}";"${s(d.issued_at)}";"${s(d.last_move)}"\n`;
+    csv += [d.serial, d.model, d.status, d.holder, d.shift, d.issued_at, d.last_move].map(csvSafe).join(';') + '\n';
   });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
@@ -1934,13 +2151,11 @@ function processImport() {
       closeModal('impModal'); $('impText').value = '';
       beep('issue');
       showToast('ИМПОРТ', `+${added}, пропущено ${skipped}${rejected ? `, битых ${rejected}` : ''}`);
-      loadLocal().then(() => syncNow());
+      loadLocal().then(() => scheduleSync(500));
     };
     txm.onerror = () => showToast('ОШИБКА ИМПОРТА', txm.error ? txm.error.message : '?', 'err');
     txm.onabort = () => showToast('ИМПОРТ ОТМЕНЁН', 'Транзакция прервана', 'err');
-  } catch(e) {
-    showToast('ОШИБКА ИМПОРТА', e.message, 'err');
-  }
+  } catch(e) { showToast('ОШИБКА ИМПОРТА', e.message, 'err'); }
 }
 
 function showDiag() {
@@ -1961,12 +2176,14 @@ function showDiag() {
     const dbOk = state.dbReady ? '✅ OK' : '❌ не готова';
     const dbColor = state.dbReady ? 'var(--neon-emerald)' : 'var(--neon-rose)';
     const syncTxt = state.syncing ? '<span style="color:var(--neon-amber);">● идёт</span>' : '<span style="color:var(--neon-emerald);">○ idle</span>';
+    const backoff = state.syncBackoff > 0 ? `<span style="color:var(--neon-amber);">${state.syncBackoff}× (backoff)</span>` : '<span style="color:var(--text-muted);">0</span>';
 
     $('diagContent').innerHTML = `
       <div>БД: <span style="color:${dbColor};">${dbOk}</span> &nbsp; SYNC: ${syncTxt}</div>
       <div>ЛОКАЛЬНО: <span style="color:var(--neon-cyan);">${state.devices.length}</span> шт.</div>
       <div>SUPABASE: <span style="color:#fff;">${SUPABASE_URL.replace('https://','').split('.')[0]}...</span></div>
       <div>ОЧЕРЕДЬ ПАКЕТОВ: <span style="color:var(--neon-cyan);">${n}</span></div>
+      <div>BACKOFF: ${backoff}</div>
       <div>СМЕНА: <span style="color:${state.issueShift==='Ночная'?'var(--neon-purple)':'#fbbf24'};">${state.issueShift}</span> (${state.issueShiftAuto ? 'авто' : 'вручную'})</div>
       <div>АВТО-ЗАМЕНА: <span style="color:${autoSwapColor};">${autoSwapTxt}</span> <button class="btn-hud" style="padding:2px 8px; font-size:10px; margin-left:8px;" onclick="toggleAutoSwap()">${state.autoSwap ? 'Отключить' : 'Включить'}</button></div>
       <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--neon-emerald);">${lastBk}</span></div>
@@ -1974,9 +2191,7 @@ function showDiag() {
       ${n ? `
         <div style="margin-top:12px; border-top:1px solid rgba(255,255,255,0.08); padding-top:8px;">
           <div style="font-size:11px; font-weight:800; color:var(--neon-amber); margin-bottom:6px;">⚠ ОЧЕРЕДЬ (первые 30):</div>
-          <div style="max-height:220px; overflow-y:auto; background:rgba(0,0,0,0.35); border-radius:6px; padding:6px 10px;">
-            ${preview}
-          </div>
+          <div style="max-height:220px; overflow-y:auto; background:rgba(0,0,0,0.35); border-radius:6px; padding:6px 10px;">${preview}</div>
           <div style="margin-top:8px;">
             <button class="btn-hud" style="border-color:rgba(244,63,94,0.4); color:var(--neon-rose); font-size:10px;" onclick="clearStuckQueue()">🗑 Очистить очередь (данные не тронем)</button>
           </div>
@@ -2031,17 +2246,22 @@ async function confirmDelete(sn) {
 /* ============================================================
    МОДАЛКИ / ТОСТ
    ============================================================ */
-function openModal(id) { const el = $(id); if (el) el.classList.add('show'); }
-function closeModal(id) { const el = $(id); if (el) el.classList.remove('show'); }
+function openModal(id) {
+  const el = $(id);
+  if (el) el.classList.add('show');
+  refreshScrollLock();
+}
+function closeModal(id) {
+  const el = $(id);
+  if (el) el.classList.remove('show');
+  refreshScrollLock();
+}
 document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
 });
 
 function showToast(title, desc, kind = 'ok') {
-  clearTimeout(state.undoTimeout);
-  state.undoTimeout = null;
-  state.lastSwap = null;
-
+  clearUndo();
   const el = $('toast');
   $('tTitle').innerText = title;
   $('tDesc').innerText = desc || '';
@@ -2067,6 +2287,15 @@ function setupDelegation() {
     if (!target) return;
     const action = target.dataset.action;
     const sn = target.dataset.sn;
+    // Ctrl/Cmd/Alt + клик на SN = копировать
+    if (action === 'audit' && (e.ctrlKey || e.metaKey || e.altKey)) {
+      e.preventDefault();
+      navigator.clipboard?.writeText(sn).then(
+        () => showToast('СКОПИРОВАНО', sn),
+        () => showToast('ОШИБКА', 'Не удалось скопировать', 'err')
+      );
+      return;
+    }
     if (action === 'audit')  openAudit(sn);
     else if (action === 'return') quickReturnFromRow(sn);
     else if (action === 'issue')  pickForIssue(sn);
@@ -2114,9 +2343,11 @@ function setupDelegation() {
    СОБЫТИЯ
    ============================================================ */
 $('issSn').addEventListener('input', debounce(handleIssSnInput, 60));
+$('issSn').addEventListener('input', debounce(saveDraft, 500));
 $('issSn').addEventListener('keydown', handleIssSnKeydown);
 $('issWorker').addEventListener('keydown', handleIssWorkerKeydown);
 $('issWorker').addEventListener('input', debounce(() => { if (state.issueShiftAuto) refreshSmartShift(); }, 300));
+$('issWorker').addEventListener('input', debounce(saveDraft, 500));
 $('issueForm').addEventListener('submit', e => { e.preventDefault(); submitIssue(); });
 $('retQuery').addEventListener('input', debounce(handleRetInput, 60));
 $('retQuery').addEventListener('keydown', handleRetKeydown);
@@ -2152,9 +2383,9 @@ $('brandTag').addEventListener('click', () => {
 
 document.addEventListener('keydown', e => {
   if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z') {
-    if (state.lastSwap) {
+    if (state.undoAction) {
       e.preventDefault();
-      undoSwap();
+      undoLast();
       return;
     }
   }
@@ -2168,7 +2399,7 @@ document.addEventListener('keydown', e => {
   else if (e.ctrlKey && e.key.toLowerCase() === 'e') { e.preventDefault(); exportExcel(); }
   else if (e.ctrlKey && e.key.toLowerCase() === 'i') { e.preventDefault(); openModal('impModal'); }
   else if (e.key === 'Escape') {
-    document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+    document.querySelectorAll('.modal-overlay.show').forEach(m => closeModal(m.id));
     closeAuditDrawer();
   }
 });
@@ -2176,6 +2407,15 @@ document.addEventListener('keydown', e => {
 setInterval(() => {
   if (state.issueShiftAuto) refreshSmartShift();
   else updateShiftBanner();
+}, 30000);
+
+/* Периодическая очистка recentLocal */
+setInterval(() => {
+  const cutoff = Date.now() - RECENT_LOCAL_TTL;
+  let cleaned = 0;
+  for (const [k, v] of recentLocal) {
+    if (v < cutoff) { recentLocal.delete(k); cleaned++; }
+  }
 }, 30000);
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -2197,11 +2437,14 @@ window.addEventListener('DOMContentLoaded', () => {
   $('issSn').focus();
 });
 
-// ⭐ Автосинк: 20 сек
-setInterval(syncNow, SYNC_INTERVAL_MS);
-setInterval(renderTable, 30000);
-window.addEventListener('online', syncNow);
+window.addEventListener('online', () => {
+  state.syncBackoff = 0;
+  scheduleSync(500);
+});
 window.addEventListener('offline', () => setSync(false, 'Офлайн'));
+window.addEventListener('beforeunload', () => {
+  try { saveDraft(); } catch(e) {}
+});
 </script>
 </body>
 </html>
