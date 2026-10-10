@@ -104,6 +104,110 @@
   .stat-label { font-size: 10px; font-weight: 800; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
   .stat-value { font-size: 22px; font-weight: 800; margin-top: 4px; letter-spacing: -0.02em; }
 
+  /* ===== DEBT WIDGET ===== */
+  .debt-widget {
+    background: linear-gradient(160deg, rgba(60,12,20,0.45), rgba(30,8,14,0.35));
+    border: 1px solid rgba(244,63,94,0.28);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+  .debt-widget.empty { display: none; }
+
+  .debt-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 14px;
+    cursor: pointer; user-select: none;
+    transition: background 0.15s;
+    gap: 10px;
+  }
+  .debt-head:hover { background: rgba(244,63,94,0.08); }
+
+  .debt-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11.5px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #fb7185;
+  }
+  .debt-title .ic { font-size: 13px; }
+  .debt-title .hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: none; letter-spacing: 0;
+    margin-left: 2px;
+  }
+  .debt-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 22px; height: 18px; padding: 0 7px;
+    border-radius: 9px;
+    background: rgba(244,63,94,0.25);
+    border: 1px solid rgba(244,63,94,0.55);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; font-weight: 800;
+    color: #fb7185;
+  }
+  .debt-toggle {
+    font-size: 11px; font-weight: 700;
+    color: rgba(244,63,94,0.7);
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 6px;
+  }
+
+  .debt-body {
+    display: flex; gap: 6px;
+    padding: 0 14px 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+  }
+  .debt-widget.collapsed .debt-body { display: none; }
+  .debt-body::-webkit-scrollbar { height: 4px; }
+  .debt-body::-webkit-scrollbar-thumb { background: rgba(244,63,94,0.3); border-radius: 2px; }
+  .debt-body::-webkit-scrollbar-track { background: transparent; }
+
+  .debt-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 10px;
+    background: rgba(244,63,94,0.08);
+    border: 1px solid rgba(244,63,94,0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .debt-chip:hover {
+    background: rgba(244,63,94,0.18);
+    border-color: rgba(244,63,94,0.6);
+    transform: translateY(-1px);
+  }
+  .debt-chip:active { transform: translateY(0); }
+
+  .debt-chip .who {
+    font-size: 12px; font-weight: 700; color: #f1f5f9;
+    max-width: 140px; overflow: hidden; text-overflow: ellipsis;
+  }
+  .debt-chip .count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; font-weight: 800;
+    color: #fb7185;
+    padding: 1px 6px;
+    background: rgba(244,63,94,0.2);
+    border-radius: 4px;
+  }
+  .debt-chip .time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 800;
+    color: var(--neon-rose);
+    letter-spacing: -0.02em;
+  }
+  .debt-chip .id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--text-secondary); font-weight: 500;
+  }
+
   /* ===== TERMINAL DECKS ===== */
   .terminal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media(max-width: 850px) { .terminal-grid { grid-template-columns: 1fr; } }
@@ -272,7 +376,7 @@
 
   @media print {
     body { background: #fff !important; color: #000 !important; overflow: visible !important; height: auto !important; padding: 0 !important; }
-    .hud-header, .metrics-grid, .terminal-grid, .hud-actions, .reg-head input, .btn-hud, #toast, .drop-box, #logStatus, .reg-stats { display: none !important; }
+    .hud-header, .metrics-grid, .debt-widget, .terminal-grid, .hud-actions, .reg-head input, .btn-hud, #toast, .drop-box, #logStatus, .reg-stats { display: none !important; }
     .registry-deck { border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 !important; }
     .reg-wrap { border: none !important; overflow: visible !important; }
     table { width: 100% !important; border: 1px solid #000 !important; color: #000 !important; font-size: 10pt !important; }
@@ -295,7 +399,7 @@
 <div class="app-shell">
   <header class="hud-header">
     <div class="brand-zone">
-      <div id="brandTag" class="brand-tag mono" title="v8.30">TERMINAL</div>
+      <div id="brandTag" class="brand-tag mono" title="v8.34">TERMINAL</div>
       <div class="brand-title">
         <h1>Учёт Оборудования</h1>
         <p>Двухпостовой Cloud • Автономная работа • Экспресс-замена</p>
@@ -319,6 +423,20 @@
     <div class="hud-stat-card" data-filter="overdue" title="Выдано более 12 часов назад"><div class="stat-label" style="color:var(--neon-rose);">🚨 ДОЛГИ (&gt;12Ч)</div><div id="mOverdue" class="stat-value mono" style="color:var(--neon-rose);">0</div></div>
     <div class="hud-stat-card" data-filter="day" title="Сейчас на руках у дневной смены"><div class="stat-label" style="color:#fbbf24;">☀️ ДЕНЬ (ВЫДАНО)</div><div id="mDay" class="stat-value mono" style="color:#fbbf24;">0</div></div>
     <div class="hud-stat-card" data-filter="night" title="Сейчас на руках у ночной смены"><div class="stat-label" style="color:var(--neon-purple);">🌙 НОЧЬ (ВЫДАНО)</div><div id="mNight" class="stat-value mono" style="color:var(--neon-purple);">0</div></div>
+  </section>
+
+  <!-- ===== DEBT WIDGET — кто не сдал ===== -->
+  <section class="debt-widget empty" id="debtWidget">
+    <div class="debt-head" id="debtHead" onclick="toggleDebtWidget()">
+      <div class="debt-title">
+        <span class="ic">🚨</span>
+        <span>Не сдают</span>
+        <span class="debt-count" id="debtCount">0</span>
+        <span class="hint" id="debtHint">клик по имени → фильтр</span>
+      </div>
+      <div class="debt-toggle" id="debtToggle">▼</div>
+    </div>
+    <div class="debt-body" id="debtBody"></div>
   </section>
 
   <section class="terminal-grid">
@@ -523,20 +641,26 @@ const SYNC_BASE_INTERVAL = 20000;
 const SYNC_MAX_INTERVAL = 300000;
 const SYNC_JITTER = 0.25;
 
+const DEBT_COLLAPSED_KEY = 'sklad_debt_collapsed_v1';
+
+const DEBUG = false;
+function dbg(...args) { if (DEBUG) console.log('[DBG]', ...args); }
+
 const state = {
-  devices: [], filter: 'all', shift: 'auto',
+  devices: [], filter: 'all',
   issueShift: 'Дневная', issueShiftAuto: true, workerShifts: {},
   syncing: false, dbReady: false, lastError: '—',
   pendingSwap: null,
   justIssued: null, justReturned: null,
   autoSwap: true,
-  undoAction: null,           // { label, callback, ttl }
+  undoAction: null,
   undoTimer: null,
+  toastTimer: null,
+  auditSn: null,
   lastDropQuery: null,
   lastRetDropQuery: null,
   syncToken: 0,
-  syncBackoff: 0,
-  lastReturn: null            // snapshot для undo приёма
+  syncBackoff: 0
 };
 
 try {
@@ -563,6 +687,13 @@ function withTimeout(promise, ms, label) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
+function pluralN(n, one, few, many) {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
+  return many;
+}
+
 const RU = {'й':'q','ц':'w','у':'e','к':'r','е':'t','н':'y','г':'u','ш':'i','щ':'o','з':'p','х':'[','ъ':']','ф':'a','ы':'s','в':'d','а':'f','п':'g','р':'h','о':'j','л':'k','д':'l','ж':';','э':'\'','я':'z','ч':'x','с':'c','м':'v','и':'b','т':'n','ь':'m','б':',','ю':'.','ё':'`'};
 function fixLayout(s) {
   return String(s ? s : '').split('').map(ch => {
@@ -578,7 +709,14 @@ function detectModel(sn) {
   if (s.includes('TAB') || s.includes('ПЛАНШЕТ')) return 'Планшет';
   return 'Point Mobile';
 }
-function hoursSince(iso) { return iso ? (Date.now() - Date.parse(iso)) / 3600000 : 0; }
+
+/* ⭐ ФИКС #1 — защита от NaN на некорректной дате */
+function hoursSince(iso) {
+  if (!iso) return 0;
+  const t = Date.parse(iso);
+  if (isNaN(t)) return 0;
+  return (Date.now() - t) / 3600000;
+}
 function parseTime(v) { if (!v) return 0; const t = Date.parse(v); return isNaN(t) ? 0 : t; }
 
 function fmtHoursShort(h) {
@@ -591,15 +729,23 @@ function fmtHoursShort(h) {
   return hours + 'ч ' + minutes + 'м';
 }
 function timeClass(h) {
+  if (!isFinite(h)) return 'fresh';
   if (h >= OVERDUE_H) return 'over';
   if (h >= 8) return 'late';
   if (h >= 4) return 'mid';
   return 'fresh';
 }
-function timeBarWidth(h) { return Math.max(3, Math.min(100, (h / OVERDUE_H) * 100)); }
+/* ⭐ ФИКС #1 — защита от NaN в ширине полоски */
+function timeBarWidth(h) {
+  if (!isFinite(h) || h < 0) return 3;
+  return Math.max(3, Math.min(100, (h / OVERDUE_H) * 100));
+}
 function isInheritedTime(d) {
   if (!d || d.status !== 'issued' || !d.issued_at || !d.last_move) return false;
-  return Math.abs(Date.parse(d.last_move) - Date.parse(d.issued_at)) > 60 * 1000;
+  const t1 = Date.parse(d.last_move);
+  const t2 = Date.parse(d.issued_at);
+  if (isNaN(t1) || isNaN(t2)) return false;
+  return Math.abs(t1 - t2) > 60 * 1000;
 }
 
 function logMsg(msg) {
@@ -622,7 +768,7 @@ function bootText(txt) {
 }
 
 /* ============================================================
-   BODY SCROLL LOCK (для модалок и drawer)
+   BODY SCROLL LOCK
    ============================================================ */
 function refreshScrollLock() {
   const anyModal = document.querySelector('.modal-overlay.show');
@@ -631,15 +777,15 @@ function refreshScrollLock() {
 }
 
 /* ============================================================
-   УНИВЕРСАЛЬНЫЙ UNDO-TOAST
+   UNDO-TOAST
    ============================================================ */
 function setUndo(label, callback, ttl = 7000) {
   state.undoAction = { label, callback, ttl };
   clearTimeout(state.undoTimer);
   state.undoTimer = setTimeout(() => {
     state.undoAction = null;
-    state.lastReturn = null;
     const el = $('toast');
+    if (!el) return;
     const b = el.querySelector('.t-undo');
     if (b) b.remove();
   }, ttl);
@@ -653,6 +799,16 @@ function clearUndo() {
   if (!el) return;
   const b = el.querySelector('.t-undo');
   if (b) b.remove();
+}
+
+async function undoLast() {
+  if (state.undoAction && state.undoAction.callback) {
+    const cb = state.undoAction.callback;
+    clearUndo();
+    await cb();
+    return true;
+  }
+  return false;
 }
 
 /* ============================================================
@@ -768,13 +924,15 @@ DB_REQ.onsuccess = async e => {
   await rotateMovesIfNeeded();
   hideBoot();
   restoreDraft();
+  restoreDebtCollapsed();
   scheduleSync(500);
   setTimeout(() => checkAutoBackup(), 5000);
 };
+/* ⭐ ФИКС #4 — убран console.error, оставлен dbg */
 DB_REQ.onerror = e => {
   state.dbReady = false;
   bootText('Ошибка базы данных');
-  console.error('[DB] Ошибка:', e.target.error);
+  dbg('DB error', e.target.error);
   showToast('ОШИБКА БАЗЫ', e.target.error ? e.target.error.message : '?', 'err');
   setTimeout(hideBoot, 1500);
 };
@@ -796,7 +954,6 @@ function loadLocal() {
   });
 }
 
-/* Ротация moves: если записей больше порога — удаляем старые */
 async function rotateMovesIfNeeded() {
   try {
     const count = await new Promise(r => {
@@ -823,7 +980,7 @@ async function rotateMovesIfNeeded() {
       t.onabort = () => r();
     });
     logMsg(`🧹 Ротация истории: удалено ${toDelete} старых записей`);
-  } catch(e) {}
+  } catch(e) { dbg('rotateMoves error', e); }
 }
 
 function saveDevice(dev, actionName, workerName) {
@@ -841,7 +998,9 @@ function saveDevice(dev, actionName, workerName) {
           const cutoff = Date.now() - RECENT_LOCAL_TTL;
           for (const [k, v] of recentLocal) if (v < cutoff) recentLocal.delete(k);
         }
-        loadLocal().then(() => { scheduleSync(150); resolve(); });
+        loadLocal()
+          .then(() => { scheduleSync(150); resolve(); })
+          .catch(() => { scheduleSync(150); resolve(); });
       };
       t.onerror = () => reject(t.error || new Error('Ошибка записи в базу'));
       t.onabort = () => reject(t.error || new Error('Транзакция отменена'));
@@ -956,7 +1115,7 @@ function normalizeCloudDevice(row) {
 }
 
 /* ============================================================
-   СИНХРОНИЗАЦИЯ — с watchdog + backoff + частичный pull
+   СИНХРОНИЗАЦИЯ
    ============================================================ */
 async function syncNow() {
   if (state.syncing) return false;
@@ -997,7 +1156,7 @@ async function syncNow() {
             NET_TIMEOUT_MS, `del device ${it.serial}`
           );
           if (delDevErr) { state.lastError = 'del: ' + delDevErr.message; failCount++; continue; }
-          try { await withTimeout(cloud.from('movements').delete().eq('serial', it.serial), NET_TIMEOUT_MS, 'del movements'); } catch(e) {}
+          try { await withTimeout(cloud.from('movements').delete().eq('serial', it.serial), NET_TIMEOUT_MS, 'del movements'); } catch(e) { dbg('del movements failed', e); }
           await deleteQueueKey(key);
         } catch(e) { state.lastError = 'del: ' + e.message; failCount++; }
         continue;
@@ -1028,7 +1187,7 @@ async function syncNow() {
       };
       try {
         await withTimeout(cloud.from('movements').insert(fullMove), NET_TIMEOUT_MS, `move ${fullMove.serial}`);
-      } catch(e) {}
+      } catch(e) { dbg('movements insert failed', e); }
 
       await deleteQueueKey(key);
     }
@@ -1058,7 +1217,6 @@ async function syncNow() {
   }
 }
 
-/* Возвращаем массив даже при частичном успехе, иначе null */
 async function pullAllDevices() {
   const pageSize = 1000;
   let all = [];
@@ -1104,7 +1262,6 @@ async function applyPull(data, protectedSerials) {
   const cloudSet = new Set(data.map(d => d.serial));
   const now = Date.now();
 
-  // Предзагружаем локальные устройства, чтобы сравнить last_move
   const localMap = new Map();
   await new Promise(r => {
     try {
@@ -1146,14 +1303,15 @@ async function applyPull(data, protectedSerials) {
             if (queuedSerials.has(d.serial)) return;
             const recent = recentLocal.get(d.serial);
             if (recent && now - recent < RECENT_LOCAL_TTL) return;
-            // ⭐ last_move конфликт: если локальная запись новее — не перезаписываем
             const existing = localMap.get(d.serial);
             if (existing && existing.last_move && d.last_move) {
-              if (Date.parse(existing.last_move) > Date.parse(d.last_move)) return;
+              const t1 = Date.parse(existing.last_move);
+              const t2 = Date.parse(d.last_move);
+              if (!isNaN(t1) && !isNaN(t2) && t1 > t2) return;
             }
             s.put(d);
           });
-        } catch(e) {}
+        } catch(e) { dbg('applyPull handler error', e); }
       };
       keysReq.onerror = () => {};
 
@@ -1171,7 +1329,6 @@ function setSync(ok, txt, busy = false) {
   $('syncText').innerText = txt;
 }
 
-/* ⭐ Планировщик синка с экспоненциальным backoff + jitter */
 let syncScheduledTimer = null;
 function scheduleSync(delay) {
   clearTimeout(syncScheduledTimer);
@@ -1317,9 +1474,9 @@ async function cleanupOldBackups() {
     const backups = data.filter(f => f.name.startsWith('backup-') && f.name.endsWith('.json')).sort((a, b) => b.name.localeCompare(a.name));
     if (backups.length <= BACKUP_KEEP) return;
     for (const f of backups.slice(BACKUP_KEEP)) {
-      try { await withTimeout(cloud.storage.from(BACKUP_BUCKET).remove([f.name]), NET_TIMEOUT_MS, 'backup remove'); } catch(e) {}
+      try { await withTimeout(cloud.storage.from(BACKUP_BUCKET).remove([f.name]), NET_TIMEOUT_MS, 'backup remove'); } catch(e) { dbg('backup remove failed', e); }
     }
-  } catch(e) {}
+  } catch(e) { dbg('cleanupOldBackups error', e); }
 }
 
 async function listBackups() {
@@ -1402,7 +1559,7 @@ async function deleteBackup(filename) {
 function openBackupModal() { openModal('backupModal'); renderBackupList(); }
 
 /* ============================================================
-   DRAFT (автосохранение ввода)
+   DRAFT
    ============================================================ */
 function saveDraft() {
   try {
@@ -1599,7 +1756,6 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
     shift: shift
   };
 
-  // ⭐ Оптимистичный UI: показываем результат сразу
   const idx = state.devices.findIndex(d => d.serial === sn);
   if (idx >= 0) state.devices[idx] = updated; else state.devices.push(updated);
   state.justIssued = sn;
@@ -1618,7 +1774,6 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
     logMsg(`ВЫДАНО: ${sn} ➔ ${worker} (${shift})`);
     clearDraft();
   } catch(e) {
-    // откатываем оптимистичное обновление
     if (isNew) {
       state.devices = state.devices.filter(d => d.serial !== sn);
     } else if (idx >= 0) {
@@ -1652,9 +1807,7 @@ async function confirmSwap() {
       newDevSnapshot: newDev ? JSON.parse(JSON.stringify(newDev)) : null,
       worker: p.worker, newSn: p.newSn, oldSn: p.oldSn, isNew: p.isNew
     };
-    state.lastReturn = null;
 
-    // Оптимистичный UI
     if (oldDev) {
       const oIdx = state.devices.findIndex(d => d.serial === p.oldSn);
       if (oIdx >= 0) state.devices[oIdx] = { ...oldDev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts };
@@ -1743,24 +1896,14 @@ function showSwapToast(title, desc, undoCallback) {
   el.className = '';
   el.classList.add('show');
 
-  clearTimeout(window._toastT);
-  window._toastT = setTimeout(() => {
+  clearTimeout(state.toastTimer);
+  state.toastTimer = setTimeout(() => {
     el.classList.remove('show');
     setTimeout(() => {
       const b = el.querySelector('.t-undo');
       if (b) b.remove();
     }, 400);
   }, 7000);
-}
-
-async function undoLast() {
-  if (state.undoAction && state.undoAction.callback) {
-    const cb = state.undoAction.callback;
-    clearUndo();
-    await cb();
-    return true;
-  }
-  return false;
 }
 
 /* ============================================================
@@ -1860,7 +2003,6 @@ async function doReturn(sn) {
   try {
     const updated = { ...dev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts };
 
-    // Оптимистичный UI
     const idx = state.devices.findIndex(d => d.serial === sn);
     if (idx >= 0) state.devices[idx] = updated;
     state.justReturned = sn;
@@ -1870,8 +2012,22 @@ async function doReturn(sn) {
     await saveDevice(updated, 'Возврат', holder);
     beep('return');
 
-    // ⭐ Показываем toast с undo
-    showToast(`ПРИБОР ${sn} ПРИНЯТ`, `Сотрудник: ${holder}`);
+    const el = $('toast');
+    $('tIcon').innerText = '✓';
+    $('tIcon').style.background = '';
+    $('tIcon').style.borderColor = '';
+    $('tIcon').style.color = '';
+    $('tTitle').innerText = `ПРИБОР ${sn} ПРИНЯТ`;
+    $('tTitle').style.color = '';
+    $('tDesc').innerText = `Сотрудник: ${holder}`;
+    const oldBtn = el.querySelector('.t-undo');
+    if (oldBtn) oldBtn.remove();
+    const undoBtn = document.createElement('button');
+    undoBtn.className = 't-undo';
+    undoBtn.innerText = '↩ Отменить приём (Ctrl+Z)';
+    undoBtn.onclick = () => undoLast();
+    el.appendChild(undoBtn);
+
     setUndo('Отменить приём', async () => {
       try {
         const t2 = nowIso();
@@ -1884,14 +2040,16 @@ async function doReturn(sn) {
       }
     }, 7000);
 
-    const el = $('toast');
-    const oldBtn = el.querySelector('.t-undo');
-    if (oldBtn) oldBtn.remove();
-    const undoBtn = document.createElement('button');
-    undoBtn.className = 't-undo';
-    undoBtn.innerText = '↩ Отменить приём (Ctrl+Z)';
-    undoBtn.onclick = () => undoLast();
-    el.appendChild(undoBtn);
+    el.className = '';
+    el.classList.add('show');
+    clearTimeout(state.toastTimer);
+    state.toastTimer = setTimeout(() => {
+      el.classList.remove('show');
+      setTimeout(() => {
+        const b = el.querySelector('.t-undo');
+        if (b) b.remove();
+      }, 400);
+    }, 7000);
 
     logMsg(`ПРИНЯТО: ${sn} от ${holder}`);
     $('retQuery').value = ''; $('retQuery').focus();
@@ -1903,15 +2061,94 @@ async function doReturn(sn) {
       if (allCard) allCard.classList.add('active');
     }
   } catch(e) {
-    // откат
     const idx = state.devices.findIndex(d => d.serial === sn);
     if (idx >= 0) state.devices[idx] = snapshot;
     renderTable();
     beep('err');
     showToast('ОШИБКА ПРИЁМА', e.message || '?', 'err');
   } finally {
+    /* ⭐ ФИКС #2 — убран мёртвый btn-busy */
     btn.classList.remove('busy');
   }
+}
+
+/* ============================================================
+   DEBT WIDGET
+   ============================================================ */
+function renderDebtWidget() {
+  const widget = $('debtWidget');
+  if (!widget) return;
+
+  const byHolder = {};
+  state.devices.forEach(d => {
+    if (d.status !== 'issued' || !d.holder) return;
+    const h = hoursSince(d.issued_at);
+    if (h < OVERDUE_H) return;
+    const key = d.holder.trim();
+    if (!byHolder[key]) byHolder[key] = { holder: key, count: 0, maxH: 0 };
+    byHolder[key].count++;
+    if (h > byHolder[key].maxH) byHolder[key].maxH = h;
+  });
+
+  const list = Object.values(byHolder).sort((a, b) => b.maxH - a.maxH);
+
+  if (!list.length) {
+    widget.classList.add('empty');
+    return;
+  }
+  widget.classList.remove('empty');
+
+  $('debtCount').innerText = list.length;
+  const word = pluralN(list.length, 'должник', 'должника', 'должников');
+  $('debtHint').innerText = list.length + ' ' + word + ' · клик по имени → фильтр';
+
+  $('debtBody').innerHTML = list.map(g => {
+    const holder = g.holder;
+    const idMatch = holder.match(/\b(\d{4,})\b/);
+    let namePart = holder, idPart = '';
+    if (idMatch) {
+      idPart = idMatch[1];
+      namePart = holder.replace(idPart, '').replace(/\s+/g, ' ').trim();
+    }
+    if (!namePart) { namePart = holder; idPart = ''; }
+
+    return `<div class="debt-chip" data-holder="${esc(holder)}" title="${esc(holder)}">
+      <span class="who">${esc(namePart)}</span>
+      ${idPart ? `<span class="id">${esc(idPart)}</span>` : ''}
+      <span class="count">${g.count}×</span>
+      <span class="time">${fmtHoursShort(g.maxH)}</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleDebtWidget() {
+  const w = $('debtWidget');
+  const collapsed = w.classList.toggle('collapsed');
+  $('debtToggle').innerText = collapsed ? '▶' : '▼';
+  try { localStorage.setItem(DEBT_COLLAPSED_KEY, collapsed ? '1' : '0'); } catch(e) {}
+}
+
+function restoreDebtCollapsed() {
+  try {
+    if (localStorage.getItem(DEBT_COLLAPSED_KEY) === '1') {
+      const w = $('debtWidget');
+      if (w) {
+        w.classList.add('collapsed');
+        $('debtToggle').innerText = '▶';
+      }
+    }
+  } catch(e) {}
+}
+
+function filterByHolder(holder) {
+  $('searchTable').value = holder;
+  state.filter = 'all';
+  document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
+  const allCard = document.querySelector('.hud-stat-card[data-filter="all"]');
+  if (allCard) allCard.classList.add('active');
+  renderTable();
+  $('searchTable').focus();
+  try { $('searchTable').select(); } catch(_) {}
 }
 
 /* ============================================================
@@ -1937,7 +2174,6 @@ function renderTable() {
   $('mDay').innerText = dayCount;
   $('mNight').innerText = nightCount;
 
-  // ⭐ Статистика среднего/макс времени
   const statsEl = $('regStats');
   if (statsEl) {
     if (issuedTimes.length) {
@@ -1977,9 +2213,11 @@ function renderTable() {
 
   if (!filtered.length) {
     $('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">Ничего не найдено</td></tr>';
+    renderDebtWidget();
     return;
   }
   $('tbody').innerHTML = filtered.map(d => renderRow(d, d.status === 'issued')).join('');
+  renderDebtWidget();
 }
 
 function renderRow(d, busy) {
@@ -2051,6 +2289,9 @@ function pickForIssue(sn) { $('issSn').value = sn; $('issSn').classList.remove('
 
 async function openAudit(sn) {
   const dev = state.devices.find(d => d.serial === sn); if (!dev) return;
+
+  state.auditSn = sn;
+
   $('audSn').innerText = dev.serial;
   $('audModel').innerText = dev.model || '—';
   $('audHolder').innerText = dev.holder || 'На складе';
@@ -2061,6 +2302,7 @@ async function openAudit(sn) {
   $('auditOverlay').classList.add('show');
   $('auditDrawer').classList.add('open');
   refreshScrollLock();
+
   let moves = [];
   if (cloud && navigator.onLine) {
     try {
@@ -2068,9 +2310,13 @@ async function openAudit(sn) {
         cloud.from('movements').select('*').eq('serial', sn).order('id', { ascending: false }).limit(25),
         NET_TIMEOUT_MS, 'audit query'
       );
+      if (state.auditSn !== sn) return;
       if (data) moves = data;
-    } catch(e) {}
+    } catch(e) { dbg('audit query failed', e); }
   }
+
+  if (state.auditSn !== sn) return;
+
   if (!moves.length) {
     const local = await new Promise(r => {
       if (!db) return r([]);
@@ -2082,8 +2328,12 @@ async function openAudit(sn) {
         t.onabort = () => r([]);
       } catch(e) { r([]); }
     });
+    if (state.auditSn !== sn) return;
     moves = local.filter(m => m.serial === sn).reverse();
   }
+
+  if (state.auditSn !== sn) return;
+
   const tl = $('audTimeline');
   if (!moves.length) { tl.innerHTML = '<div style="color:var(--text-muted); font-size:12px; text-align:center; padding:15px;">Записей пока нет.</div>'; return; }
   tl.innerHTML = moves.map(h => {
@@ -2101,13 +2351,14 @@ async function openAudit(sn) {
 }
 
 function closeAuditDrawer() {
+  state.auditSn = null;
   $('auditDrawer').classList.remove('open');
   $('auditOverlay').classList.remove('show');
   refreshScrollLock();
 }
 
 /* ============================================================
-   ЭКСПОРТ (с защитой от CSV-инъекций) / ИМПОРТ / ДИАГ
+   ЭКСПОРТ / ИМПОРТ / ДИАГ
    ============================================================ */
 function csvSafe(v) {
   let str = String(v === null || v === undefined ? '' : v);
@@ -2151,7 +2402,7 @@ function processImport() {
       closeModal('impModal'); $('impText').value = '';
       beep('issue');
       showToast('ИМПОРТ', `+${added}, пропущено ${skipped}${rejected ? `, битых ${rejected}` : ''}`);
-      loadLocal().then(() => scheduleSync(500));
+      loadLocal().then(() => scheduleSync(500)).catch(() => scheduleSync(500));
     };
     txm.onerror = () => showToast('ОШИБКА ИМПОРТА', txm.error ? txm.error.message : '?', 'err');
     txm.onabort = () => showToast('ИМПОРТ ОТМЕНЁН', 'Транзакция прервана', 'err');
@@ -2274,8 +2525,8 @@ function showToast(title, desc, kind = 'ok') {
   if (oldBtn) oldBtn.remove();
   el.className = kind === 'err' ? 'err' : (kind === 'warn' ? 'warn' : '');
   el.classList.add('show');
-  clearTimeout(window._toastT);
-  window._toastT = setTimeout(() => el.classList.remove('show'), 2800);
+  clearTimeout(state.toastTimer);
+  state.toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
 }
 
 /* ============================================================
@@ -2287,7 +2538,6 @@ function setupDelegation() {
     if (!target) return;
     const action = target.dataset.action;
     const sn = target.dataset.sn;
-    // Ctrl/Cmd/Alt + клик на SN = копировать
     if (action === 'audit' && (e.ctrlKey || e.metaKey || e.altKey)) {
       e.preventDefault();
       navigator.clipboard?.writeText(sn).then(
@@ -2336,6 +2586,12 @@ function setupDelegation() {
     const file = btn.dataset.bkFile;
     if (btn.dataset.bkAction === 'restore') restoreFromBackup(file);
     else if (btn.dataset.bkAction === 'delete') deleteBackup(file);
+  });
+
+  $('debtBody').addEventListener('click', e => {
+    const chip = e.target.closest('.debt-chip');
+    if (!chip) return;
+    filterByHolder(chip.dataset.holder);
   });
 }
 
@@ -2409,14 +2665,16 @@ setInterval(() => {
   else updateShiftBanner();
 }, 30000);
 
-/* Периодическая очистка recentLocal */
 setInterval(() => {
   const cutoff = Date.now() - RECENT_LOCAL_TTL;
-  let cleaned = 0;
   for (const [k, v] of recentLocal) {
-    if (v < cutoff) { recentLocal.delete(k); cleaned++; }
+    if (v < cutoff) recentLocal.delete(k);
   }
 }, 30000);
+
+setInterval(() => {
+  renderTable();
+}, 60000);
 
 window.addEventListener('DOMContentLoaded', () => {
   try {
@@ -2434,6 +2692,8 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   updateShiftBanner();
   setupDelegation();
+  restoreDebtCollapsed();
+  renderDebtWidget();
   $('issSn').focus();
 });
 
