@@ -91,122 +91,37 @@
   .dot-ping { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
   .pill-busy .dot-ping { animation: pulse 1.2s infinite; }
   @keyframes pulse { 50% { opacity: 0.3; } }
-  .btn-hud { background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); color: #cbd5e1; padding: 6px 13px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s ease; }
+  .btn-hud { background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); color: #cbd5e1; padding: 6px 13px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s ease; min-width: 100px; justify-content: center; }
   .btn-hud:hover { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.4); color: #fff; transform: translateY(-1px); }
+
+  /* Пилюля смены в шапке */
+  .shift-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+    border: 1px solid;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+  }
+  .shift-pill.day { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.4); color: #fbbf24; }
+  .shift-pill.night { background: rgba(192,132,252,0.12); border-color: rgba(192,132,252,0.4); color: var(--neon-purple); }
+  .shift-pill:hover { filter: brightness(1.15); }
+  .shift-pill .t { opacity: 0.85; }
 
   /* ===== METRICS ===== */
   .metrics-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
   @media(max-width: 1000px) { .metrics-grid { grid-template-columns: repeat(3, 1fr); } }
   @media(max-width: 600px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
-  .hud-stat-card { background: var(--card-surface); backdrop-filter: blur(16px); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 10px 14px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+  .hud-stat-card { background: var(--card-surface); backdrop-filter: blur(16px); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 8px 14px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
   .hud-stat-card:hover { transform: translateY(-2px); border-color: var(--neon-blue); box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 15px rgba(56,189,248,0.15); }
   .hud-stat-card.active { border-color: var(--neon-cyan); background: rgba(14, 28, 54, 0.85); box-shadow: 0 0 15px rgba(0, 242, 254, 0.25); }
   .stat-label { font-size: 10px; font-weight: 800; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
-  .stat-value { font-size: 22px; font-weight: 800; margin-top: 4px; letter-spacing: -0.02em; }
-
-  /* ===== DEBT WIDGET ===== */
-  .debt-widget {
-    background: linear-gradient(160deg, rgba(60,12,20,0.45), rgba(30,8,14,0.35));
-    border: 1px solid rgba(244,63,94,0.28);
-    border-radius: 12px;
-    overflow: hidden;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-  }
-  .debt-widget.empty { display: none; }
-
-  .debt-head {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 7px 14px;
-    cursor: pointer; user-select: none;
-    transition: background 0.15s;
-    gap: 10px;
-  }
-  .debt-head:hover { background: rgba(244,63,94,0.08); }
-
-  .debt-title {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 11.5px; font-weight: 800;
-    text-transform: uppercase; letter-spacing: 0.06em;
-    color: #fb7185;
-  }
-  .debt-title .ic { font-size: 13px; }
-  .debt-title .hint {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; font-weight: 500;
-    color: var(--text-secondary);
-    text-transform: none; letter-spacing: 0;
-    margin-left: 2px;
-  }
-  .debt-count {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 22px; height: 18px; padding: 0 7px;
-    border-radius: 9px;
-    background: rgba(244,63,94,0.25);
-    border: 1px solid rgba(244,63,94,0.55);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px; font-weight: 800;
-    color: #fb7185;
-  }
-  .debt-toggle {
-    font-size: 11px; font-weight: 700;
-    color: rgba(244,63,94,0.7);
-    font-family: 'JetBrains Mono', monospace;
-    padding: 2px 6px;
-  }
-
-  .debt-body {
-    display: flex; gap: 6px;
-    padding: 0 14px 10px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: thin;
-  }
-  .debt-widget.collapsed .debt-body { display: none; }
-  .debt-body::-webkit-scrollbar { height: 4px; }
-  .debt-body::-webkit-scrollbar-thumb { background: rgba(244,63,94,0.3); border-radius: 2px; }
-  .debt-body::-webkit-scrollbar-track { background: transparent; }
-
-  .debt-chip {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 6px 10px;
-    background: rgba(244,63,94,0.08);
-    border: 1px solid rgba(244,63,94,0.3);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .debt-chip:hover {
-    background: rgba(244,63,94,0.18);
-    border-color: rgba(244,63,94,0.6);
-    transform: translateY(-1px);
-  }
-  .debt-chip:active { transform: translateY(0); }
-
-  .debt-chip .who {
-    font-size: 12px; font-weight: 700; color: #f1f5f9;
-    max-width: 140px; overflow: hidden; text-overflow: ellipsis;
-  }
-  .debt-chip .count {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px; font-weight: 800;
-    color: #fb7185;
-    padding: 1px 6px;
-    background: rgba(244,63,94,0.2);
-    border-radius: 4px;
-  }
-  .debt-chip .time {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px; font-weight: 800;
-    color: var(--neon-rose);
-    letter-spacing: -0.02em;
-  }
-  .debt-chip .id {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; color: var(--text-secondary); font-weight: 500;
-  }
+  .stat-value { font-size: 20px; font-weight: 800; margin-top: 3px; letter-spacing: -0.02em; }
 
   /* ===== TERMINAL DECKS ===== */
   .terminal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -215,15 +130,13 @@
   .deck-card.return-deck { border-color: rgba(16,185,129,0.35); background: radial-gradient(circle at 50% 0%, rgba(16,185,129,0.08) 0%, rgba(13, 20, 36, 0.85) 60%); }
   .deck-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 8px; flex-wrap: wrap; }
   .deck-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 8px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  @media(max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
   .hud-group { position: relative; margin-bottom: 8px; }
   .hud-label { display: block; font-size: 10.5px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; }
   .hud-input { width: 100%; background: rgba(5, 9, 18, 0.85); border: 1px solid rgba(255,255,255,0.12); border-radius: 9px; padding: 10px 14px; color: #fff; font-size: 14px; outline: none; transition: all 0.2s ease; }
   .hud-input:focus { border-color: var(--neon-cyan); box-shadow: 0 0 0 2px rgba(0,242,254,0.15), 0 0 15px rgba(0,242,254,0.15); }
   .return-deck .hud-input:focus { border-color: var(--neon-emerald); box-shadow: 0 0 0 2px rgba(16,185,129,0.15), 0 0 15px rgba(16,185,129,0.2); }
   .hud-input.err { border-color: var(--neon-rose); box-shadow: 0 0 0 2px rgba(244,63,94,0.25); }
-  .btn-submit { width: 100%; padding: 10.5px; border-radius: 9px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; border: none; cursor: pointer; transition: all 0.2s ease; position: relative; }
+  .btn-submit { width: 100%; padding: 10.5px; border-radius: 9px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; border: none; cursor: pointer; transition: all 0.2s ease; position: relative; margin-top: auto; }
   .btn-submit.busy { opacity: 0.65; pointer-events: none; }
   .btn-submit.busy::after { content: ''; position: absolute; right: 14px; top: 50%; margin-top: -7px; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -231,27 +144,6 @@
   .btn-issue:hover { filter: brightness(1.15); transform: translateY(-1px); }
   .btn-return-action { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; box-shadow: 0 4px 18px rgba(16,185,129,0.35); }
   .btn-return-action:hover { filter: brightness(1.15); transform: translateY(-1px); }
-
-  /* ===== SHIFT BANNER ===== */
-  .shift-banner { display: flex; align-items: center; justify-content: space-between; padding: 7px 12px; border-radius: 9px; margin-bottom: 10px; cursor: pointer; user-select: none; transition: all 0.15s; border: 1px solid; position: relative; }
-  .shift-banner:active { transform: scale(0.985); }
-  .shift-banner.day { background: linear-gradient(135deg, rgba(245,158,11,0.14) 0%, rgba(245,158,11,0.04) 100%); border-color: rgba(245,158,11,0.55); box-shadow: 0 0 12px rgba(245,158,11,0.15); }
-  .shift-banner.night { background: linear-gradient(135deg, rgba(192,132,252,0.14) 0%, rgba(192,132,252,0.04) 100%); border-color: rgba(192,132,252,0.55); box-shadow: 0 0 12px rgba(192,132,252,0.15); }
-  .shift-banner .left { display: flex; align-items: center; gap: 8px; }
-  .shift-banner .icon { font-size: 16px; }
-  .shift-banner .text-main { font-size: 12px; font-weight: 800; letter-spacing: 0.04em; }
-  .shift-banner.day .text-main { color: #fbbf24; }
-  .shift-banner.night .text-main { color: var(--neon-purple); }
-  .shift-banner .right { display: flex; align-items: center; gap: 8px; }
-  .shift-banner .time { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 800; }
-  .shift-banner.day .time { color: #fbbf24; }
-  .shift-banner.night .time { color: var(--neon-purple); }
-  .shift-banner .auto-badge { font-size: 8.5px; font-weight: 800; padding: 1px 5px; border-radius: 3px; letter-spacing: 0.06em; }
-  .shift-banner.day .auto-badge { background: rgba(245,158,11,0.25); color: #fbbf24; }
-  .shift-banner.night .auto-badge { background: rgba(192,132,252,0.25); color: var(--neon-purple); }
-  .shift-banner .reset-btn { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.04); color: var(--text-secondary); cursor: pointer; transition: all 0.15s; font-family: 'Plus Jakarta Sans', sans-serif; }
-  .shift-banner .reset-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-  .shift-banner .reset-btn.hidden { display: none; }
 
   /* ===== DROPDOWN ===== */
   .drop-box { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: rgba(11,18,33,0.98); backdrop-filter: blur(24px); border: 1px solid rgba(56,189,248,0.4); border-radius: 10px; max-height: 220px; overflow-y: auto; z-index: 1000; box-shadow: 0 16px 36px rgba(0,0,0,0.85); display: none; }
@@ -262,13 +154,13 @@
   /* ===== REGISTRY ===== */
   .registry-deck { background: var(--card-surface); backdrop-filter: blur(20px); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 12px 18px; display: flex; flex-direction: column; flex: 1; min-height: 320px; }
   .reg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
-  .reg-stats { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-secondary); }
+  .reg-stats { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-secondary); font-weight: 600; }
   .reg-wrap { overflow-y: auto; flex: 1; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); min-height: 0; }
 
-  table { width: 100%; border-collapse: collapse; font-size: 12.5px; background: rgba(4,7,15,0.4); table-layout: auto; }
-  th { background: rgba(13,20,36,0.98); font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.08em; position: sticky; top: 0; z-index: 2; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; vertical-align: middle; }
-  td { padding: 11px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: left; vertical-align: middle; line-height: 1.3; }
-  tbody tr { height: 42px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; background: rgba(4,7,15,0.4); table-layout: fixed; }
+  th { background: rgba(13,20,36,0.98); font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.08em; position: sticky; top: 0; z-index: 2; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; vertical-align: middle; }
+  td { padding: 8px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: left; vertical-align: middle; line-height: 1.3; }
+  tbody tr { height: 38px; }
   tbody tr:hover { background: rgba(56,189,248,0.06); }
   tbody tr.row-overdue { background: rgba(244,63,94,0.12); }
   tbody tr.row-overdue:hover { background: rgba(244,63,94,0.18); }
@@ -293,15 +185,18 @@
   .time-inline .val.late { color: #fb923c; }
   .time-inline .val.over { color: var(--neon-rose); text-shadow: 0 0 8px rgba(244,63,94,0.4); }
   .time-inline .val.empty { color: var(--text-muted); font-weight: 500; font-size: 12px; }
-  .time-inline .bar { width: 48px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
+  .time-inline .bar { width: 60px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
   .time-inline .bar-fill { height: 100%; border-radius: 2px; display: block; }
   .time-inline .bar-fill.fresh { background: #34d399; }
   .time-inline .bar-fill.mid { background: #fbbf24; }
   .time-inline .bar-fill.late { background: #fb923c; }
   .time-inline .bar-fill.over { background: #f43f5e; }
   .time-inline .bar-fill.zero { background: rgba(255,255,255,0.05); }
-  .time-inline .sub { font-size: 10.5px; color: var(--text-muted); min-width: 96px; text-align: right; letter-spacing: 0.02em; }
   .time-inline .inherit-mark { font-size: 12px; color: var(--neon-cyan); cursor: help; margin-left: -2px; filter: drop-shadow(0 0 4px rgba(0, 242, 254, 0.5)); }
+
+  /* Кнопка в строке появляется только при hover */
+  .row-action-cell { opacity: 0; transition: opacity 0.18s ease; }
+  tbody tr:hover .row-action-cell { opacity: 1; }
 
   /* ===== TOAST ===== */
   #toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-120px); background: #091724; border: 2px solid var(--neon-emerald); border-radius: 14px; padding: 14px 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(16,185,129,0.4); display: flex; align-items: center; gap: 16px; z-index: 10000; opacity: 0; transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; max-width: 90vw; }
@@ -351,6 +246,62 @@
   .swap-arrow { font-size: 26px; color: var(--neon-amber); }
   .swap-inherit-note { display: flex; align-items: center; gap: 8px; background: rgba(0,242,254,0.08); border: 1px solid rgba(0,242,254,0.3); border-radius: 8px; padding: 9px 12px; font-size: 11.5px; color: #67e8f9; margin-bottom: 8px; }
 
+  /* ===== DEBT MODAL ===== */
+  .debt-modal-list {
+    display: flex; flex-direction: column;
+    gap: 6px;
+    max-height: 60vh; overflow-y: auto;
+    padding-right: 4px;
+  }
+  .debt-modal-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 12px;
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(244,63,94,0.06);
+    border: 1px solid rgba(244,63,94,0.22);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+  .debt-modal-item:hover {
+    background: rgba(244,63,94,0.16);
+    border-color: rgba(244,63,94,0.5);
+  }
+  .debt-modal-item .dname {
+    font-size: 13px; font-weight: 700; color: #f1f5f9;
+    display: flex; align-items: center; gap: 8px;
+    line-height: 1.2;
+  }
+  .debt-modal-item .dname .id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--text-secondary); font-weight: 500;
+  }
+  .debt-modal-item .dmeta {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.2;
+  }
+  .debt-modal-item .dcnt { color: #fb7185; font-weight: 800; }
+  .debt-modal-item .dtime {
+    grid-column: 2 / 3; grid-row: 1 / 3;
+    color: var(--neon-rose);
+    font-size: 14px; font-weight: 800;
+    text-shadow: 0 0 8px rgba(244,63,94,0.4);
+    letter-spacing: -0.02em;
+    align-self: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .debt-empty-modal {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
   .del-search { width: 100%; padding: 10px 14px; background: rgba(5,9,18,0.85); border: 1px solid rgba(255,255,255,0.12); border-radius: 9px; color: #fff; font-size: 13px; outline: none; font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; }
   .del-search:focus { border-color: var(--neon-rose); box-shadow: 0 0 0 2px rgba(244,63,94,0.15); }
   .del-list { max-height: 50vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; }
@@ -376,7 +327,7 @@
 
   @media print {
     body { background: #fff !important; color: #000 !important; overflow: visible !important; height: auto !important; padding: 0 !important; }
-    .hud-header, .metrics-grid, .debt-widget, .terminal-grid, .hud-actions, .reg-head input, .btn-hud, #toast, .drop-box, #logStatus, .reg-stats { display: none !important; }
+    .hud-header, .metrics-grid, .terminal-grid, .hud-actions, .reg-head input, .btn-hud, #toast, .drop-box, #logStatus, .reg-stats { display: none !important; }
     .registry-deck { border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 !important; }
     .reg-wrap { border: none !important; overflow: visible !important; }
     table { width: 100% !important; border: 1px solid #000 !important; color: #000 !important; font-size: 10pt !important; }
@@ -398,13 +349,19 @@
 <div class="app-shell">
   <header class="hud-header">
     <div class="brand-zone">
-      <div id="brandTag" class="brand-tag mono" title="v8.35">TERMINAL</div>
+      <div id="brandTag" class="brand-tag mono" title="v8.36">TERMINAL</div>
       <div class="brand-title">
         <h1>Учёт Оборудования</h1>
         <p>Двухпостовой Cloud • Автономная работа • Экспресс-замена</p>
       </div>
     </div>
     <div class="hud-actions">
+      <div id="shiftPill" class="shift-pill day" onclick="toggleShift()" title="Клик — переключить смену">
+        <span id="shiftIcon">☀</span>
+        <span id="shiftLabel">ДЕНЬ</span>
+        <span class="t" id="shiftTime">--:--</span>
+        <span id="shiftBadge" style="font-size:9px; opacity:0.6;">AUTO</span>
+      </div>
       <div id="syncStatus" class="pill-badge pill-online" onclick="showDiag()">
         <span class="dot-ping"></span>
         <span id="syncText">Онлайн</span>
@@ -419,22 +376,9 @@
     <div class="hud-stat-card active" data-filter="all"><div class="stat-label">ВСЕГО СКАНЕРОВ</div><div id="mTotal" class="stat-value mono">0</div></div>
     <div class="hud-stat-card" data-filter="free"><div class="stat-label" style="color:var(--neon-emerald);">● НА СКЛАДЕ</div><div id="mFree" class="stat-value mono" style="color:var(--neon-emerald);">0</div></div>
     <div class="hud-stat-card" data-filter="issued"><div class="stat-label" style="color:var(--neon-blue);">● НА РУКАХ</div><div id="mIssued" class="stat-value mono" style="color:var(--neon-blue);">0</div></div>
-    <div class="hud-stat-card" data-filter="overdue" title="Выдано более 12 часов назад"><div class="stat-label" style="color:var(--neon-rose);">🚨 ДОЛГИ (&gt;12Ч)</div><div id="mOverdue" class="stat-value mono" style="color:var(--neon-rose);">0</div></div>
+    <div class="hud-stat-card" data-filter="overdue" title="Выдано более 14 часов назад"><div class="stat-label" style="color:var(--neon-rose);">🚨 ДОЛГИ (&gt;14Ч)</div><div id="mOverdue" class="stat-value mono" style="color:var(--neon-rose);">0</div></div>
     <div class="hud-stat-card" data-filter="day" title="Сейчас на руках у дневной смены"><div class="stat-label" style="color:#fbbf24;">☀️ ДЕНЬ (ВЫДАНО)</div><div id="mDay" class="stat-value mono" style="color:#fbbf24;">0</div></div>
     <div class="hud-stat-card" data-filter="night" title="Сейчас на руках у ночной смены"><div class="stat-label" style="color:var(--neon-purple);">🌙 НОЧЬ (ВЫДАНО)</div><div id="mNight" class="stat-value mono" style="color:var(--neon-purple);">0</div></div>
-  </section>
-
-  <section class="debt-widget empty" id="debtWidget">
-    <div class="debt-head" id="debtHead" onclick="toggleDebtWidget()">
-      <div class="debt-title">
-        <span class="ic">🚨</span>
-        <span>Не сдают</span>
-        <span class="debt-count" id="debtCount">0</span>
-        <span class="hint" id="debtHint">клик по имени → фильтр</span>
-      </div>
-      <div class="debt-toggle" id="debtToggle">▼</div>
-    </div>
-    <div class="debt-body" id="debtBody"></div>
   </section>
 
   <section class="terminal-grid">
@@ -443,31 +387,16 @@
         <span class="deck-title" style="color:var(--neon-cyan);">📤 1. ВЫДАЧА СКАНЕРА</span>
         <span id="modelHint" class="mono" style="font-size:11px; color:var(--text-secondary);">F1 • Скан ➔ ID ➔ Enter</span>
       </div>
-      <form id="issueForm" autocomplete="off">
-        <div class="form-row">
-          <div class="hud-group">
-            <label class="hud-label">Серийный номер (или хвост):</label>
-            <input id="issSn" class="hud-input mono" placeholder="S10023 или 0635..." autocomplete="off" spellcheck="false">
-            <div id="issDrop" class="drop-box"></div>
-          </div>
-          <div class="hud-group">
-            <label class="hud-label">ID / Табельный / ФИО:</label>
-            <input id="issWorker" class="hud-input" placeholder="611252 или Иванов..." autocomplete="off" spellcheck="false" maxlength="40">
-          </div>
+      <form id="issueForm" autocomplete="off" style="display:flex; flex-direction:column; flex:1;">
+        <div class="hud-group">
+          <label class="hud-label">Серийный номер (или хвост):</label>
+          <input id="issSn" class="hud-input mono" placeholder="S10023 или 0635..." autocomplete="off" spellcheck="false">
+          <div id="issDrop" class="drop-box"></div>
         </div>
-
-        <div id="shiftBanner" class="shift-banner day" onclick="toggleShift()" title="Клик — переключить смену">
-          <div class="left">
-            <span class="icon" id="shiftIcon">☀</span>
-            <div class="text-main" id="shiftMain">ДНЕВНАЯ</div>
-          </div>
-          <div class="right">
-            <div class="time" id="shiftTime">--:--</div>
-            <div class="auto-badge" id="shiftBadge">АВТО</div>
-            <button class="reset-btn hidden" id="shiftReset" onclick="event.stopPropagation(); resetShiftToAuto()" title="Вернуть автоопределение">→ АВТО</button>
-          </div>
+        <div class="hud-group">
+          <label class="hud-label">ID / Табельный / ФИО:</label>
+          <input id="issWorker" class="hud-input" placeholder="611252 или Иванов..." autocomplete="off" spellcheck="false" maxlength="40">
         </div>
-
         <button type="submit" class="btn-submit btn-issue" id="btnIssue">ВЫДАТЬ СКАНЕР (ENTER)</button>
       </form>
     </div>
@@ -489,8 +418,8 @@
   <section class="registry-deck">
     <div class="reg-head">
       <div style="font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;">РЕЕСТР ОБОРУДОВАНИЯ <span style="color:var(--text-muted); font-weight:500; font-size:10px;">(клик по SN → история · Ctrl+клик → копировать)</span></div>
-      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-        <div class="reg-stats" id="regStats">Ср: — · Макс: —</div>
+      <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+        <div class="reg-stats" id="regStats">Σ <span style="color:var(--text-muted);">—</span> · ↑ <span style="color:var(--text-muted);">—</span></div>
         <input id="searchTable" class="hud-input mono" style="width:230px; padding:6px 12px; font-size:11.5px;" placeholder="Поиск (Ctrl+K)..." spellcheck="false">
       </div>
     </div>
@@ -498,12 +427,12 @@
       <table>
         <thead>
           <tr>
-            <th>СЕРИЙНЫЙ НОМЕР</th>
-            <th>МОДЕЛЬ</th>
-            <th>СТАТУС</th>
-            <th>ИСПОЛНИТЕЛЬ (ID / ФИО)</th>
+            <th style="width:190px;">СЕРИЙНЫЙ НОМЕР</th>
+            <th style="width:140px;">МОДЕЛЬ</th>
+            <th style="width:200px;">СТАТУС</th>
+            <th style="width:180px;">ИСПОЛНИТЕЛЬ</th>
             <th style="text-align:right;">ВРЕМЯ НА РУКАХ</th>
-            <th style="text-align:right;">ДЕЙСТВИЕ</th>
+            <th style="text-align:right; width:110px;">ДЕЙСТВИЕ</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -515,6 +444,20 @@
 
 <div id="toast"><div class="t-icon" id="tIcon">✓</div><div class="t-body"><h4 id="tTitle">ГОТОВО</h4><p id="tDesc"></p></div></div>
 
+<!-- ===== DEBT MODAL ===== -->
+<div id="debtModal" class="modal-overlay">
+  <div class="modal-card" style="max-width:560px; border-color:rgba(244,63,94,0.35);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:10px;">
+      <h3 style="font-size:14px; color:var(--neon-rose); display:flex; align-items:center; gap:10px;">
+        🚨 НЕ СДАЮТ <span id="debtModalCount" style="font-family:'JetBrains Mono'; background:rgba(244,63,94,0.25); border:1px solid rgba(244,63,94,0.55); color:#fb7185; padding:2px 9px; border-radius:9px; font-size:11px;">0</span>
+      </h3>
+      <button class="btn-hud" style="min-width:auto; padding:4px 10px; font-size:11px;" onclick="closeModal('debtModal')">✕</button>
+    </div>
+    <p style="font-size:11.5px; color:var(--text-secondary); margin-bottom:12px;">Клик по сотруднику → фильтр в реестре</p>
+    <div class="debt-modal-list" id="debtModalList"></div>
+  </div>
+</div>
+
 <div id="auditOverlay" class="audit-overlay" onclick="closeAuditDrawer()"></div>
 <div id="auditDrawer" class="audit-drawer">
   <div class="audit-header">
@@ -522,7 +465,7 @@
       <h3 id="audSn" class="mono" style="color:var(--neon-cyan);">S10023</h3>
       <span id="audStatusBadge" class="badge-chip chip-free" style="margin-top:4px;">На складе</span>
     </div>
-    <button class="btn-hud" style="padding:4px 8px; font-size:12px;" onclick="closeAuditDrawer()">✕ Закрыть</button>
+    <button class="btn-hud" style="padding:4px 8px; font-size:12px; min-width:auto;" onclick="closeAuditDrawer()">✕ Закрыть</button>
   </div>
   <div class="audit-summary">
     <div class="summary-item"><label>Модель:</label><b id="audModel">—</b></div>
@@ -548,7 +491,7 @@
     </div>
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
       <button class="btn-hud" onclick="closeModal('swapModal')">Отмена</button>
-      <button class="btn-submit btn-issue" style="width:auto; padding:8px 18px;" id="swapConfirm">Заменить (Enter)</button>
+      <button class="btn-submit btn-issue" style="width:auto; padding:8px 18px; margin-top:0;" id="swapConfirm">Заменить (Enter)</button>
     </div>
   </div>
 </div>
@@ -568,7 +511,7 @@
     <textarea id="impText" rows="8" class="hud-input mono" placeholder="Список серийников (каждый с новой строки)..."></textarea>
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
       <button class="btn-hud" onclick="closeModal('impModal')">Отмена</button>
-      <button class="btn-submit btn-issue" style="width:auto; padding:6px 16px;" onclick="processImport()">Загрузить</button>
+      <button class="btn-submit btn-issue" style="width:auto; padding:6px 16px; margin-top:0;" onclick="processImport()">Загрузить</button>
     </div>
   </div>
 </div>
@@ -580,7 +523,7 @@
     <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
       <button class="btn-hud" onclick="closeModal('diagModal')">Закрыть</button>
       <button class="btn-hud" style="border-color:rgba(244,63,94,0.4); color:var(--neon-rose);" onclick="hardReset()">🔥 Жёсткий сброс</button>
-      <button class="btn-submit btn-issue" style="width:auto; padding:6px 14px;" onclick="forceSync()">Форсировать sync</button>
+      <button class="btn-submit btn-issue" style="width:auto; padding:6px 14px; margin-top:0;" onclick="forceSync()">Форсировать sync</button>
     </div>
   </div>
 </div>
@@ -621,7 +564,10 @@
    ============================================================ */
 const SUPABASE_URL = "https://sgpkvnymkqwuhepkaoxw.supabase.co";
 const SUPABASE_KEY = "sb_publishable_dqlmOngeOHVYMFUG1s4kLw_N1Pxi9KW";
-const OVERDUE_H = 12;
+
+/* ФИКС: порог долга = 14 часов */
+const OVERDUE_H = 14;
+
 const BACKUP_BUCKET = 'sklad-backups';
 const BACKUP_KEEP = 7;
 const BACKUP_MIN_INTERVAL = 6 * 60 * 60 * 1000;
@@ -638,8 +584,6 @@ const SYNC_TIMEOUT_MS = 45000;
 const SYNC_BASE_INTERVAL = 20000;
 const SYNC_MAX_INTERVAL = 300000;
 const SYNC_JITTER = 0.25;
-
-const DEBT_COLLAPSED_KEY = 'sklad_debt_collapsed_v1';
 
 const DEBUG = false;
 function dbg(...args) { if (DEBUG) console.log('[DBG]', ...args); }
@@ -824,14 +768,13 @@ function computeSmartShift(worker) {
   return (hm >= 6*60 && hm < 18*60) ? 'Дневная' : 'Ночная';
 }
 
-function updateShiftBanner() {
-  const banner = $('shiftBanner');
+function updateShiftPill() {
+  const pill = $('shiftPill');
   const isDay = state.issueShift === 'Дневная';
-  banner.className = 'shift-banner ' + (isDay ? 'day' : 'night');
+  pill.className = 'shift-pill ' + (isDay ? 'day' : 'night');
   $('shiftIcon').innerText = isDay ? '☀' : '🌙';
-  $('shiftMain').innerText = isDay ? 'ДНЕВНАЯ' : 'НОЧНАЯ';
-  $('shiftBadge').innerText = state.issueShiftAuto ? 'АВТО' : 'ВРУЧНУЮ';
-  $('shiftReset').classList.toggle('hidden', state.issueShiftAuto);
+  $('shiftLabel').innerText = isDay ? 'ДЕНЬ' : 'НОЧЬ';
+  $('shiftBadge').innerText = state.issueShiftAuto ? 'AUTO' : 'MANUAL';
   const now = new Date();
   $('shiftTime').innerText = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
 }
@@ -842,20 +785,20 @@ function saveShiftPref() {
 function toggleShift() {
   state.issueShift = (state.issueShift === 'Дневная') ? 'Ночная' : 'Дневная';
   state.issueShiftAuto = false;
-  saveShiftPref(); updateShiftBanner();
+  saveShiftPref(); updateShiftPill();
 }
 function resetShiftToAuto() {
   state.issueShiftAuto = true;
   state.issueShift = computeSmartShift($('issWorker').value.trim());
-  saveShiftPref(); updateShiftBanner();
+  saveShiftPref(); updateShiftPill();
   showToast('АВТОРЕЖИМ', 'Смена определяется по времени', 'warn');
 }
 function refreshSmartShift() {
-  if (!state.issueShiftAuto) { updateShiftBanner(); return; }
+  if (!state.issueShiftAuto) { updateShiftPill(); return; }
   const worker = $('issWorker').value.trim();
   const smart = computeSmartShift(worker);
   if (smart !== state.issueShift) state.issueShift = smart;
-  updateShiftBanner();
+  updateShiftPill();
 }
 function rememberWorkerShift(worker, shift) {
   if (!worker) return;
@@ -919,7 +862,6 @@ DB_REQ.onsuccess = async e => {
   await rotateMovesIfNeeded();
   hideBoot();
   restoreDraft();
-  restoreDebtCollapsed();
   scheduleSync(500);
   setTimeout(() => checkAutoBackup(), 5000);
 };
@@ -1211,7 +1153,6 @@ async function syncNow() {
   }
 }
 
-/* ФИКС #3: пустой ответ не считается валидным — возвращаем null */
 async function pullAllDevices() {
   const pageSize = 1000;
   let all = [];
@@ -1782,7 +1723,7 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
   resetIssueDropdown();
   $('modelHint').innerText = "F1 • Скан ➔ ID ➔ Enter";
   if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
-  updateShiftBanner();
+  updateShiftPill();
   $('issSn').focus();
 }
 
@@ -1856,7 +1797,7 @@ async function confirmSwap() {
     resetIssueDropdown();
     clearDraft();
     if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
-    updateShiftBanner();
+    updateShiftPill();
     $('issSn').focus();
   } catch(e) {
     beep('err');
@@ -2007,7 +1948,6 @@ async function doReturn(sn) {
     await saveDevice(updated, 'Возврат', holder);
     beep('return');
 
-    /* ФИКС #1 — единый undo-toast на 7 секунд */
     const el = $('toast');
     $('tIcon').innerText = '✓';
     $('tIcon').style.background = '';
@@ -2068,12 +2008,9 @@ async function doReturn(sn) {
 }
 
 /* ============================================================
-   DEBT WIDGET
+   DEBT MODAL — список должников
    ============================================================ */
-function renderDebtWidget() {
-  const widget = $('debtWidget');
-  if (!widget) return;
-
+function buildDebtList() {
   const byHolder = {};
   state.devices.forEach(d => {
     if (d.status !== 'issued' || !d.holder) return;
@@ -2084,20 +2021,21 @@ function renderDebtWidget() {
     byHolder[key].count++;
     if (h > byHolder[key].maxH) byHolder[key].maxH = h;
   });
+  return Object.values(byHolder).sort((a, b) => b.maxH - a.maxH);
+}
 
-  const list = Object.values(byHolder).sort((a, b) => b.maxH - a.maxH);
+function openDebtModal() {
+  const list = buildDebtList();
+  $('debtModalCount').innerText = list.length;
 
+  const wrap = $('debtModalList');
   if (!list.length) {
-    widget.classList.add('empty');
+    wrap.innerHTML = '<div class="debt-empty-modal">🎉 Нет активных долгов (&gt;14ч)</div>';
+    openModal('debtModal');
     return;
   }
-  widget.classList.remove('empty');
 
-  $('debtCount').innerText = list.length;
-  const word = pluralN(list.length, 'должник', 'должника', 'должников');
-  $('debtHint').innerText = list.length + ' ' + word + ' · клик по имени → фильтр';
-
-  $('debtBody').innerHTML = list.map(g => {
+  wrap.innerHTML = list.map(g => {
     const holder = g.holder;
     const idMatch = holder.match(/\b(\d{4,})\b/);
     let namePart = holder, idPart = '';
@@ -2107,33 +2045,31 @@ function renderDebtWidget() {
     }
     if (!namePart) { namePart = holder; idPart = ''; }
 
-    return `<div class="debt-chip" data-holder="${esc(holder)}" title="${esc(holder)}">
-      <span class="who">${esc(namePart)}</span>
-      ${idPart ? `<span class="id">${esc(idPart)}</span>` : ''}
-      <span class="count">${g.count}×</span>
-      <span class="time">${fmtHoursShort(g.maxH)}</span>
+    const word = pluralN(g.count, 'прибор', 'прибора', 'приборов');
+
+    return `<div class="debt-modal-item" data-holder="${esc(holder)}">
+      <div class="dname">
+        <span>${esc(namePart)}</span>
+        ${idPart ? `<span class="id">${esc(idPart)}</span>` : ''}
+      </div>
+      <div class="dtime">${fmtHoursShort(g.maxH)}</div>
+      <div class="dmeta">
+        <span class="dcnt">${g.count}×</span>
+        <span>${word}</span>
+      </div>
     </div>`;
   }).join('');
+
+  openModal('debtModal');
 }
 
-function toggleDebtWidget() {
-  const w = $('debtWidget');
-  const collapsed = w.classList.toggle('collapsed');
-  $('debtToggle').innerText = collapsed ? '▶' : '▼';
-  try { localStorage.setItem(DEBT_COLLAPSED_KEY, collapsed ? '1' : '0'); } catch(e) {}
-}
-
-function restoreDebtCollapsed() {
-  try {
-    if (localStorage.getItem(DEBT_COLLAPSED_KEY) === '1') {
-      const w = $('debtWidget');
-      if (w) {
-        w.classList.add('collapsed');
-        $('debtToggle').innerText = '▶';
-      }
-    }
-  } catch(e) {}
-}
+$('debtModalList').addEventListener('click', e => {
+  const item = e.target.closest('.debt-modal-item');
+  if (!item) return;
+  const holder = item.dataset.holder;
+  closeModal('debtModal');
+  filterByHolder(holder);
+});
 
 function filterByHolder(holder) {
   $('searchTable').value = holder;
@@ -2177,9 +2113,9 @@ function renderTable() {
       const avgCls = timeClass(avg);
       const maxCls = timeClass(max);
       const colors = { fresh: '#34d399', mid: '#fbbf24', late: '#fb923c', over: '#f43f5e' };
-      statsEl.innerHTML = `Ср: <span style="color:${colors[avgCls]}">${fmtHoursShort(avg)}</span> · Макс: <span style="color:${colors[maxCls]}">${fmtHoursShort(max)}</span>`;
+      statsEl.innerHTML = `Σ <span style="color:${colors[avgCls]}; font-weight:700;">${fmtHoursShort(avg)}</span> · ↑ <span style="color:${colors[maxCls]}; font-weight:700;">${fmtHoursShort(max)}</span>`;
     } else {
-      statsEl.textContent = 'Ср: — · Макс: —';
+      statsEl.innerHTML = 'Σ <span style="color:var(--text-muted);">—</span> · ↑ <span style="color:var(--text-muted);">—</span>';
     }
   }
 
@@ -2208,11 +2144,9 @@ function renderTable() {
 
   if (!filtered.length) {
     $('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">Ничего не найдено</td></tr>';
-    renderDebtWidget();
     return;
   }
   $('tbody').innerHTML = filtered.map(d => renderRow(d, d.status === 'issued')).join('');
-  renderDebtWidget();
 }
 
 function renderRow(d, busy) {
@@ -2221,7 +2155,7 @@ function renderRow(d, busy) {
   const inherited = busy && isInheritedTime(d);
 
   let badge = '';
-  if (busy && over) badge = '<span class="badge-chip chip-over">🚨 ДОЛГ (>12ч)</span>';
+  if (busy && over) badge = '<span class="badge-chip chip-over">🚨 ДОЛГ (&gt;14ч)</span>';
   else if (busy) badge = '<span class="badge-chip chip-busy">НА РУКАХ</span>';
   else badge = '<span class="badge-chip chip-free">НА СКЛАДЕ</span>';
 
@@ -2230,16 +2164,18 @@ function renderRow(d, busy) {
   else if (busy && d.shift === 'Ночная') shiftChip = ' <span class="badge-chip chip-night">🌙 Ночь</span>';
 
   let action = busy
-    ? `<button class="btn-hud" style="background:#059669; color:#fff; border:none; padding:5px 12px; font-size:11px;" data-action="return" data-sn="${esc(d.serial)}">Принять</button>`
-    : `<button class="btn-hud" style="padding:5px 12px; font-size:11px;" data-action="issue" data-sn="${esc(d.serial)}">Выдать</button>`;
+    ? `<button class="btn-hud" style="background:#059669; color:#fff; border:none; padding:5px 12px; font-size:11px; min-width:auto;" data-action="return" data-sn="${esc(d.serial)}">Принять</button>`
+    : `<button class="btn-hud" style="padding:5px 12px; font-size:11px; min-width:auto;" data-action="issue" data-sn="${esc(d.serial)}">Выдать</button>`;
 
   let timeHtml = '';
+  let timeTitle = '';
   if (busy) {
     const cls = timeClass(h);
     const barW = timeBarWidth(h);
     const issuedStr = d.issued_at
       ? new Date(d.issued_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '')
       : '—';
+    timeTitle = 'Выдан: ' + issuedStr;
     const inheritMark = inherited
       ? '<span class="inherit-mark" title="Время перенесено с предыдущего сканера">🔁</span>'
       : '';
@@ -2248,18 +2184,17 @@ function renderRow(d, busy) {
         <span class="val ${cls}">${fmtHoursShort(h)}</span>
         <span class="bar"><span class="bar-fill ${cls}" style="width:${barW}%"></span></span>
         ${inheritMark}
-        <span class="sub">с ${issuedStr}</span>
       </div>
     `;
   } else {
     const lastMoveStr = d.last_move
       ? new Date(d.last_move).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '')
       : '—';
+    timeTitle = 'Принят: ' + lastMoveStr;
     timeHtml = `
       <div class="time-inline">
         <span class="val empty">—</span>
         <span class="bar"><span class="bar-fill zero" style="width:100%"></span></span>
-        <span class="sub">принят ${lastMoveStr}</span>
       </div>
     `;
   }
@@ -2274,15 +2209,14 @@ function renderRow(d, busy) {
     <td style="font-size:13px; font-weight:700;">${esc(d.model)}</td>
     <td>${badge}${shiftChip}</td>
     <td class="mono" style="font-size:13.5px; font-weight:700;">${d.holder ? esc(d.holder) : '<span style="color:var(--text-muted); font-weight:400;">—</span>'}</td>
-    <td style="text-align:right;">${timeHtml}</td>
-    <td style="text-align:right;">${action}</td>
+    <td style="text-align:right;" title="${esc(timeTitle)}">${timeHtml}</td>
+    <td style="text-align:right;" class="row-action-cell">${action}</td>
   </tr>`;
 }
 
 function quickReturnFromRow(sn) { $('retQuery').value = sn; quickReturn(); }
 function pickForIssue(sn) { $('issSn').value = sn; $('issSn').classList.remove('err'); $('issWorker').focus(); }
 
-/* ФИКС #2 — race condition защита через state.auditSn */
 async function openAudit(sn) {
   const dev = state.devices.find(d => d.serial === sn); if (!dev) return;
 
@@ -2431,8 +2365,9 @@ function showDiag() {
       <div>SUPABASE: <span style="color:#fff;">${SUPABASE_URL.replace('https://','').split('.')[0]}...</span></div>
       <div>ОЧЕРЕДЬ ПАКЕТОВ: <span style="color:var(--neon-cyan);">${n}</span></div>
       <div>BACKOFF: ${backoff}</div>
+      <div>ПОРОГ ДОЛГА: <span style="color:var(--neon-rose);">${OVERDUE_H}ч</span></div>
       <div>СМЕНА: <span style="color:${state.issueShift==='Ночная'?'var(--neon-purple)':'#fbbf24'};">${state.issueShift}</span> (${state.issueShiftAuto ? 'авто' : 'вручную'})</div>
-      <div>АВТО-ЗАМЕНА: <span style="color:${autoSwapColor};">${autoSwapTxt}</span> <button class="btn-hud" style="padding:2px 8px; font-size:10px; margin-left:8px;" onclick="toggleAutoSwap()">${state.autoSwap ? 'Отключить' : 'Включить'}</button></div>
+      <div>АВТО-ЗАМЕНА: <span style="color:${autoSwapColor};">${autoSwapTxt}</span> <button class="btn-hud" style="padding:2px 8px; font-size:10px; margin-left:8px; min-width:auto;" onclick="toggleAutoSwap()">${state.autoSwap ? 'Отключить' : 'Включить'}</button></div>
       <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--neon-emerald);">${lastBk}</span></div>
       <div>ПОСЛЕДНЯЯ ОШИБКА: <span style="color:var(--neon-rose);">${esc(state.lastError)}</span></div>
       ${n ? `
@@ -2440,7 +2375,7 @@ function showDiag() {
           <div style="font-size:11px; font-weight:800; color:var(--neon-amber); margin-bottom:6px;">⚠ ОЧЕРЕДЬ (первые 30):</div>
           <div style="max-height:220px; overflow-y:auto; background:rgba(0,0,0,0.35); border-radius:6px; padding:6px 10px;">${preview}</div>
           <div style="margin-top:8px;">
-            <button class="btn-hud" style="border-color:rgba(244,63,94,0.4); color:var(--neon-rose); font-size:10px;" onclick="clearStuckQueue()">🗑 Очистить очередь (данные не тронем)</button>
+            <button class="btn-hud" style="border-color:rgba(244,63,94,0.4); color:var(--neon-rose); font-size:10px; min-width:auto;" onclick="clearStuckQueue()">🗑 Очистить очередь (данные не тронем)</button>
           </div>
         </div>
       ` : ''}
@@ -2583,12 +2518,6 @@ function setupDelegation() {
     if (btn.dataset.bkAction === 'restore') restoreFromBackup(file);
     else if (btn.dataset.bkAction === 'delete') deleteBackup(file);
   });
-
-  $('debtBody').addEventListener('click', e => {
-    const chip = e.target.closest('.debt-chip');
-    if (!chip) return;
-    filterByHolder(chip.dataset.holder);
-  });
 }
 
 /* ============================================================
@@ -2611,7 +2540,13 @@ document.querySelectorAll('.hud-stat-card').forEach(s => {
   s.addEventListener('click', () => {
     document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
     s.classList.add('active');
-    state.filter = s.dataset.filter;
+    const f = s.dataset.filter;
+    // Клик по "ДОЛГИ" — открывает модалку со списком
+    if (f === 'overdue') {
+      openDebtModal();
+      return;
+    }
+    state.filter = f;
     renderTable();
   });
 });
@@ -2658,7 +2593,7 @@ document.addEventListener('keydown', e => {
 
 setInterval(() => {
   if (state.issueShiftAuto) refreshSmartShift();
-  else updateShiftBanner();
+  else updateShiftPill();
 }, 30000);
 
 setInterval(() => {
@@ -2686,10 +2621,8 @@ window.addEventListener('DOMContentLoaded', () => {
     state.issueShift = computeSmartShift('');
     state.issueShiftAuto = true;
   }
-  updateShiftBanner();
+  updateShiftPill();
   setupDelegation();
-  restoreDebtCollapsed();
-  renderDebtWidget();
   $('issSn').focus();
 });
 
