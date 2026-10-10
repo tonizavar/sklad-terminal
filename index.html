@@ -389,7 +389,6 @@
 </head>
 <body>
 
-<!-- ===== BOOT OVERLAY ===== -->
 <div class="boot-overlay" id="bootOverlay">
   <div class="boot-logo">SKLAD OPS</div>
   <div class="boot-spinner"></div>
@@ -399,7 +398,7 @@
 <div class="app-shell">
   <header class="hud-header">
     <div class="brand-zone">
-      <div id="brandTag" class="brand-tag mono" title="v8.34">TERMINAL</div>
+      <div id="brandTag" class="brand-tag mono" title="v8.35">TERMINAL</div>
       <div class="brand-title">
         <h1>Учёт Оборудования</h1>
         <p>Двухпостовой Cloud • Автономная работа • Экспресс-замена</p>
@@ -425,7 +424,6 @@
     <div class="hud-stat-card" data-filter="night" title="Сейчас на руках у ночной смены"><div class="stat-label" style="color:var(--neon-purple);">🌙 НОЧЬ (ВЫДАНО)</div><div id="mNight" class="stat-value mono" style="color:var(--neon-purple);">0</div></div>
   </section>
 
-  <!-- ===== DEBT WIDGET — кто не сдал ===== -->
   <section class="debt-widget empty" id="debtWidget">
     <div class="debt-head" id="debtHead" onclick="toggleDebtWidget()">
       <div class="debt-title">
@@ -710,7 +708,6 @@ function detectModel(sn) {
   return 'Point Mobile';
 }
 
-/* ⭐ ФИКС #1 — защита от NaN на некорректной дате */
 function hoursSince(iso) {
   if (!iso) return 0;
   const t = Date.parse(iso);
@@ -735,7 +732,6 @@ function timeClass(h) {
   if (h >= 4) return 'mid';
   return 'fresh';
 }
-/* ⭐ ФИКС #1 — защита от NaN в ширине полоски */
 function timeBarWidth(h) {
   if (!isFinite(h) || h < 0) return 3;
   return Math.max(3, Math.min(100, (h / OVERDUE_H) * 100));
@@ -785,7 +781,6 @@ function setUndo(label, callback, ttl = 7000) {
   state.undoTimer = setTimeout(() => {
     state.undoAction = null;
     const el = $('toast');
-    if (!el) return;
     const b = el.querySelector('.t-undo');
     if (b) b.remove();
   }, ttl);
@@ -928,7 +923,6 @@ DB_REQ.onsuccess = async e => {
   scheduleSync(500);
   setTimeout(() => checkAutoBackup(), 5000);
 };
-/* ⭐ ФИКС #4 — убран console.error, оставлен dbg */
 DB_REQ.onerror = e => {
   state.dbReady = false;
   bootText('Ошибка базы данных');
@@ -1217,6 +1211,7 @@ async function syncNow() {
   }
 }
 
+/* ФИКС #3: пустой ответ не считается валидным — возвращаем null */
 async function pullAllDevices() {
   const pageSize = 1000;
   let all = [];
@@ -1234,7 +1229,7 @@ async function pullAllDevices() {
       from += pageSize;
       if (from > 500000) break;
     }
-    return all;
+    return all.length ? all : null;
   } catch(e) { state.lastError = e.message; return all.length ? all : null; }
 }
 
@@ -2012,6 +2007,7 @@ async function doReturn(sn) {
     await saveDevice(updated, 'Возврат', holder);
     beep('return');
 
+    /* ФИКС #1 — единый undo-toast на 7 секунд */
     const el = $('toast');
     $('tIcon').innerText = '✓';
     $('tIcon').style.background = '';
@@ -2067,7 +2063,6 @@ async function doReturn(sn) {
     beep('err');
     showToast('ОШИБКА ПРИЁМА', e.message || '?', 'err');
   } finally {
-    /* ⭐ ФИКС #2 — убран мёртвый btn-busy */
     btn.classList.remove('busy');
   }
 }
@@ -2287,6 +2282,7 @@ function renderRow(d, busy) {
 function quickReturnFromRow(sn) { $('retQuery').value = sn; quickReturn(); }
 function pickForIssue(sn) { $('issSn').value = sn; $('issSn').classList.remove('err'); $('issWorker').focus(); }
 
+/* ФИКС #2 — race condition защита через state.auditSn */
 async function openAudit(sn) {
   const dev = state.devices.find(d => d.serial === sn); if (!dev) return;
 
