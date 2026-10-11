@@ -112,6 +112,11 @@
   .shift-pill.night { background: rgba(192,132,252,0.12); border-color: rgba(192,132,252,0.4); color: var(--neon-purple); }
   .shift-pill:hover { filter: brightness(1.15); }
   .shift-pill .t { opacity: 0.85; }
+  .shift-pill.manual { box-shadow: 0 0 0 1px currentColor inset, 0 0 12px rgba(0,242,254,0.15); }
+  .shift-pill .badge-auto { font-size:9px; opacity:0.55; cursor:pointer; padding:1px 4px; border-radius:4px; transition: all 0.15s; }
+  .shift-pill .badge-auto:hover { opacity:1; background:rgba(255,255,255,0.1); }
+  .shift-pill .badge-manual { font-size:9px; font-weight:800; opacity:0.95; cursor:pointer; padding:1px 5px; border-radius:4px; background:rgba(0,242,254,0.15); border:1px solid rgba(0,242,254,0.4); color:#67e8f9; }
+  .shift-pill .badge-manual:hover { background:rgba(0,242,254,0.3); }
 
   /* ===== METRICS ===== */
   .metrics-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
@@ -136,7 +141,8 @@
   .hud-input:focus { border-color: var(--neon-cyan); box-shadow: 0 0 0 2px rgba(0,242,254,0.15), 0 0 15px rgba(0,242,254,0.15); }
   .return-deck .hud-input:focus { border-color: var(--neon-emerald); box-shadow: 0 0 0 2px rgba(16,185,129,0.15), 0 0 15px rgba(16,185,129,0.2); }
   .hud-input.err { border-color: var(--neon-rose); box-shadow: 0 0 0 2px rgba(244,63,94,0.25); }
-  .btn-submit { width: 100%; padding: 10.5px; border-radius: 9px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; border: none; cursor: pointer; transition: all 0.2s ease; position: relative; margin-top: auto; }
+  .btn-submit { width: 100%; padding: 10.5px; border-radius: 9px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; border: none; cursor: pointer; transition: all 0.2s ease; position: relative; }
+  .deck-card .btn-submit { margin-top: auto; }
   .btn-submit.busy { opacity: 0.65; pointer-events: none; }
   .btn-submit.busy::after { content: ''; position: absolute; right: 14px; top: 50%; margin-top: -7px; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -194,7 +200,6 @@
   .time-inline .bar-fill.zero { background: rgba(255,255,255,0.05); }
   .time-inline .inherit-mark { font-size: 12px; color: var(--neon-cyan); cursor: help; margin-left: -2px; filter: drop-shadow(0 0 4px rgba(0, 242, 254, 0.5)); }
 
-  /* Кнопка в строке появляется только при hover */
   .row-action-cell { opacity: 0; transition: opacity 0.18s ease; }
   tbody tr:hover .row-action-cell { opacity: 1; }
 
@@ -349,18 +354,18 @@
 <div class="app-shell">
   <header class="hud-header">
     <div class="brand-zone">
-      <div id="brandTag" class="brand-tag mono" title="v8.36">TERMINAL</div>
+      <div id="brandTag" class="brand-tag mono" title="v8.39">TERMINAL</div>
       <div class="brand-title">
         <h1>Учёт Оборудования</h1>
         <p>Двухпостовой Cloud • Автономная работа • Экспресс-замена</p>
       </div>
     </div>
     <div class="hud-actions">
-      <div id="shiftPill" class="shift-pill day" onclick="toggleShift()" title="Клик — переключить смену">
+      <div id="shiftPill" class="shift-pill day" onclick="toggleShift()" title="Клик — переключить День/Ночь вручную. Клик по бейджу MANUAL — вернуть AUTO">
         <span id="shiftIcon">☀</span>
         <span id="shiftLabel">ДЕНЬ</span>
         <span class="t" id="shiftTime">--:--</span>
-        <span id="shiftBadge" style="font-size:9px; opacity:0.6;">AUTO</span>
+        <span id="shiftBadge" class="badge-auto" onclick="resetShiftToAuto(event)" title="Вернуть автоопределение">AUTO</span>
       </div>
       <div id="syncStatus" class="pill-badge pill-online" onclick="showDiag()">
         <span class="dot-ping"></span>
@@ -417,7 +422,7 @@
 
   <section class="registry-deck">
     <div class="reg-head">
-      <div style="font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;">РЕЕСТР ОБОРУДОВАНИЯ <span style="color:var(--text-muted); font-weight:500; font-size:10px;">(клик по SN → история · Ctrl+клик → копировать)</span></div>
+      <div style="font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;">РЕЕСТР ОБОРУДОВАНИЯ <span style="color:var(--text-muted); font-weight:500; font-size:10px;">(клик по SN → история · Ctrl+клик → копировать · клик по смене ⇄ → переключить)</span></div>
       <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
         <div class="reg-stats" id="regStats">Σ <span style="color:var(--text-muted);">—</span> · ↑ <span style="color:var(--text-muted);">—</span></div>
         <input id="searchTable" class="hud-input mono" style="width:230px; padding:6px 12px; font-size:11.5px;" placeholder="Поиск (Ctrl+K)..." spellcheck="false">
@@ -429,7 +434,7 @@
           <tr>
             <th style="width:190px;">СЕРИЙНЫЙ НОМЕР</th>
             <th style="width:140px;">МОДЕЛЬ</th>
-            <th style="width:200px;">СТАТУС</th>
+            <th style="width:220px;">СТАТУС</th>
             <th style="width:180px;">ИСПОЛНИТЕЛЬ</th>
             <th style="text-align:right;">ВРЕМЯ НА РУКАХ</th>
             <th style="text-align:right; width:110px;">ДЕЙСТВИЕ</th>
@@ -444,7 +449,6 @@
 
 <div id="toast"><div class="t-icon" id="tIcon">✓</div><div class="t-body"><h4 id="tTitle">ГОТОВО</h4><p id="tDesc"></p></div></div>
 
-<!-- ===== DEBT MODAL ===== -->
 <div id="debtModal" class="modal-overlay">
   <div class="modal-card" style="max-width:560px; border-color:rgba(244,63,94,0.35);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:10px;">
@@ -471,6 +475,10 @@
     <div class="summary-item"><label>Модель:</label><b id="audModel">—</b></div>
     <div class="summary-item"><label>Текущий держатель:</label><b id="audHolder">—</b></div>
     <div class="summary-item" style="grid-column: span 2;"><label>Время на руках:</label><b id="audDuration">—</b></div>
+    <div class="summary-item" style="grid-column: span 2; display:flex; gap:8px; align-items:center;">
+      <label style="flex:1;">Смена:</label>
+      <button id="audShiftBtn" class="btn-hud" style="min-width:auto; padding:5px 12px; font-size:11px;">🔀 Сменить</button>
+    </div>
   </div>
   <div style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase; margin-bottom:10px; letter-spacing:0.04em;">📜 Хронология перемещений:</div>
   <div id="audTimeline" class="timeline-box"></div>
@@ -491,7 +499,7 @@
     </div>
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
       <button class="btn-hud" onclick="closeModal('swapModal')">Отмена</button>
-      <button class="btn-submit btn-issue" style="width:auto; padding:8px 18px; margin-top:0;" id="swapConfirm">Заменить (Enter)</button>
+      <button class="btn-submit btn-issue" style="width:auto; padding:8px 18px;" id="swapConfirm">Заменить (Enter)</button>
     </div>
   </div>
 </div>
@@ -511,7 +519,7 @@
     <textarea id="impText" rows="8" class="hud-input mono" placeholder="Список серийников (каждый с новой строки)..."></textarea>
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
       <button class="btn-hud" onclick="closeModal('impModal')">Отмена</button>
-      <button class="btn-submit btn-issue" style="width:auto; padding:6px 16px; margin-top:0;" onclick="processImport()">Загрузить</button>
+      <button class="btn-submit btn-issue" style="width:auto; padding:6px 16px;" onclick="processImport()">Загрузить</button>
     </div>
   </div>
 </div>
@@ -523,7 +531,7 @@
     <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
       <button class="btn-hud" onclick="closeModal('diagModal')">Закрыть</button>
       <button class="btn-hud" style="border-color:rgba(244,63,94,0.4); color:var(--neon-rose);" onclick="hardReset()">🔥 Жёсткий сброс</button>
-      <button class="btn-submit btn-issue" style="width:auto; padding:6px 14px; margin-top:0;" onclick="forceSync()">Форсировать sync</button>
+      <button class="btn-submit btn-issue" style="width:auto; padding:6px 14px;" onclick="forceSync()">Форсировать sync</button>
     </div>
   </div>
 </div>
@@ -564,8 +572,6 @@
    ============================================================ */
 const SUPABASE_URL = "https://sgpkvnymkqwuhepkaoxw.supabase.co";
 const SUPABASE_KEY = "sb_publishable_dqlmOngeOHVYMFUG1s4kLw_N1Pxi9KW";
-
-/* ФИКС: порог долга = 14 часов */
 const OVERDUE_H = 14;
 
 const BACKUP_BUCKET = 'sklad-backups';
@@ -690,11 +696,11 @@ function isInheritedTime(d) {
 
 function logMsg(msg) {
   const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  const el = $('logStatus'); if (el) el.innerText = `[${t}] ${msg}`;
+  const el = $('logStatus'); if (el) el.textContent = `[${t}] ${msg}`;
 }
 
 /* ============================================================
-   BOOT OVERLAY
+   BOOT
    ============================================================ */
 function hideBoot() {
   const el = $('bootOverlay');
@@ -708,7 +714,7 @@ function bootText(txt) {
 }
 
 /* ============================================================
-   BODY SCROLL LOCK
+   SCROLL LOCK
    ============================================================ */
 function refreshScrollLock() {
   const anyModal = document.querySelector('.modal-overlay.show');
@@ -758,23 +764,37 @@ function computeSmartShift(worker) {
   const hm = now.getHours() * 60 + now.getMinutes();
   const w = String(worker || '').trim().toUpperCase();
 
+  // 1. Если у сотрудника УЖЕ есть выданный сканер — сохраняем его текущую смену
   if (w) {
-    const existing = state.devices.find(d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === w && d.shift && d.shift !== '—');
+    const existing = state.devices.find(d =>
+      d.status === 'issued' &&
+      d.holder && d.holder.toUpperCase() === w &&
+      d.shift && d.shift !== '—'
+    );
     if (existing) return existing.shift;
   }
-  if (w && state.workerShifts[w]) return state.workerShifts[w];
-  if (hm >= 5*60 && hm < 6*60) return 'Дневная';
-  if (hm >= 17*60 && hm < 19*60) return 'Ночная';
-  return (hm >= 6*60 && hm < 18*60) ? 'Дневная' : 'Ночная';
+  // 2. Иначе — по времени суток
+  if (hm >= 5 * 60 && hm < 6 * 60) return 'Дневная';
+  if (hm >= 17 * 60 && hm < 19 * 60) return 'Ночная';
+  return (hm >= 6 * 60 && hm < 18 * 60) ? 'Дневная' : 'Ночная';
 }
 
 function updateShiftPill() {
   const pill = $('shiftPill');
   const isDay = state.issueShift === 'Дневная';
-  pill.className = 'shift-pill ' + (isDay ? 'day' : 'night');
+  pill.className = 'shift-pill ' + (isDay ? 'day' : 'night') + (state.issueShiftAuto ? '' : ' manual');
   $('shiftIcon').innerText = isDay ? '☀' : '🌙';
   $('shiftLabel').innerText = isDay ? 'ДЕНЬ' : 'НОЧЬ';
-  $('shiftBadge').innerText = state.issueShiftAuto ? 'AUTO' : 'MANUAL';
+  const badge = $('shiftBadge');
+  if (state.issueShiftAuto) {
+    badge.className = 'badge-auto';
+    badge.innerText = 'AUTO';
+    badge.title = 'Смена определяется по времени. Клик по пилюле → ручной режим';
+  } else {
+    badge.className = 'badge-manual';
+    badge.innerText = 'MANUAL ↻';
+    badge.title = 'Ручной режим. Клик → вернуть автоопределение';
+  }
   const now = new Date();
   $('shiftTime').innerText = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
 }
@@ -782,17 +802,40 @@ function updateShiftPill() {
 function saveShiftPref() {
   try { localStorage.setItem('sklad_shift_pref', JSON.stringify({ auto: state.issueShiftAuto, shift: state.issueShift })); } catch(e) {}
 }
+
+/* Умный клик по пилюле:
+   - Если AUTO → переключаемся в MANUAL с противоположной сменой.
+   - Если MANUAL → возвращаемся в AUTO. */
 function toggleShift() {
-  state.issueShift = (state.issueShift === 'Дневная') ? 'Ночная' : 'Дневная';
-  state.issueShiftAuto = false;
-  saveShiftPref(); updateShiftPill();
+  if (state.issueShiftAuto) {
+    // AUTO → MANUAL с противоположной сменой
+    state.issueShift = (state.issueShift === 'Дневная') ? 'Ночная' : 'Дневная';
+    state.issueShiftAuto = false;
+    saveShiftPref(); updateShiftPill();
+    showToast('РУЧНОЙ РЕЖИМ', `Смена зафиксирована: ${state.issueShift}`, 'warn');
+  } else {
+    // MANUAL → AUTO
+    state.issueShiftAuto = true;
+    state.issueShift = computeSmartShift($('issWorker').value.trim());
+    saveShiftPref(); updateShiftPill();
+    showToast('АВТОРЕЖИМ', 'Смена снова определяется по времени', 'warn');
+  }
 }
-function resetShiftToAuto() {
+
+/* Клик по бейджу AUTO/MANUAL — принудительно включает автоопределение. */
+function resetShiftToAuto(e) {
+  if (e) e.stopPropagation();
+  if (state.issueShiftAuto) {
+    // Уже в AUTO — показать подсказку
+    showToast('УЖЕ АВТО', 'Смена определяется по времени', 'warn');
+    return;
+  }
   state.issueShiftAuto = true;
   state.issueShift = computeSmartShift($('issWorker').value.trim());
   saveShiftPref(); updateShiftPill();
-  showToast('АВТОРЕЖИМ', 'Смена определяется по времени', 'warn');
+  showToast('АВТОРЕЖИМ', 'Смена снова определяется по времени', 'warn');
 }
+
 function refreshSmartShift() {
   if (!state.issueShiftAuto) { updateShiftPill(); return; }
   const worker = $('issWorker').value.trim();
@@ -807,6 +850,41 @@ function rememberWorkerShift(worker, shift) {
   const keys = Object.keys(state.workerShifts);
   if (keys.length > 500) delete state.workerShifts[keys[0]];
   try { localStorage.setItem('sklad_worker_shifts', JSON.stringify(state.workerShifts)); } catch(e) {}
+}
+
+/* Ручное переключение смены для уже выданного сканера */
+async function toggleDeviceShift(sn) {
+  const dev = state.devices.find(d => d.serial === sn);
+  if (!dev || dev.status !== 'issued') {
+    showToast('НЕЛЬЗЯ', 'Сканер не выдан — смена недоступна', 'warn');
+    return;
+  }
+  const oldShift = dev.shift;
+  const newShift = oldShift === 'Ночная' ? 'Дневная' : 'Ночная';
+  const ts = nowIso();
+  const updated = { ...dev, shift: newShift, last_move: ts };
+  const idx = state.devices.findIndex(d => d.serial === sn);
+  const snapshot = { ...dev };
+
+  if (idx >= 0) state.devices[idx] = updated;
+  renderTable();
+
+  try {
+    await saveDevice(updated, `Смена вручную: ${oldShift || '—'} → ${newShift}`, dev.holder);
+    rememberWorkerShift(dev.holder, newShift);
+    beep('issue');
+    showToast(
+      'СМЕНА ИЗМЕНЕНА',
+      `${sn}: ${oldShift || '—'} → ${newShift} (${dev.holder})`
+    );
+    logMsg(`🔀 СМЕНА: ${sn} · ${oldShift || '—'} → ${newShift} · ${dev.holder}`);
+    if (state.auditSn === sn) openAudit(sn);
+  } catch (e) {
+    if (idx >= 0) state.devices[idx] = snapshot;
+    renderTable();
+    beep('err');
+    showToast('ОШИБКА', e.message || 'Не удалось сохранить', 'err');
+  }
 }
 
 /* ============================================================
@@ -1314,7 +1392,7 @@ async function renderQueuePreview() {
     const t = it.ts ? new Date(it.ts).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : '';
     const color = type === 'delete' ? 'var(--neon-rose)' : 'var(--neon-cyan)';
     return `<div style="font-size:11px; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; gap:8px;">
-      <span style="color:${color}; min-width:52px;">${esc(type)}</span>
+      <span style="color:${color}; font-weight:700;">${esc(type)}</span>
       <span style="color:#fff; font-family:'JetBrains Mono'; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(sn)}</span>
       <span style="color:var(--text-muted); font-size:10px;">${esc(action)}</span>
       <span style="color:var(--text-muted); font-size:10px;">${t}</span>
@@ -1329,6 +1407,7 @@ async function hardReset() {
     localStorage.removeItem('sklad_shift_pref');
     localStorage.removeItem(AUTO_SWAP_KEY);
     localStorage.removeItem(DRAFT_KEY);
+    localStorage.removeItem('sklad_worker_shifts');
     if (db) {
       const stores = ['devices', 'queue', 'moves'];
       const t = db.transaction(stores, 'readwrite');
@@ -1336,6 +1415,7 @@ async function hardReset() {
       await new Promise(r => { t.oncomplete = r; t.onerror = r; t.onabort = r; });
     }
     state.devices = [];
+    state.workerShifts = {};
     state.lastDropQuery = null;
     state.lastRetDropQuery = null;
     recentLocal.clear();
@@ -1539,7 +1619,7 @@ function handleIssSnInput() {
   const raw = el.value;
   const fixed = fixLayout(raw);
   if (fixed !== el.value) {
-    if (hasCyr(raw)) logMsg(`🔧 layout: "${raw}" → "${fixed}"`);
+    if (hasCyr(raw)) logMsg(`🔧 layout: "${raw}" ➔ "${fixed}"`);
     el.value = fixed;
   }
   const drop = $('issDrop');
@@ -1563,7 +1643,7 @@ function handleIssSnInput() {
 
   drop.innerHTML = matches.slice(0, 8).map((d, i) => `
     <div class="drop-item ${i === 0 ? 'selected' : ''}" data-sn="${esc(d.serial)}">
-      <div><span class="mono" style="font-weight:700; color:var(--neon-cyan);">${esc(d.serial)}</span> <span style="font-size:11px; color:#cbd5e1;">(${esc(d.model)})</span></div>
+      <div><span class="mono" style="font-weight:700; color:var(--neon-cyan);">${esc(d.serial)}</span> <span style="color:var(--text-secondary); font-size:11px;">(${esc(d.model)})</span></div>
       <span style="font-size:10px; color:var(--neon-emerald);">🟢 НА СКЛАДЕ</span>
     </div>
   `).join('');
@@ -1848,7 +1928,13 @@ function showSwapToast(title, desc, undoCallback) {
 function handleRetInput() {
   const el = $('retQuery');
   const raw = el.value;
-  if (!hasCyr(raw)) { const fixed = fixLayout(raw); if (fixed !== raw) el.value = fixed; }
+  const hasDigits = /[0-9]/.test(raw);
+  const hasCyrHere = hasCyr(raw);
+  if (hasCyrHere && hasDigits) {
+    const fixed = fixLayout(raw);
+    if (fixed !== raw) el.value = fixed;
+  }
+
   const q = el.value.trim();
   const drop = $('retDrop');
   if (q.length < 1) {
@@ -1878,7 +1964,7 @@ function handleRetInput() {
   drop.innerHTML = matches.slice(0, 8).map(d => {
     const sh = d.shift === 'Ночная' ? '🌙' : (d.shift === 'Дневная' ? '☀' : '');
     return `<div class="drop-item" data-sn="${esc(d.serial)}">
-      <div><span class="mono" style="font-weight:700; color:var(--neon-amber);">${esc(d.serial)}</span> <span style="font-size:11px; color:#cbd5e1;">(${esc(d.model)})</span></div>
+      <div><span class="mono" style="font-weight:700; color:var(--neon-amber);">${esc(d.serial)}</span> <span style="color:var(--text-secondary); font-size:11px;">(${esc(d.model)})</span></div>
       <span style="font-size:11px; color:#cbd5e1;">${sh} ${esc(d.holder || '—')}</span>
     </div>`;
   }).join('');
@@ -1922,7 +2008,7 @@ async function quickReturn() {
     return `<div class="drop-item" data-sn="${esc(d.serial)}" style="padding:10px 14px;">
       <div><span class="mono" style="color:var(--neon-cyan); font-weight:700;">${esc(d.serial)}</span>
       <span style="color:#cbd5e1; margin-left:8px;">${sh} ${esc(d.holder)}</span></div>
-      <span class="mono" style="font-size:11px; color:${ov?'var(--neon-rose)':'var(--neon-amber)'};">${fmtHoursShort(hoursSince(d.issued_at))}</span>
+      <span class="mono" style="font-size:11px; color:${ov ? 'var(--neon-rose)' : 'var(--neon-cyan)'};">${fmtHoursShort(hoursSince(d.issued_at))}</span>
     </div>`;
   }).join('');
   openModal('pickModal');
@@ -1990,7 +2076,7 @@ async function doReturn(sn) {
     logMsg(`ПРИНЯТО: ${sn} от ${holder}`);
     $('retQuery').value = ''; $('retQuery').focus();
     resetRetDropdown();
-    if (state.filter === 'overdue' || state.filter === 'day' || state.filter === 'night') {
+    if (state.filter === 'day' || state.filter === 'night') {
       state.filter = 'all';
       document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
       const allCard = document.querySelector('.hud-stat-card[data-filter="all"]');
@@ -2008,7 +2094,7 @@ async function doReturn(sn) {
 }
 
 /* ============================================================
-   DEBT MODAL — список должников
+   DEBT MODAL
    ============================================================ */
 function buildDebtList() {
   const byHolder = {};
@@ -2113,7 +2199,7 @@ function renderTable() {
       const avgCls = timeClass(avg);
       const maxCls = timeClass(max);
       const colors = { fresh: '#34d399', mid: '#fbbf24', late: '#fb923c', over: '#f43f5e' };
-      statsEl.innerHTML = `Σ <span style="color:${colors[avgCls]}; font-weight:700;">${fmtHoursShort(avg)}</span> · ↑ <span style="color:${colors[maxCls]}; font-weight:700;">${fmtHoursShort(max)}</span>`;
+      statsEl.innerHTML = `Σ <span style="color:${colors[avgCls] || '#fff'};">${fmtHoursShort(avg)}</span> · ↑ <span style="color:${colors[maxCls] || '#fff'};">${fmtHoursShort(max)}</span>`;
     } else {
       statsEl.innerHTML = 'Σ <span style="color:var(--text-muted);">—</span> · ↑ <span style="color:var(--text-muted);">—</span>';
     }
@@ -2122,7 +2208,6 @@ function renderTable() {
   const filtered = state.devices.filter(d => {
     if (state.filter === 'free' && d.status !== 'free') return false;
     if (state.filter === 'issued' && d.status !== 'issued') return false;
-    if (state.filter === 'overdue') { if (d.status !== 'issued' || hoursSince(d.issued_at) < OVERDUE_H) return false; }
     if (state.filter === 'day') { if (d.status !== 'issued' || d.shift === 'Ночная') return false; }
     if (state.filter === 'night') { if (d.status !== 'issued' || d.shift !== 'Ночная') return false; }
     if (q) {
@@ -2160,8 +2245,11 @@ function renderRow(d, busy) {
   else badge = '<span class="badge-chip chip-free">НА СКЛАДЕ</span>';
 
   let shiftChip = '';
-  if (busy && d.shift === 'Дневная') shiftChip = ' <span class="badge-chip chip-day">☀ День</span>';
-  else if (busy && d.shift === 'Ночная') shiftChip = ' <span class="badge-chip chip-night">🌙 Ночь</span>';
+  if (busy && d.shift === 'Дневная') {
+    shiftChip = ` <span class="badge-chip chip-day" style="cursor:pointer;" data-action="toggle-shift" data-sn="${esc(d.serial)}" title="Клик — переключить на НОЧЬ">☀ День ⇄</span>`;
+  } else if (busy && d.shift === 'Ночная') {
+    shiftChip = ` <span class="badge-chip chip-night" style="cursor:pointer;" data-action="toggle-shift" data-sn="${esc(d.serial)}" title="Клик — переключить на ДЕНЬ">🌙 Ночь ⇄</span>`;
+  }
 
   let action = busy
     ? `<button class="btn-hud" style="background:#059669; color:#fff; border:none; padding:5px 12px; font-size:11px; min-width:auto;" data-action="return" data-sn="${esc(d.serial)}">Принять</button>`
@@ -2209,7 +2297,7 @@ function renderRow(d, busy) {
     <td style="font-size:13px; font-weight:700;">${esc(d.model)}</td>
     <td>${badge}${shiftChip}</td>
     <td class="mono" style="font-size:13.5px; font-weight:700;">${d.holder ? esc(d.holder) : '<span style="color:var(--text-muted); font-weight:400;">—</span>'}</td>
-    <td style="text-align:right;" title="${esc(timeTitle)}">${timeHtml}</td>
+    <td style="text-align:right;" title="${timeTitle}">${timeHtml}</td>
     <td style="text-align:right;" class="row-action-cell">${action}</td>
   </tr>`;
 }
@@ -2229,6 +2317,18 @@ async function openAudit(sn) {
   if (dev.status === 'issued') { badge.className = 'badge-chip chip-busy'; badge.innerText = 'На руках'; }
   else { badge.className = 'badge-chip chip-free'; badge.innerText = 'На складе'; }
   $('audDuration').innerText = dev.status === 'issued' && dev.issued_at ? fmtHoursShort(hoursSince(dev.issued_at)) + ' (' + (dev.shift || '—') + ')' : '—';
+
+  const shiftBtn = $('audShiftBtn');
+  if (shiftBtn) {
+    if (dev.status === 'issued') {
+      shiftBtn.style.display = 'inline-flex';
+      shiftBtn.innerText = dev.shift === 'Ночная' ? '🔀 На ДЕНЬ' : '🔀 На НОЧЬ';
+      shiftBtn.onclick = () => toggleDeviceShift(sn);
+    } else {
+      shiftBtn.style.display = 'none';
+    }
+  }
+
   $('auditOverlay').classList.add('show');
   $('auditDrawer').classList.add('open');
   refreshScrollLock();
@@ -2274,7 +2374,7 @@ async function openAudit(sn) {
     return `<div class="timeline-item ${isRet ? 'return' : ''}">
       <div class="timeline-dot"></div>
       <div class="timeline-time">${t}</div>
-      <div class="timeline-action" style="color:${actColor}">${esc(h.action)}</div>
+      <div class="timeline-action" style="color:${actColor};">${esc(h.action)}</div>
       <div class="timeline-actor">👤 ${esc(h.worker || '—')}</div>
     </div>`;
   }).join('');
@@ -2366,7 +2466,7 @@ function showDiag() {
       <div>ОЧЕРЕДЬ ПАКЕТОВ: <span style="color:var(--neon-cyan);">${n}</span></div>
       <div>BACKOFF: ${backoff}</div>
       <div>ПОРОГ ДОЛГА: <span style="color:var(--neon-rose);">${OVERDUE_H}ч</span></div>
-      <div>СМЕНА: <span style="color:${state.issueShift==='Ночная'?'var(--neon-purple)':'#fbbf24'};">${state.issueShift}</span> (${state.issueShiftAuto ? 'авто' : 'вручную'})</div>
+      <div>СМЕНА: <span style="color:#fff;">${state.issueShift}</span> (${state.issueShiftAuto ? 'авто' : 'вручную'})</div>
       <div>АВТО-ЗАМЕНА: <span style="color:${autoSwapColor};">${autoSwapTxt}</span> <button class="btn-hud" style="padding:2px 8px; font-size:10px; margin-left:8px; min-width:auto;" onclick="toggleAutoSwap()">${state.autoSwap ? 'Отключить' : 'Включить'}</button></div>
       <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--neon-emerald);">${lastBk}</span></div>
       <div>ПОСЛЕДНЯЯ ОШИБКА: <span style="color:var(--neon-rose);">${esc(state.lastError)}</span></div>
@@ -2480,6 +2580,7 @@ function setupDelegation() {
     if (action === 'audit')  openAudit(sn);
     else if (action === 'return') quickReturnFromRow(sn);
     else if (action === 'issue')  pickForIssue(sn);
+    else if (action === 'toggle-shift') toggleDeviceShift(sn);
   });
 
   $('issDrop').addEventListener('click', e => {
@@ -2538,14 +2639,13 @@ $('delSearch').addEventListener('input', debounce(renderDeleteList, 100));
 
 document.querySelectorAll('.hud-stat-card').forEach(s => {
   s.addEventListener('click', () => {
-    document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
-    s.classList.add('active');
     const f = s.dataset.filter;
-    // Клик по "ДОЛГИ" — открывает модалку со списком
     if (f === 'overdue') {
       openDebtModal();
       return;
     }
+    document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
+    s.classList.add('active');
     state.filter = f;
     renderTable();
   });
