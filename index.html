@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#050811">
-<title>Учёт Оборудования v9.0.1 • Omni-Terminal</title>
+<title>Учёт Оборудования v8.40</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -12,8 +12,8 @@
 <style>
   :root {
     --bg-space: #050811;
-    --card-surface: rgba(13, 20, 36, 0.82);
-    --border-glow: rgba(56, 189, 248, 0.24);
+    --card-surface: rgba(13, 20, 36, 0.78);
+    --border-glow: rgba(56, 189, 248, 0.22);
     --border-subtle: rgba(255, 255, 255, 0.08);
     --neon-cyan: #00f2fe;
     --neon-blue: #38bdf8;
@@ -34,7 +34,7 @@
       radial-gradient(circle at 90% 90%, rgba(192, 132, 252, 0.06) 0%, transparent 40%),
       linear-gradient(180deg, #050811 0%, #03060c 100%);
     color: var(--text-primary);
-    padding: 12px 18px;
+    padding: 14px 20px;
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
@@ -48,7 +48,7 @@
     .app-shell { height: 100dvh; }
   }
   .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum"; }
-  .app-shell { max-width: 1640px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+  .app-shell { max-width: 1600px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
 
   /* ===== BOOT OVERLAY ===== */
   .boot-overlay {
@@ -78,180 +78,104 @@
   .boot-text { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-secondary); }
 
   /* ===== HEADER ===== */
-  .hud-header { position: relative; z-index: 60; background: var(--card-surface); backdrop-filter: blur(20px); border: 1px solid var(--border-glow); border-radius: 14px; padding: 9px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.45); }
+  .hud-header { background: var(--card-surface); backdrop-filter: blur(20px); border: 1px solid var(--border-glow); border-radius: 14px; padding: 10px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.45); }
   .brand-zone { display: flex; align-items: center; gap: 12px; }
   .brand-tag { background: linear-gradient(135deg, var(--neon-cyan), #0284c7); color: #030712; font-weight: 900; font-size: 11px; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.08em; cursor: pointer; user-select: none; }
-  .brand-title h1 { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; background: linear-gradient(90deg, #fff 40%, var(--neon-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .brand-title p { font-size: 10.5px; color: var(--text-secondary); }
-  .hud-actions { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-  .pill-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 700; padding: 6px 13px; border-radius: 9999px; cursor: pointer; user-select: none; transition: all 0.2s ease; }
+  .brand-title h1 { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; background: linear-gradient(90deg, #fff 40%, var(--neon-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .brand-title p { font-size: 11px; color: var(--text-secondary); }
+  .hud-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pill-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 9999px; cursor: pointer; user-select: none; transition: all 0.2s ease; }
   .pill-online { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.4); color: #34d399; box-shadow: 0 0 14px rgba(16,185,129,0.2); }
   .pill-offline { background: rgba(244,63,94,0.12); border: 1px solid rgba(244,63,94,0.4); color: #fb7185; box-shadow: 0 0 14px rgba(244,63,94,0.2); }
   .pill-busy { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); color: #fbbf24; box-shadow: 0 0 14px rgba(245,158,11,0.2); }
   .dot-ping { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
   .pill-busy .dot-ping { animation: pulse 1.2s infinite; }
   @keyframes pulse { 50% { opacity: 0.3; } }
-  .btn-hud { background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); color: #cbd5e1; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s ease; justify-content: center; }
+  .btn-hud { background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); color: #cbd5e1; padding: 6px 13px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s ease; min-width: 100px; justify-content: center; }
   .btn-hud:hover { background: rgba(56,189,248,0.12); border-color: rgba(56,189,248,0.4); color: #fff; transform: translateY(-1px); }
 
+  /* Пилюля смены */
   .shift-pill {
-    display: inline-flex; align-items: center; gap: 7px;
-    padding: 5px 11px; border-radius: 9999px; font-size: 11px; font-weight: 700;
-    cursor: pointer; user-select: none; transition: all 0.15s; border: 1px solid;
-    font-family: 'JetBrains Mono', monospace; letter-spacing: 0.02em;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+    border: 1px solid;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
   }
   .shift-pill.day { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.4); color: #fbbf24; }
   .shift-pill.night { background: rgba(192,132,252,0.12); border-color: rgba(192,132,252,0.4); color: var(--neon-purple); }
   .shift-pill:hover { filter: brightness(1.15); }
   .shift-pill .t { opacity: 0.85; }
   .shift-pill.manual { box-shadow: 0 0 0 1px currentColor inset, 0 0 12px rgba(0,242,254,0.15); }
-  .shift-pill .badge-auto { font-size:9px; opacity:0.55; cursor:pointer; padding:1px 4px; border-radius:4px; }
-  .shift-pill .badge-manual { font-size:9px; font-weight:800; padding:1px 5px; border-radius:4px; background:rgba(0,242,254,0.15); border:1px solid rgba(0,242,254,0.4); color:#67e8f9; }
+  .shift-pill .badge-auto { font-size:9px; opacity:0.55; cursor:pointer; padding:1px 4px; border-radius:4px; transition: all 0.15s; }
+  .shift-pill .badge-auto:hover { opacity:1; background:rgba(255,255,255,0.1); }
+  .shift-pill .badge-manual { font-size:9px; font-weight:800; opacity:0.95; cursor:pointer; padding:1px 5px; border-radius:4px; background:rgba(0,242,254,0.15); border:1px solid rgba(0,242,254,0.4); color:#67e8f9; }
+  .shift-pill .badge-manual:hover { background:rgba(0,242,254,0.3); }
 
-  /* ===== METRICS (7 CARDS) ===== */
-  .metrics-grid { position: relative; z-index: 20; display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-  @media(max-width: 1150px) { .metrics-grid { grid-template-columns: repeat(4, 1fr); } }
-  @media(max-width: 650px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
-  .hud-stat-card { background: var(--card-surface); backdrop-filter: blur(16px); border: 1px solid var(--border-subtle); border-radius: 11px; padding: 7px 12px; cursor: pointer; transition: all 0.2s ease; }
-  .hud-stat-card:hover { transform: translateY(-2px); border-color: var(--neon-blue); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
-  .hud-stat-card.active { border-color: var(--neon-cyan); background: rgba(14, 28, 54, 0.9); box-shadow: 0 0 15px rgba(0, 242, 254, 0.22); }
-  .stat-label { font-size: 9.5px; font-weight: 800; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .stat-value { font-size: 19px; font-weight: 800; margin-top: 2px; letter-spacing: -0.02em; }
+  /* ===== METRICS ===== */
+  .metrics-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  @media(max-width: 1000px) { .metrics-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media(max-width: 600px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+  .hud-stat-card { background: var(--card-surface); backdrop-filter: blur(16px); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 8px 14px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+  .hud-stat-card:hover { transform: translateY(-2px); border-color: var(--neon-blue); box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 15px rgba(56,189,248,0.15); }
+  .hud-stat-card.active { border-color: var(--neon-cyan); background: rgba(14, 28, 54, 0.85); box-shadow: 0 0 15px rgba(0, 242, 254, 0.25); }
+  .stat-label { font-size: 10px; font-weight: 800; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
+  .stat-value { font-size: 20px; font-weight: 800; margin-top: 3px; letter-spacing: -0.02em; }
 
-  /* ===== OMNI-TERMINAL DECK ===== */
-  .omni-deck {
-    position: relative;
-    z-index: 50; /* ФИКС: Выпадающий список всегда поверх таблицы реестра */
-    background: radial-gradient(circle at 50% 0%, rgba(0, 242, 254, 0.09) 0%, rgba(13, 20, 36, 0.9) 70%);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(0, 242, 254, 0.35);
-    border-radius: 14px;
-    padding: 12px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.45), 0 0 25px rgba(0,242,254,0.06);
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
-  }
-  .omni-deck.mode-issue { border-color: var(--neon-cyan); box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 25px rgba(0,242,254,0.18); }
-  .omni-deck.mode-return { border-color: var(--neon-emerald); box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 25px rgba(16,185,129,0.2); }
-  .omni-deck.mode-swap { border-color: var(--neon-amber); box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 25px rgba(245,158,11,0.2); }
-
-  .omni-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .omni-title-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .omni-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--neon-cyan); display: flex; align-items: center; gap: 6px; }
-  .omni-modes { display: inline-flex; background: rgba(4, 7, 15, 0.7); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 2px; gap: 2px; }
-  .omni-mode-btn { background: transparent; border: none; color: var(--text-secondary); font-size: 10.5px; font-weight: 700; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
-  .omni-mode-btn.active { background: rgba(0, 242, 254, 0.16); color: #fff; box-shadow: 0 0 10px rgba(0,242,254,0.2); }
-  .omni-hint { font-size: 11px; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; }
-
-  .omni-bar-wrap { position: relative; z-index: 100; }
-  .omni-bar {
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(4, 8, 16, 0.92);
-    border: 1.5px solid rgba(255, 255, 255, 0.15);
-    border-radius: 11px;
-    padding: 5px 6px 5px 12px;
-    transition: all 0.2s ease;
-  }
-  .omni-bar:focus-within {
-    border-color: var(--neon-cyan);
-    box-shadow: 0 0 0 3px rgba(0, 242, 254, 0.14), 0 0 22px rgba(0, 242, 254, 0.18);
-  }
-  .omni-bar.err { border-color: var(--neon-rose) !important; box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.25) !important; }
-
-  .omni-context-pill {
-    display: none; align-items: center; gap: 7px;
-    padding: 6px 11px; border-radius: 8px;
-    font-size: 12px; font-weight: 800; font-family: 'JetBrains Mono', monospace;
-    white-space: nowrap; cursor: pointer; user-select: none;
-    transition: all 0.15s;
-  }
-  .omni-context-pill.show { display: inline-flex; }
-  .omni-context-pill.ctx-issue { background: rgba(0, 242, 254, 0.16); border: 1px solid rgba(0, 242, 254, 0.5); color: #67e8f9; }
-  .omni-context-pill.ctx-worker { background: rgba(56, 189, 248, 0.16); border: 1px solid rgba(56, 189, 248, 0.5); color: #93c5fd; }
-  .omni-context-pill.ctx-swap { background: rgba(245, 158, 11, 0.18); border: 1px solid rgba(245, 158, 11, 0.55); color: #fcd34d; }
-  .omni-context-pill:hover { filter: brightness(1.2); }
-
-  .omni-input {
-    flex: 1; min-width: 140px;
-    background: transparent; border: none; outline: none;
-    color: #fff; font-size: 16px; font-weight: 700;
-    padding: 7px 4px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .omni-input::placeholder { color: #64748b; font-weight: 500; font-size: 13.5px; font-family: 'Plus Jakarta Sans', sans-serif; }
-
-  .omni-clear {
-    background: transparent; border: none; color: var(--text-secondary);
-    font-size: 15px; cursor: pointer; padding: 6px 8px; border-radius: 6px;
-    display: none;
-  }
-  .omni-clear.show { display: inline-flex; }
-  .omni-clear:hover { color: #fff; background: rgba(255,255,255,0.06); }
-
-  .omni-submit {
-    padding: 10px 20px; border-radius: 8px; border: none;
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-    color: #fff; font-size: 12px; font-weight: 800; letter-spacing: 0.05em;
-    text-transform: uppercase; cursor: pointer; transition: all 0.15s;
-    white-space: nowrap; box-shadow: 0 4px 14px rgba(2,132,199,0.35);
-  }
-  .omni-submit:hover { filter: brightness(1.15); transform: translateY(-1px); }
-  .omni-submit.btn-ret { background: linear-gradient(135deg, #059669 0%, #047857 100%); box-shadow: 0 4px 14px rgba(16,185,129,0.35); }
-  .omni-submit.btn-swp { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); box-shadow: 0 4px 14px rgba(245,158,11,0.35); }
-
-  /* Live Feed & Session Bar */
-  .omni-feed-bar {
-    display: flex; justify-content: space-between; align-items: center; gap: 10px;
-    flex-wrap: wrap; padding-top: 2px; font-size: 11px;
-  }
-  .feed-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex: 1; min-width: 0; }
-  .feed-chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 3px 9px; border-radius: 6px; font-size: 11px; font-weight: 600;
-    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
-    color: #cbd5e1; font-family: 'JetBrains Mono', monospace;
-    white-space: nowrap;
-  }
-  .feed-chip.ret { border-color: rgba(16,185,129,0.35); color: #6ee7b7; background: rgba(16,185,129,0.08); }
-  .feed-chip.iss { border-color: rgba(56,189,248,0.35); color: #7dd3fc; background: rgba(56,189,248,0.08); }
-  .feed-chip.swp { border-color: rgba(245,158,11,0.35); color: #fcd34d; background: rgba(245,158,11,0.08); }
-  .session-counter {
-    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-secondary);
-    background: rgba(0,0,0,0.35); padding: 3px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);
-    white-space: nowrap;
-  }
+  /* ===== TERMINAL DECKS ===== */
+  .terminal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width: 850px) { .terminal-grid { grid-template-columns: 1fr; } }
+  .deck-card { background: var(--card-surface); backdrop-filter: blur(20px); border: 1px solid rgba(56,189,248,0.25); border-radius: 14px; padding: 14px 18px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+  .deck-card.return-deck { border-color: rgba(16,185,129,0.35); background: radial-gradient(circle at 50% 0%, rgba(16,185,129,0.08) 0%, rgba(13, 20, 36, 0.85) 60%); }
+  .deck-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 8px; flex-wrap: wrap; }
+  .deck-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 8px; }
+  .hud-group { position: relative; margin-bottom: 8px; }
+  .hud-label { display: block; font-size: 10.5px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; }
+  .hud-input { width: 100%; background: rgba(5, 9, 18, 0.85); border: 1px solid rgba(255,255,255,0.12); border-radius: 9px; padding: 10px 14px; color: #fff; font-size: 14px; outline: none; transition: all 0.2s ease; }
+  .hud-input:focus { border-color: var(--neon-cyan); box-shadow: 0 0 0 2px rgba(0,242,254,0.15), 0 0 15px rgba(0,242,254,0.15); }
+  .return-deck .hud-input:focus { border-color: var(--neon-emerald); box-shadow: 0 0 0 2px rgba(16,185,129,0.15), 0 0 15px rgba(16,185,129,0.2); }
+  .hud-input.err { border-color: var(--neon-rose); box-shadow: 0 0 0 2px rgba(244,63,94,0.25); }
+  .btn-submit { width: 100%; padding: 10.5px; border-radius: 9px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; border: none; cursor: pointer; transition: all 0.2s ease; position: relative; }
+  .deck-card .btn-submit { margin-top: auto; }
+  .btn-submit.busy { opacity: 0.65; pointer-events: none; }
+  .btn-submit.busy::after { content: ''; position: absolute; right: 14px; top: 50%; margin-top: -7px; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .btn-issue { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; box-shadow: 0 4px 18px rgba(2,132,199,0.35); }
+  .btn-issue:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  .btn-return-action { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; box-shadow: 0 4px 18px rgba(16,185,129,0.35); }
+  .btn-return-action:hover { filter: brightness(1.15); transform: translateY(-1px); }
 
   /* ===== DROPDOWN ===== */
-  .drop-box { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: #09101f; border: 1px solid rgba(0, 242, 254, 0.55); border-radius: 11px; max-height: 260px; overflow-y: auto; z-index: 9999; box-shadow: 0 20px 50px rgba(0,0,0,0.95), 0 0 25px rgba(0,242,254,0.15); display: none; }
+  .drop-box { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: rgba(11,18,33,0.98); backdrop-filter: blur(24px); border: 1px solid rgba(56,189,248,0.4); border-radius: 10px; max-height: 220px; overflow-y: auto; z-index: 1000; box-shadow: 0 16px 36px rgba(0,0,0,0.85); display: none; }
   .drop-box.show { display: block; }
-  .drop-item { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 12.5px; gap: 10px; transition: background 0.12s; }
-  .drop-item:last-child { border-bottom: none; }
-  .drop-item:hover, .drop-item.selected { background: rgba(56,189,248,0.18); }
+  .drop-item { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 12px; }
+  .drop-item:hover, .drop-item.selected { background: rgba(56,189,248,0.15); }
 
   /* ===== REGISTRY ===== */
-  .registry-deck { position: relative; z-index: 10; background: var(--card-surface); backdrop-filter: blur(20px); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 10px 16px; display: flex; flex-direction: column; flex: 1; min-height: 340px; }
-  .reg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
+  .registry-deck { background: var(--card-surface); backdrop-filter: blur(20px); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 12px 18px; display: flex; flex-direction: column; flex: 1; min-height: 320px; }
+  .reg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
   .reg-stats { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-secondary); font-weight: 600; }
   .reg-wrap { overflow-y: auto; flex: 1; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); min-height: 0; }
 
+  /* Поле поиска с крестиком очистки */
   .search-wrap { position: relative; display: inline-flex; align-items: center; }
   .search-clear-btn { position: absolute; right: 8px; background: transparent; border: none; color: var(--text-secondary); font-size: 14px; cursor: pointer; display: none; padding: 2px 4px; border-radius: 4px; }
   .search-clear-btn:hover { color: #fff; }
   .search-wrap.has-val .search-clear-btn { display: block; }
 
   table { width: 100%; border-collapse: collapse; font-size: 12.5px; background: rgba(4,7,15,0.4); table-layout: fixed; }
-  th { background: rgba(13,20,36,0.98); font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.07em; position: sticky; top: 0; z-index: 2; padding: 9px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; vertical-align: middle; user-select: none; }
-  th.sortable { cursor: pointer; transition: color 0.15s; }
-  th.sortable:hover { color: #fff; }
-  th .sort-arr { font-size: 10px; margin-left: 4px; color: var(--neon-cyan); }
-  td { padding: 7px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: left; vertical-align: middle; line-height: 1.3; }
+  th { background: rgba(13,20,36,0.98); font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.08em; position: sticky; top: 0; z-index: 2; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; vertical-align: middle; }
+  td { padding: 8px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); text-align: left; vertical-align: middle; line-height: 1.3; }
   tbody tr { height: 38px; }
   tbody tr:hover { background: rgba(56,189,248,0.06); }
   tbody tr.row-overdue { background: rgba(244,63,94,0.12); }
   tbody tr.row-overdue:hover { background: rgba(244,63,94,0.18); }
-  tbody tr.row-repair { background: rgba(245,158,11,0.07); }
   tbody tr.just-returned { animation: glow-green 2.5s ease-out; }
   @keyframes glow-green { 0% { background: rgba(16,185,129,0.55); } 100% { background: transparent; } }
   tbody tr.just-issued { animation: glow-blue 2.5s ease-out; }
@@ -259,54 +183,53 @@
 
   .sn-link { cursor: pointer; text-decoration: underline; text-decoration-color: rgba(0,242,254,0.4); text-underline-offset: 3px; transition: all 0.15s ease; }
   .sn-link:hover { color: #fff !important; text-shadow: 0 0 10px var(--neon-cyan); text-decoration-color: var(--neon-cyan); }
-  .badge-chip { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; user-select: none; vertical-align: middle; }
+  .badge-chip { display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 10px; font-weight: 700; user-select: none; vertical-align: middle; }
   .chip-free { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
   .chip-busy { background: rgba(56,189,248,0.15); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); }
   .chip-over { background: rgba(244,63,94,0.22); color: #f43f5e; border: 1px solid rgba(244,63,94,0.7); font-weight: 800; box-shadow: 0 0 8px rgba(244,63,94,0.4); }
-  .chip-repair { background: rgba(245,158,11,0.2); color: #fbbf24; border: 1px solid rgba(245,158,11,0.5); font-weight: 800; }
-  .chip-stale { background: rgba(245,158,11,0.18); color: #fcd34d; border: 1px dashed rgba(245,158,11,0.6); font-size: 9.5px; margin-left: 4px; }
   .chip-day { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
   .chip-night { background: rgba(192,132,252,0.15); color: #c084fc; border: 1px solid rgba(192,132,252,0.3); }
 
-  .time-inline { display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px; font-family: 'JetBrains Mono', monospace; vertical-align: middle; }
-  .time-inline .val { font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; min-width: 64px; text-align: right; }
+  .time-inline { display: inline-flex; align-items: center; justify-content: flex-end; gap: 9px; font-family: 'JetBrains Mono', monospace; vertical-align: middle; }
+  .time-inline .val { font-size: 14px; font-weight: 800; letter-spacing: -0.02em; min-width: 68px; text-align: right; }
   .time-inline .val.fresh { color: var(--neon-emerald); }
   .time-inline .val.mid { color: #fbbf24; }
   .time-inline .val.late { color: #fb923c; }
   .time-inline .val.over { color: var(--neon-rose); text-shadow: 0 0 8px rgba(244,63,94,0.4); }
   .time-inline .val.empty { color: var(--text-muted); font-weight: 500; font-size: 12px; }
-  .time-inline .bar { width: 54px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
+  .time-inline .bar { width: 60px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; flex-shrink: 0; }
   .time-inline .bar-fill { height: 100%; border-radius: 2px; display: block; }
   .time-inline .bar-fill.fresh { background: #34d399; }
   .time-inline .bar-fill.mid { background: #fbbf24; }
   .time-inline .bar-fill.late { background: #fb923c; }
   .time-inline .bar-fill.over { background: #f43f5e; }
   .time-inline .bar-fill.zero { background: rgba(255,255,255,0.05); }
-  .time-inline .inherit-mark { font-size: 12px; color: var(--neon-cyan); cursor: help; margin-left: -2px; }
+  .time-inline .inherit-mark { font-size: 12px; color: var(--neon-cyan); cursor: help; margin-left: -2px; filter: drop-shadow(0 0 4px rgba(0, 242, 254, 0.5)); }
 
-  .row-action-cell { opacity: 0.55; transition: opacity 0.18s ease; white-space: nowrap; }
+  /* Действия в строке (видны всегда на мобильных устройствах, полупрозрачны на ПК) */
+  .row-action-cell { opacity: 0.5; transition: opacity 0.18s ease; }
   tbody tr:hover .row-action-cell { opacity: 1; }
   @media (hover: none) { .row-action-cell { opacity: 1; } }
 
   /* ===== TOAST ===== */
-  #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-130px); background: #091724; border: 2px solid var(--neon-emerald); border-radius: 14px; padding: 12px 22px; box-shadow: 0 10px 40px rgba(0,0,0,0.85), 0 0 25px rgba(16,185,129,0.4); display: flex; align-items: center; gap: 14px; z-index: 10000; opacity: 0; transition: all 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; max-width: 92vw; }
+  #toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-120px); background: #091724; border: 2px solid var(--neon-emerald); border-radius: 14px; padding: 14px 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(16,185,129,0.4); display: flex; align-items: center; gap: 16px; z-index: 10000; opacity: 0; transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; max-width: 90vw; }
   #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
-  #toast.err { border-color: var(--neon-rose); box-shadow: 0 10px 40px rgba(0,0,0,0.85), 0 0 25px rgba(244,63,94,0.4); }
+  #toast.err { border-color: var(--neon-rose); box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(244,63,94,0.4); }
   #toast.err .t-icon { background: rgba(244,63,94,0.2); border-color: var(--neon-rose); color: var(--neon-rose); }
-  #toast.warn { border-color: var(--neon-amber); box-shadow: 0 10px 40px rgba(0,0,0,0.85), 0 0 25px rgba(245,158,11,0.4); }
+  #toast.warn { border-color: var(--neon-amber); box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 25px rgba(245,158,11,0.4); }
   #toast.warn .t-icon { background: rgba(245,158,11,0.2); border-color: var(--neon-amber); color: var(--neon-amber); }
-  .t-icon { width: 36px; height: 36px; border-radius: 50%; background: rgba(16,185,129,0.2); border: 1px solid var(--neon-emerald); display: flex; align-items: center; justify-content: center; font-size: 17px; color: var(--neon-emerald); flex-shrink: 0; }
-  .t-body h4 { font-size: 13.5px; font-weight: 800; color: #34d399; }
+  .t-icon { width: 38px; height: 38px; border-radius: 50%; background: rgba(16,185,129,0.2); border: 1px solid var(--neon-emerald); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--neon-emerald); flex-shrink: 0; }
+  .t-body h4 { font-size: 14px; font-weight: 800; color: #34d399; }
   #toast.err .t-body h4 { color: #fb7185; }
   #toast.warn .t-body h4 { color: #fbbf24; }
   .t-body p { font-size: 12px; color: #cbd5e1; margin-top: 2px; }
-  .t-undo { margin-left: 6px; padding: 5px 11px; background: rgba(0,242,254,0.15); border: 1px solid rgba(0,242,254,0.5); color: #67e8f9; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; pointer-events: auto; white-space: nowrap; }
-  .t-undo:hover { background: var(--neon-cyan); color: #030712; }
+  .t-undo { margin-left: 8px; padding: 5px 12px; background: rgba(0,242,254,0.15); border: 1px solid rgba(0,242,254,0.5); color: #67e8f9; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; pointer-events: auto; font-family: 'Plus Jakarta Sans', sans-serif; white-space: nowrap; }
+  .t-undo:hover { background: var(--neon-cyan); color: #030712; border-color: var(--neon-cyan); }
 
-  /* ===== DRAWER & MODALS ===== */
+  /* ===== DRAWER ===== */
   .audit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); display: none; z-index: 9998; opacity: 0; transition: opacity 0.25s ease; }
   .audit-overlay.show { display: block; opacity: 1; }
-  .audit-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 440px; max-width: 92vw; background: #090e1a; border-left: 1px solid rgba(56,189,248,0.3); box-shadow: -15px 0 40px rgba(0,0,0,0.85); z-index: 9999; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding: 20px; }
+  .audit-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 440px; max-width: 90vw; background: #090e1a; border-left: 1px solid rgba(56,189,248,0.3); box-shadow: -15px 0 40px rgba(0,0,0,0.85); z-index: 9999; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding: 20px; }
   .audit-drawer.open { transform: translateX(0); }
   .audit-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 14px; gap: 10px; }
   .audit-header h3 { font-size: 17px; font-weight: 800; color: #fff; word-break: break-all; }
@@ -321,14 +244,10 @@
   .timeline-action { font-size: 12px; font-weight: 800; color: #fff; margin-top: 1px; }
   .timeline-actor { font-size: 11.5px; color: #cbd5e1; margin-top: 2px; }
 
+  /* ===== MODALS ===== */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 14px; overflow-y: auto; }
   .modal-overlay.show { display: flex; }
   .modal-card { background: #0c111c; border: 1px solid rgba(56,189,248,0.3); border-radius: 14px; width: 100%; max-width: 480px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.9); max-height: 90vh; overflow-y: auto; margin: auto; }
-  .hud-input { width: 100%; background: rgba(5, 9, 18, 0.85); border: 1px solid rgba(255,255,255,0.12); border-radius: 9px; padding: 10px 14px; color: #fff; font-size: 14px; outline: none; transition: all 0.2s ease; }
-  .hud-input:focus { border-color: var(--neon-cyan); box-shadow: 0 0 0 2px rgba(0,242,254,0.15); }
-  .btn-submit { width: 100%; padding: 10px; border-radius: 9px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; border: none; cursor: pointer; transition: all 0.2s ease; }
-  .btn-issue { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; }
-
   .swap-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin: 14px 0; }
   .swap-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px; text-align: center; }
   .swap-card.old { border-color: rgba(244,63,94,0.4); background: rgba(244,63,94,0.05); }
@@ -340,42 +259,102 @@
   .swap-arrow { font-size: 26px; color: var(--neon-amber); }
   .swap-inherit-note { display: flex; align-items: center; gap: 8px; background: rgba(0,242,254,0.08); border: 1px solid rgba(0,242,254,0.3); border-radius: 8px; padding: 9px 12px; font-size: 11.5px; color: #67e8f9; margin-bottom: 8px; }
 
-  .debt-modal-list { display: flex; flex-direction: column; gap: 6px; max-height: 60vh; overflow-y: auto; padding-right: 4px; }
-  .debt-modal-item { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 10px 14px; background: rgba(244,63,94,0.06); border: 1px solid rgba(244,63,94,0.22); border-radius: 10px; cursor: pointer; transition: all 0.15s; }
-  .debt-modal-item:hover { background: rgba(244,63,94,0.16); border-color: rgba(244,63,94,0.5); }
-  .debt-modal-item .dname { font-size: 13px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px; }
-  .debt-modal-item .dname .id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-secondary); }
-  .debt-modal-item .dmeta { display: flex; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  /* ===== DEBT MODAL ===== */
+  .debt-modal-list {
+    display: flex; flex-direction: column;
+    gap: 6px;
+    max-height: 60vh; overflow-y: auto;
+    padding-right: 4px;
+  }
+  .debt-modal-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 12px;
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(244,63,94,0.06);
+    border: 1px solid rgba(244,63,94,0.22);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+  .debt-modal-item:hover {
+    background: rgba(244,63,94,0.16);
+    border-color: rgba(244,63,94,0.5);
+  }
+  .debt-modal-item .dname {
+    font-size: 13px; font-weight: 700; color: #f1f5f9;
+    display: flex; align-items: center; gap: 8px;
+    line-height: 1.2;
+  }
+  .debt-modal-item .dname .id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--text-secondary); font-weight: 500;
+  }
+  .debt-modal-item .dmeta {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.2;
+  }
   .debt-modal-item .dcnt { color: #fb7185; font-weight: 800; }
-  .debt-modal-item .dtime { grid-column: 2 / 3; grid-row: 1 / 3; color: var(--neon-rose); font-size: 14px; font-weight: 800; align-self: center; font-family: 'JetBrains Mono', monospace; }
-  .debt-empty-modal { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
-
-  .preset-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
-  .preset-chip { padding: 5px 10px; border-radius: 7px; font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1; cursor: pointer; transition: all 0.15s; }
-  .preset-chip:hover { background: rgba(245,158,11,0.18); border-color: var(--neon-amber); color: #fff; }
+  .debt-modal-item .dtime {
+    grid-column: 2 / 3; grid-row: 1 / 3;
+    color: var(--neon-rose);
+    font-size: 14px; font-weight: 800;
+    text-shadow: 0 0 8px rgba(244,63,94,0.4);
+    letter-spacing: -0.02em;
+    align-self: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .debt-empty-modal {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
 
   .del-search { width: 100%; padding: 10px 14px; background: rgba(5,9,18,0.85); border: 1px solid rgba(255,255,255,0.12); border-radius: 9px; color: #fff; font-size: 13px; outline: none; font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; }
+  .del-search:focus { border-color: var(--neon-rose); box-shadow: 0 0 0 2px rgba(244,63,94,0.15); }
   .del-list { max-height: 50vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; }
-  .del-row, .backup-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; gap: 10px; }
-  .del-row .sn, .backup-name { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--neon-cyan); font-size: 11.5px; }
+  .del-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; gap: 10px; }
+  .del-row:last-child { border-bottom: none; }
+  .del-row:hover { background: rgba(244,63,94,0.05); }
+  .del-row .sn { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--neon-cyan); min-width: 130px; font-size: 11.5px; }
   .del-row .info { flex: 1; color: var(--text-secondary); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .del-btn, .backup-btn-delete { padding: 4px 10px; border-radius: 6px; background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.4); color: var(--neon-rose); font-size: 10.5px; font-weight: 700; cursor: pointer; }
-  .backup-btn-restore { padding: 4px 10px; border-radius: 6px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: var(--neon-emerald); font-size: 10.5px; font-weight: 700; cursor: pointer; }
+  .del-row .del-btn { padding: 4px 10px; border-radius: 6px; background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.4); color: var(--neon-rose); font-size: 10.5px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .del-row .del-btn:hover { background: var(--neon-rose); color: #fff; }
+  .del-empty { padding: 30px 20px; text-align: center; color: var(--text-muted); font-size: 12px; }
+
+  .backup-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; gap: 10px; }
+  .backup-row:last-child { border-bottom: none; }
+  .backup-row:hover { background: rgba(56,189,248,0.05); }
+  .backup-info { flex: 1; min-width: 0; }
+  .backup-name { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--neon-cyan); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .backup-meta { font-size: 10.5px; color: var(--text-secondary); margin-top: 2px; }
+  .backup-btn-restore { padding: 4px 10px; border-radius: 6px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: var(--neon-emerald); font-size: 10.5px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .backup-btn-restore:hover { background: var(--neon-emerald); color: #fff; }
+  .backup-btn-delete { padding: 4px 10px; border-radius: 6px; background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.4); color: var(--neon-rose); font-size: 10.5px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .backup-btn-delete:hover { background: var(--neon-rose); color: #fff; }
 
   @media print {
     body { background: #fff !important; color: #000 !important; overflow: visible !important; height: auto !important; padding: 0 !important; }
-    .hud-header, .metrics-grid, .omni-deck, .hud-actions, .search-wrap, .btn-hud, #toast, .drop-box, #logStatus, .reg-stats, .row-action-cell { display: none !important; }
-    .registry-deck { border: none !important; background: transparent !important; padding: 0 !important; }
+    .hud-header, .metrics-grid, .terminal-grid, .hud-actions, .reg-head input, .search-wrap, .btn-hud, #toast, .drop-box, #logStatus, .reg-stats { display: none !important; }
+    .registry-deck { border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 !important; }
     .reg-wrap { border: none !important; overflow: visible !important; }
     table { width: 100% !important; border: 1px solid #000 !important; color: #000 !important; font-size: 10pt !important; }
     th, td { border: 1px solid #999 !important; color: #000 !important; padding: 6px !important; }
+    th { background: #f0f0f0 !important; color: #000 !important; }
+    .badge-chip { border: none !important; color: #000 !important; font-weight: 700 !important; padding: 0 !important; }
+    .sn-link { text-decoration: none !important; color: #000 !important; }
   }
 </style>
 </head>
 <body>
 
 <div class="boot-overlay" id="bootOverlay">
-  <div class="boot-logo">SKLAD OMNI v9.0.1</div>
+  <div class="boot-logo">SKLAD OPS</div>
   <div class="boot-spinner"></div>
   <div class="boot-text" id="bootText">Инициализация базы данных…</div>
 </div>
@@ -383,24 +362,23 @@
 <div class="app-shell">
   <header class="hud-header">
     <div class="brand-zone">
-      <div id="brandTag" class="brand-tag mono" title="Тройной клик — удаление из БД">OMNI v9.0.1</div>
+      <div id="brandTag" class="brand-tag mono" title="v8.40">TERMINAL</div>
       <div class="brand-title">
         <h1>Учёт Оборудования</h1>
-        <p>Единый смарт-конвейер • Realtime • Контроль ремонта</p>
+        <p>Двухпостовой Cloud • Автономная работа • Экспресс-замена</p>
       </div>
     </div>
     <div class="hud-actions">
-      <div id="shiftPill" class="shift-pill day" onclick="toggleShift()" title="Клик — переключить День/Ночь вручную">
+      <div id="shiftPill" class="shift-pill day" onclick="toggleShift()" title="Клик — переключить День/Ночь вручную. Клик по бейджу MANUAL — вернуть AUTO">
         <span id="shiftIcon">☀</span>
         <span id="shiftLabel">ДЕНЬ</span>
         <span class="t" id="shiftTime">--:--</span>
-        <span id="shiftBadge" class="badge-auto" onclick="resetShiftToAuto(event)">AUTO</span>
+        <span id="shiftBadge" class="badge-auto" onclick="resetShiftToAuto(event)" title="Вернуть автоопределение">AUTO</span>
       </div>
       <div id="syncStatus" class="pill-badge pill-online" onclick="showDiag()">
         <span class="dot-ping"></span>
         <span id="syncText">Онлайн</span>
       </div>
-      <button class="btn-hud" onclick="copyShiftReport()" title="Скопировать сводку для Telegram/чата">📋 Сводка</button>
       <button class="btn-hud" onclick="openBackupModal()" title="Резервные копии">💾 Бэкап</button>
       <button class="btn-hud" onclick="exportExcel()" title="Ctrl+E">📊 Excel</button>
       <button class="btn-hud" onclick="openModal('impModal')" title="Ctrl+I">📥 Импорт</button>
@@ -408,53 +386,54 @@
   </header>
 
   <section class="metrics-grid">
-    <div class="hud-stat-card active" data-filter="all"><div class="stat-label">ВСЕГО ТСД</div><div id="mTotal" class="stat-value mono">0</div></div>
+    <div class="hud-stat-card active" data-filter="all"><div class="stat-label">ВСЕГО СКАНЕРОВ</div><div id="mTotal" class="stat-value mono">0</div></div>
     <div class="hud-stat-card" data-filter="free"><div class="stat-label" style="color:var(--neon-emerald);">● НА СКЛАДЕ</div><div id="mFree" class="stat-value mono" style="color:var(--neon-emerald);">0</div></div>
     <div class="hud-stat-card" data-filter="issued"><div class="stat-label" style="color:var(--neon-blue);">● НА РУКАХ</div><div id="mIssued" class="stat-value mono" style="color:var(--neon-blue);">0</div></div>
     <div class="hud-stat-card" data-filter="overdue" title="Выдано более 14 часов назад"><div class="stat-label" style="color:var(--neon-rose);">🚨 ДОЛГИ (&gt;14Ч)</div><div id="mOverdue" class="stat-value mono" style="color:var(--neon-rose);">0</div></div>
-    <div class="hud-stat-card" data-filter="day"><div class="stat-label" style="color:#fbbf24;">☀️ ДЕНЬ</div><div id="mDay" class="stat-value mono" style="color:#fbbf24;">0</div></div>
-    <div class="hud-stat-card" data-filter="night"><div class="stat-label" style="color:var(--neon-purple);">🌙 НОЧЬ</div><div id="mNight" class="stat-value mono" style="color:var(--neon-purple);">0</div></div>
-    <div class="hud-stat-card" data-filter="repair" title="Сломанные и на карантине"><div class="stat-label" style="color:var(--neon-amber);">🛠 В РЕМОНТЕ</div><div id="mRepair" class="stat-value mono" style="color:var(--neon-amber);">0</div></div>
+    <div class="hud-stat-card" data-filter="day" title="Сейчас на руках у дневной смены"><div class="stat-label" style="color:#fbbf24;">☀️ ДЕНЬ (ВЫДАНО)</div><div id="mDay" class="stat-value mono" style="color:#fbbf24;">0</div></div>
+    <div class="hud-stat-card" data-filter="night" title="Сейчас на руках у ночной смены"><div class="stat-label" style="color:var(--neon-purple);">🌙 НОЧЬ (ВЫДАНО)</div><div id="mNight" class="stat-value mono" style="color:var(--neon-purple);">0</div></div>
   </section>
 
-  <!-- ЕДИНЫЙ OMNI-ТЕРМИНАЛ -->
-  <section class="omni-deck" id="omniDeck">
-    <div class="omni-top">
-      <div class="omni-title-group">
-        <span class="omni-title" id="omniStatusTitle">⚡ OMNI-КОНВЕЙЕР</span>
-        <div class="omni-modes">
-          <button type="button" class="omni-mode-btn active" id="modeBtnAuto" onclick="setOmniPreset('auto')">⚡ Авто</button>
-          <button type="button" class="omni-mode-btn" id="modeBtnIssue" onclick="setOmniPreset('issue')" title="F1">📤 Выдача</button>
-          <button type="button" class="omni-mode-btn" id="modeBtnReturn" onclick="setOmniPreset('return')" title="F2">📥 Сдача</button>
+  <section class="terminal-grid">
+    <div class="deck-card">
+      <div class="deck-header">
+        <span class="deck-title" style="color:var(--neon-cyan);">📤 1. ВЫДАЧА СКАНЕРА</span>
+        <span id="modelHint" class="mono" style="font-size:11px; color:var(--text-secondary);">F1 • Скан ➔ ID ➔ Enter</span>
+      </div>
+      <form id="issueForm" autocomplete="off" style="display:flex; flex-direction:column; flex:1;">
+        <div class="hud-group">
+          <label class="hud-label">Серийный номер (или хвост):</label>
+          <input id="issSn" class="hud-input mono" placeholder="S10023 или 0635..." autocomplete="off" spellcheck="false">
+          <div id="issDrop" class="drop-box"></div>
         </div>
-      </div>
-      <span class="omni-hint" id="omniHint">Скан выданного ТСД = мгновенный приём • Скан свободного ТСД = выдача</span>
+        <div class="hud-group">
+          <label class="hud-label">ID / Табельный / ФИО:</label>
+          <input id="issWorker" class="hud-input" placeholder="611252 или Иванов..." autocomplete="off" spellcheck="false" maxlength="40">
+          <div id="workerDrop" class="drop-box"></div>
+        </div>
+        <button type="submit" class="btn-submit btn-issue" id="btnIssue">ВЫДАТЬ СКАНЕР (ENTER)</button>
+      </form>
     </div>
 
-    <div class="omni-bar-wrap">
-      <div class="omni-bar" id="omniBar">
-        <div class="omni-context-pill" id="omniContext" onclick="resetOmniContext()" title="Клик или Esc — сбросить шаг"></div>
-        <input id="omniInput" class="omni-input" placeholder="Пикните любой сканер (или введите хвост SN / табельный ID / ФИО) ➔ Enter" autocomplete="off" spellcheck="false">
-        <button type="button" class="omni-clear" id="omniClearBtn" onclick="clearOmniAll()" title="Очистить (Esc)">✕</button>
-        <button type="button" class="omni-submit" id="omniSubmitBtn" onclick="handleOmniSubmit()">ВВОД (ENTER)</button>
+    <div class="deck-card return-deck">
+      <div class="deck-header">
+        <span class="deck-title" style="color:var(--neon-emerald);">📥 2. СДАЧА СКАНЕРА</span>
+        <span style="font-size:11px; color:var(--text-secondary);">F2 • Enter = мгновенный приём</span>
       </div>
-      <div id="omniDrop" class="drop-box"></div>
-    </div>
-
-    <div class="omni-feed-bar">
-      <div class="feed-chips" id="liveChips">
-        <span style="color:var(--text-muted); font-size:11px;">Лента операций пуста — начните сканирование</span>
+      <div class="hud-group">
+        <label class="hud-label">Введите ID / Табельный / Фамилию / Серийник:</label>
+        <input id="retQuery" class="hud-input mono" placeholder="611252, Иванов или S10023 ➔ Enter" autocomplete="off" spellcheck="false">
+        <div id="retDrop" class="drop-box"></div>
       </div>
-      <div class="session-counter" id="sessionStats">Сессия: 📥 0 · 📤 0</div>
+      <button type="button" class="btn-submit btn-return-action" id="retBtn">ПРИНЯТЬ НА СКЛАД (ENTER)</button>
     </div>
   </section>
 
-  <!-- РЕЕСТР -->
   <section class="registry-deck">
     <div class="reg-head">
       <div style="font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;">
-        РЕЕСТР ОБОРУДОВАНИЯ
-        <span style="color:var(--text-muted); font-weight:500; font-size:10px;">(клик по заголовку → сортировка · клик по SN → история · ⇄ → смена)</span>
+        РЕЕСТР ОБОРУДОВАНИЯ 
+        <span style="color:var(--text-muted); font-weight:500; font-size:10px;">(клик по SN → история · Ctrl+клик → копировать · клик по смене ⇄ → переключить)</span>
       </div>
       <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
         <div class="reg-stats" id="regStats">Σ <span style="color:var(--text-muted);">—</span> · ↑ <span style="color:var(--text-muted);">—</span></div>
@@ -468,12 +447,12 @@
       <table>
         <thead>
           <tr>
-            <th class="sortable" data-sort="serial" style="width:185px;">СЕРИЙНЫЙ НОМЕР <span class="sort-arr" id="sort-serial"></span></th>
-            <th class="sortable" data-sort="model" style="width:130px;">МОДЕЛЬ <span class="sort-arr" id="sort-model"></span></th>
-            <th class="sortable" data-sort="status" style="width:230px;">СТАТУС <span class="sort-arr" id="sort-status"></span></th>
-            <th class="sortable" data-sort="holder" style="width:190px;">ИСПОЛНИТЕЛЬ / ПРИЧИНА <span class="sort-arr" id="sort-holder"></span></th>
-            <th class="sortable" data-sort="time" style="text-align:right;">ВРЕМЯ НА РУКАХ <span class="sort-arr" id="sort-time"></span></th>
-            <th style="text-align:right; width:135px;">ДЕЙСТВИЕ</th>
+            <th style="width:190px;">СЕРИЙНЫЙ НОМЕР</th>
+            <th style="width:140px;">МОДЕЛЬ</th>
+            <th style="width:220px;">СТАТУС</th>
+            <th style="width:180px;">ИСПОЛНИТЕЛЬ</th>
+            <th style="text-align:right;">ВРЕМЯ НА РУКАХ</th>
+            <th style="text-align:right; width:110px;">ДЕЙСТВИЕ</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -485,7 +464,6 @@
 
 <div id="toast"><div class="t-icon" id="tIcon">✓</div><div class="t-body"><h4 id="tTitle">ГОТОВО</h4><p id="tDesc"></p></div></div>
 
-<!-- МОДАЛКА ДОЛГОВ -->
 <div id="debtModal" class="modal-overlay">
   <div class="modal-card" style="max-width:560px; border-color:rgba(244,63,94,0.35);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:10px;">
@@ -493,8 +471,8 @@
         🚨 НЕ СДАЮТ <span id="debtModalCount" style="font-family:'JetBrains Mono'; background:rgba(244,63,94,0.25); border:1px solid rgba(244,63,94,0.55); color:#fb7185; padding:2px 9px; border-radius:9px; font-size:11px;">0</span>
       </h3>
       <div style="display:flex; gap:8px;">
-        <button class="btn-hud" style="padding:4px 10px; font-size:11px; border-color:rgba(244,63,94,0.4); color:var(--neon-rose);" onclick="showAllDebtsInTable()">📋 Показать все в таблице</button>
-        <button class="btn-hud" style="padding:4px 10px; font-size:11px;" onclick="closeModal('debtModal')">✕</button>
+        <button class="btn-hud" style="min-width:auto; padding:4px 10px; font-size:11px; border-color:rgba(244,63,94,0.4); color:var(--neon-rose);" onclick="showAllDebtsInTable()">📋 Показать все в таблице</button>
+        <button class="btn-hud" style="min-width:auto; padding:4px 10px; font-size:11px;" onclick="closeModal('debtModal')">✕</button>
       </div>
     </div>
     <p style="font-size:11.5px; color:var(--text-secondary); margin-bottom:12px;">Клик по сотруднику → фильтр в реестре</p>
@@ -502,7 +480,6 @@
   </div>
 </div>
 
-<!-- БОКОВАЯ ПАНЕЛЬ ИСТОРИИ (AUDIT) -->
 <div id="auditOverlay" class="audit-overlay" onclick="closeAuditDrawer()"></div>
 <div id="auditDrawer" class="audit-drawer">
   <div class="audit-header">
@@ -510,42 +487,21 @@
       <h3 id="audSn" class="mono" style="color:var(--neon-cyan);">S10023</h3>
       <span id="audStatusBadge" class="badge-chip chip-free" style="margin-top:4px;">На складе</span>
     </div>
-    <button class="btn-hud" style="padding:4px 8px; font-size:12px;" onclick="closeAuditDrawer()">✕ Закрыть</button>
+    <button class="btn-hud" style="padding:4px 8px; font-size:12px; min-width:auto;" onclick="closeAuditDrawer()">✕ Закрыть</button>
   </div>
   <div class="audit-summary">
     <div class="summary-item"><label>Модель:</label><b id="audModel">—</b></div>
-    <div class="summary-item"><label>Держатель / Статус:</label><b id="audHolder">—</b></div>
-    <div class="summary-item" style="grid-column: span 2;"><label>Время:</label><b id="audDuration">—</b></div>
-    <div class="summary-item" style="grid-column: span 2; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-      <button id="audShiftBtn" class="btn-hud" style="padding:5px 12px; font-size:11px;">🔀 Сменить смену</button>
-      <button id="audRepairBtn" class="btn-hud" style="padding:5px 12px; font-size:11px; border-color:rgba(245,158,11,0.4); color:var(--neon-amber);">🛠 В ремонт</button>
+    <div class="summary-item"><label>Текущий держатель:</label><b id="audHolder">—</b></div>
+    <div class="summary-item" style="grid-column: span 2;"><label>Время на руках:</label><b id="audDuration">—</b></div>
+    <div class="summary-item" style="grid-column: span 2; display:flex; gap:8px; align-items:center;">
+      <label style="flex:1;">Смена:</label>
+      <button id="audShiftBtn" class="btn-hud" style="min-width:auto; padding:5px 12px; font-size:11px;">🔀 Сменить</button>
     </div>
   </div>
   <div style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase; margin-bottom:10px; letter-spacing:0.04em;">📜 Хронология перемещений:</div>
   <div id="audTimeline" class="timeline-box"></div>
 </div>
 
-<!-- МОДАЛКА РЕМОНТА -->
-<div id="repairModal" class="modal-overlay">
-  <div class="modal-card" style="border-color:rgba(245,158,11,0.4);">
-    <h3 style="font-size:15px; margin-bottom:6px; color:var(--neon-amber);">🛠 ОТПРАВИТЬ В РЕМОНТ / КАРАНТИН</h3>
-    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">Сканер <b id="repModalSn" class="mono" style="color:#fff;"></b> будет заблокирован для выдачи:</p>
-    <div class="preset-chips" id="repPresets">
-      <span class="preset-chip" data-reason="Не сканирует курок">Не сканирует курок</span>
-      <span class="preset-chip" data-reason="Разбит экран">Разбит экран</span>
-      <span class="preset-chip" data-reason="Слабый АКБ / Не заряжается">Слабый АКБ</span>
-      <span class="preset-chip" data-reason="Сбой ПО / Зависает">Сбой ПО</span>
-      <span class="preset-chip" data-reason="Сломано крепление / ремешок">Крепление</span>
-    </div>
-    <input id="repReasonInput" class="hud-input" placeholder="Укажите причину поломки..." autocomplete="off">
-    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
-      <button class="btn-hud" onclick="closeModal('repairModal')">Отмена</button>
-      <button class="btn-submit" style="width:auto; padding:8px 18px; background:var(--neon-amber); color:#050811;" onclick="confirmRepairModal()">В ремонт (Enter)</button>
-    </div>
-  </div>
-</div>
-
-<!-- МОДАЛКА ЭКСПРЕСС-ЗАМЕНЫ -->
 <div id="swapModal" class="modal-overlay">
   <div class="modal-card">
     <h3 style="font-size:15px; margin-bottom:10px; color:var(--neon-amber);">🔄 ЭКСПРЕСС-ЗАМЕНА СКАНЕРА</h3>
@@ -566,7 +522,6 @@
   </div>
 </div>
 
-<!-- ВЫБОР ПРИ НЕСКОЛЬКИХ СОВПАДЕНИЯХ -->
 <div id="pickModal" class="modal-overlay">
   <div class="modal-card">
     <h3 style="font-size:14px; margin-bottom:8px; color:var(--neon-amber);">⚠️ НЕСКОЛЬКО СОВПАДЕНИЙ</h3>
@@ -576,7 +531,6 @@
   </div>
 </div>
 
-<!-- ИМПОРТ -->
 <div id="impModal" class="modal-overlay">
   <div class="modal-card">
     <h3 style="font-size:14px; margin-bottom:12px;">📥 ИМПОРТ ОБОРУДОВАНИЯ</h3>
@@ -588,7 +542,6 @@
   </div>
 </div>
 
-<!-- ДИАГНОСТИКА -->
 <div id="diagModal" class="modal-overlay">
   <div class="modal-card" style="max-width:560px;">
     <h3 style="font-size:14px; margin-bottom:10px; color:var(--neon-cyan);">⚡ СТАТУС СИНХРОНИЗАЦИИ</h3>
@@ -601,11 +554,10 @@
   </div>
 </div>
 
-<!-- УДАЛЕНИЕ -->
 <div id="delModal" class="modal-overlay">
   <div class="modal-card" style="max-width:640px; border-color: rgba(244,63,94,0.4);">
     <h3 style="font-size:14px; margin-bottom:10px; color:var(--neon-rose);">🗑 УДАЛЕНИЕ ТСД ИЗ БАЗЫ</h3>
-    <p style="font-size:11.5px; color:var(--text-secondary); margin-bottom:10px;">Удаляет из локальной базы, очереди, истории и облака Supabase.</p>
+    <p style="font-size:11.5px; color:var(--text-secondary); margin-bottom:10px;">Удаляет из локальной базы, очереди, истории и облака Supabase. Действие необратимо.</p>
     <input id="delSearch" class="del-search" placeholder="Поиск по SN / модели / держателю..." autocomplete="off" spellcheck="false">
     <div id="delList" class="del-list"></div>
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
@@ -614,11 +566,13 @@
   </div>
 </div>
 
-<!-- БЭКАПЫ -->
 <div id="backupModal" class="modal-overlay">
   <div class="modal-card" style="max-width:640px;">
     <h3 style="font-size:14px; margin-bottom:6px; color:var(--neon-cyan);">💾 РЕЗЕРВНЫЕ КОПИИ</h3>
-    <p style="font-size:11.5px; color:var(--text-secondary); margin-bottom:14px;">Автосохранение раз в день в Supabase Storage (хранятся последние 7 копий).</p>
+    <p style="font-size:11.5px; color:var(--text-secondary); margin-bottom:14px;">
+      Автосохранение раз в день в Supabase Storage. Хранятся последние 7 файлов.<br>
+      <span style="color:var(--neon-amber);">⚠ Убедитесь, что RLS на bucket 'sklad-backups' ограничивает доступ.</span>
+    </p>
     <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
       <button class="btn-hud" style="border-color:rgba(0,242,254,0.4); color:var(--neon-cyan);" onclick="doBackup('manual')">💾 Создать бэкап сейчас</button>
       <button class="btn-hud" onclick="renderBackupList()">🔄 Обновить список</button>
@@ -637,13 +591,14 @@
 const SUPABASE_URL = "https://sgpkvnymkqwuhepkaoxw.supabase.co";
 const SUPABASE_KEY = "sb_publishable_dqlmOngeOHVYMFUG1s4kLw_N1Pxi9KW";
 const OVERDUE_H = 14;
-const STALE_SHIFT_H = 2.0;
 
 const BACKUP_BUCKET = 'sklad-backups';
 const BACKUP_KEEP = 7;
 const BACKUP_MIN_INTERVAL = 6 * 60 * 60 * 1000;
 const RECENT_LOCAL_TTL = 60 * 1000;
 const AUTO_SWAP_KEY = 'sklad_auto_swap_v2';
+const DRAFT_KEY = 'sklad_draft_iss';
+const DRAFT_TTL_MS = 5 * 60 * 1000;
 const SN_REGEX = /^[A-Z0-9\-_.]{2,60}$/;
 const MOVES_ROTATE_THRESHOLD = 6000;
 const MOVES_ROTATE_KEEP = 3000;
@@ -652,38 +607,26 @@ const NET_TIMEOUT_MS = 15000;
 const SYNC_TIMEOUT_MS = 45000;
 const SYNC_BASE_INTERVAL = 20000;
 const SYNC_MAX_INTERVAL = 300000;
+const SYNC_JITTER = 0.25;
+
+const DEBUG = false;
+function dbg(...args) { if (DEBUG) console.log('[DBG]', ...args); }
 
 const state = {
-  devices: [],
-  filter: 'all',
-  sortField: 'default',
-  sortAsc: true,
-  issueShift: 'Дневная',
-  issueShiftAuto: true,
-  workerShifts: {},
-  syncing: false,
-  dbReady: false,
-  lastError: '—',
+  devices: [], filter: 'all',
+  issueShift: 'Дневная', issueShiftAuto: true, workerShifts: {},
+  syncing: false, dbReady: false, lastError: '—',
   pendingSwap: null,
-  repairTargetSn: null,
-  justIssued: null,
-  justReturned: null,
+  justIssued: null, justReturned: null,
   autoSwap: true,
   undoAction: null,
   undoTimer: null,
   toastTimer: null,
   auditSn: null,
+  lastDropQuery: null,
+  lastRetDropQuery: null,
   syncToken: 0,
-  syncBackoff: 0,
-  // Omni-Terminal State
-  omniPreset: 'auto', // 'auto' | 'issue' | 'return'
-  omniStep: 'idle',   // 'idle' | 'await_worker' | 'await_sn' | 'worker_active'
-  omniLockedSn: null,
-  omniLockedWorker: null,
-  omniWorkerOldSn: null,
-  sessionIn: 0,
-  sessionOut: 0,
-  liveFeed: []
+  syncBackoff: 0
 };
 
 try {
@@ -725,14 +668,6 @@ function fixLayout(s) {
   }).join('').toUpperCase().replace(/\s+/g, '');
 }
 function hasCyr(s) { return /[а-яёА-ЯЁ]/.test(String(s || '')); }
-
-function isBarcodeInRuLayout(raw) {
-  const s = String(raw || '').trim();
-  if (!hasCyr(s) || /\s/.test(s)) return false;
-  if (!/\d/.test(s)) return false;
-  const fixed = fixLayout(s);
-  return SN_REGEX.test(fixed);
-}
 
 function detectModel(sn) {
   const s = String(sn ? sn : '').toUpperCase();
@@ -782,29 +717,8 @@ function logMsg(msg) {
   const el = $('logStatus'); if (el) el.textContent = `[${t}] ${msg}`;
 }
 
-function pushLiveFeed(type, text) {
-  const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  state.liveFeed.unshift({ type, text, t });
-  if (state.liveFeed.length > 5) state.liveFeed.pop();
-  if (type === 'ret') state.sessionIn++;
-  else if (type === 'iss' || type === 'swp') state.sessionOut++;
-  renderLiveFeed();
-}
-
-function renderLiveFeed() {
-  $('sessionStats').innerText = `Сессия: 📥 ${state.sessionIn} · 📤 ${state.sessionOut}`;
-  const wrap = $('liveChips');
-  if (!state.liveFeed.length) return;
-  wrap.innerHTML = state.liveFeed.map(item => `
-    <span class="feed-chip ${item.type}">
-      <span style="opacity:0.65; font-size:10px;">${item.t}</span>
-      <span>${esc(item.text)}</span>
-    </span>
-  `).join('');
-}
-
 /* ============================================================
-   BOOT & SCROLL
+   BOOT
    ============================================================ */
 function hideBoot() {
   const el = $('bootOverlay');
@@ -812,8 +726,14 @@ function hideBoot() {
   el.classList.add('hide');
   setTimeout(() => { try { el.remove(); } catch(e){} }, 500);
 }
-function bootText(txt) { const el = $('bootText'); if (el) el.textContent = txt; }
+function bootText(txt) {
+  const el = $('bootText');
+  if (el) el.textContent = txt;
+}
 
+/* ============================================================
+   SCROLL LOCK
+   ============================================================ */
 function refreshScrollLock() {
   const anyModal = document.querySelector('.modal-overlay.show');
   const drawerOpen = $('auditDrawer') && $('auditDrawer').classList.contains('open');
@@ -828,7 +748,8 @@ function setUndo(label, callback, ttl = 7000) {
   clearTimeout(state.undoTimer);
   state.undoTimer = setTimeout(() => {
     state.undoAction = null;
-    const b = $('toast')?.querySelector('.t-undo');
+    const el = $('toast');
+    const b = el.querySelector('.t-undo');
     if (b) b.remove();
   }, ttl);
 }
@@ -837,7 +758,9 @@ function clearUndo() {
   state.undoAction = null;
   clearTimeout(state.undoTimer);
   state.undoTimer = null;
-  const b = $('toast')?.querySelector('.t-undo');
+  const el = $('toast');
+  if (!el) return;
+  const b = el.querySelector('.t-undo');
   if (b) b.remove();
 }
 
@@ -858,13 +781,23 @@ function computeSmartShift(worker) {
   const now = new Date();
   const hm = now.getHours() * 60 + now.getMinutes();
   const w = String(worker || '').trim().toUpperCase();
+
+  // 1. Если у сотрудника УЖЕ есть выданный сканер — сохраняем его текущую смену
   if (w) {
     const existing = state.devices.find(d =>
-      d.status === 'issued' && d.holder && d.holder.toUpperCase() === w && d.shift && d.shift !== '—'
+      d.status === 'issued' &&
+      d.holder && d.holder.toUpperCase() === w &&
+      d.shift && d.shift !== '—'
     );
     if (existing) return existing.shift;
-    if (state.workerShifts && state.workerShifts[w]) return state.workerShifts[w];
+
+    // Читаем из кэша смен, если сотрудник известен
+    if (state.workerShifts && state.workerShifts[w]) {
+      return state.workerShifts[w];
+    }
   }
+
+  // 2. Иначе — по времени суток
   if (hm >= 5 * 60 && hm < 6 * 60) return 'Дневная';
   if (hm >= 17 * 60 && hm < 19 * 60) return 'Ночная';
   return (hm >= 6 * 60 && hm < 18 * 60) ? 'Дневная' : 'Ночная';
@@ -880,9 +813,11 @@ function updateShiftPill() {
   if (state.issueShiftAuto) {
     badge.className = 'badge-auto';
     badge.innerText = 'AUTO';
+    badge.title = 'Смена определяется по времени. Клик по пилюле → ручной режим';
   } else {
     badge.className = 'badge-manual';
     badge.innerText = 'MANUAL ↻';
+    badge.title = 'Ручной режим. Клик → вернуть автоопределение';
   }
   const now = new Date();
   $('shiftTime').innerText = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
@@ -900,18 +835,30 @@ function toggleShift() {
     showToast('РУЧНОЙ РЕЖИМ', `Смена зафиксирована: ${state.issueShift}`, 'warn');
   } else {
     state.issueShiftAuto = true;
-    state.issueShift = computeSmartShift('');
+    state.issueShift = computeSmartShift($('issWorker').value.trim());
     saveShiftPref(); updateShiftPill();
-    showToast('АВТОРЕЖИМ', 'Смена определяется по времени', 'warn');
+    showToast('АВТОРЕЖИМ', 'Смена снова определяется по времени', 'warn');
   }
 }
 
 function resetShiftToAuto(e) {
   if (e) e.stopPropagation();
+  if (state.issueShiftAuto) {
+    showToast('УЖЕ АВТО', 'Смена определяется по времени', 'warn');
+    return;
+  }
   state.issueShiftAuto = true;
-  state.issueShift = computeSmartShift('');
+  state.issueShift = computeSmartShift($('issWorker').value.trim());
   saveShiftPref(); updateShiftPill();
-  showToast('АВТОРЕЖИМ', 'Смена определяется по времени', 'warn');
+  showToast('АВТОРЕЖИМ', 'Смена снова определяется по времени', 'warn');
+}
+
+function refreshSmartShift() {
+  if (!state.issueShiftAuto) { updateShiftPill(); return; }
+  const worker = $('issWorker').value.trim();
+  const smart = computeSmartShift(worker);
+  if (smart !== state.issueShift) state.issueShift = smart;
+  updateShiftPill();
 }
 
 function rememberWorkerShift(worker, shift) {
@@ -925,76 +872,33 @@ function rememberWorkerShift(worker, shift) {
 
 async function toggleDeviceShift(sn) {
   const dev = state.devices.find(d => d.serial === sn);
-  if (!dev || dev.status !== 'issued') return;
+  if (!dev || dev.status !== 'issued') {
+    showToast('НЕЛЬЗЯ', 'Сканер не выдан — смена недоступна', 'warn');
+    return;
+  }
   const oldShift = dev.shift;
   const newShift = oldShift === 'Ночная' ? 'Дневная' : 'Ночная';
   const ts = nowIso();
   const updated = { ...dev, shift: newShift, last_move: ts };
   const idx = state.devices.findIndex(d => d.serial === sn);
+  const snapshot = { ...dev };
+
   if (idx >= 0) state.devices[idx] = updated;
   renderTable();
+
   try {
     await saveDevice(updated, `Смена вручную: ${oldShift || '—'} → ${newShift}`, dev.holder);
     rememberWorkerShift(dev.holder, newShift);
     beep('issue');
-    showToast('СМЕНА ИЗМЕНЕНА', `${sn}: ${oldShift || '—'} → ${newShift}`);
+    showToast('СМЕНА ИЗМЕНЕНА', `${sn}: ${oldShift || '—'} → ${newShift} (${dev.holder})`);
+    logMsg(`🔀 СМЕНА: ${sn} · ${oldShift || '—'} → ${newShift} · ${dev.holder}`);
     if (state.auditSn === sn) openAudit(sn);
   } catch (e) {
+    if (idx >= 0) state.devices[idx] = snapshot;
+    renderTable();
     beep('err');
-    showToast('ОШИБКА', e.message || '?', 'err');
+    showToast('ОШИБКА', e.message || 'Не удалось сохранить', 'err');
   }
-}
-
-/* ============================================================
-   РЕМОНТ / КАРАНТИН
-   ============================================================ */
-function openRepairModal(sn) {
-  const dev = state.devices.find(d => d.serial === sn);
-  if (!dev) return;
-  if (dev.status === 'repair') {
-    restoreFromRepair(sn);
-    return;
-  }
-  state.repairTargetSn = sn;
-  $('repModalSn').innerText = sn;
-  $('repReasonInput').value = '';
-  openModal('repairModal');
-  setTimeout(() => $('repReasonInput').focus(), 60);
-}
-
-async function confirmRepairModal() {
-  const sn = state.repairTargetSn;
-  if (!sn) return;
-  const reason = $('repReasonInput').value.trim() || 'На диагностике';
-  const dev = state.devices.find(d => d.serial === sn);
-  if (!dev) return;
-  closeModal('repairModal');
-  const ts = nowIso();
-  const updated = {
-    ...dev,
-    status: 'repair',
-    holder: reason,
-    shift: '—',
-    issued_at: null,
-    last_move: ts
-  };
-  await saveDevice(updated, `Отправлен в ремонт: ${reason}`, reason);
-  beep('swap');
-  showToast('🛠 В РЕМОНТЕ', `${sn} (${reason})`, 'warn');
-  logMsg(`🛠 РЕМОНТ: ${sn} — ${reason}`);
-  if (state.auditSn === sn) openAudit(sn);
-}
-
-async function restoreFromRepair(sn) {
-  const dev = state.devices.find(d => d.serial === sn);
-  if (!dev) return;
-  const ts = nowIso();
-  const updated = { ...dev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts };
-  await saveDevice(updated, 'Возвращён из ремонта в строй', '');
-  beep('return');
-  showToast('В СТРОЮ', `${sn} снова доступен на складе`);
-  logMsg(`✅ ИЗ РЕМОНТА: ${sn}`);
-  if (state.auditSn === sn) openAudit(sn);
 }
 
 /* ============================================================
@@ -1024,10 +928,11 @@ function beep(type) {
       osc.start(t); osc.stop(t + 0.28);
     }
   } catch (e) {}
+  if (navigator.vibrate) navigator.vibrate(type === 'err' ? [60, 40, 60] : 40);
 }
 
 /* ============================================================
-   SUPABASE + IDB + REALTIME
+   SUPABASE + IDB
    ============================================================ */
 let cloud = null;
 try { cloud = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } }); } catch (e) {}
@@ -1040,6 +945,7 @@ DB_REQ.onupgradeneeded = e => {
   if (!d.objectStoreNames.contains("queue"))   d.createObjectStore("queue",   { autoIncrement: true });
   if (!d.objectStoreNames.contains("moves"))   d.createObjectStore("moves",   { autoIncrement: true });
 };
+DB_REQ.onblocked = () => showToast('БАЗА ЗАНЯТА', 'Закройте другие вкладки и нажмите F5', 'warn');
 DB_REQ.onsuccess = async e => {
   db = e.target.result;
   state.dbReady = true;
@@ -1047,39 +953,17 @@ DB_REQ.onsuccess = async e => {
   await loadLocal();
   await rotateMovesIfNeeded();
   hideBoot();
+  restoreDraft();
   scheduleSync(500);
-  setupRealtime();
   setTimeout(() => checkAutoBackup(), 5000);
 };
-DB_REQ.onerror = () => {
+DB_REQ.onerror = e => {
   state.dbReady = false;
+  bootText('Ошибка базы данных');
+  dbg('DB error', e.target.error);
+  showToast('ОШИБКА БАЗЫ', e.target.error ? e.target.error.message : '?', 'err');
   setTimeout(hideBoot, 1500);
 };
-
-function setupRealtime() {
-  if (!cloud) return;
-  try {
-    cloud.channel('sklad-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'devices' }, payload => {
-        if (payload.eventType === 'DELETE' && payload.old && payload.old.serial) {
-          const sn = payload.old.serial;
-          if (recentLocal.has(sn)) return;
-          const t = db.transaction('devices', 'readwrite');
-          t.objectStore('devices').delete(sn);
-          t.oncomplete = () => loadLocal();
-          return;
-        }
-        const norm = normalizeCloudDevice(payload.new);
-        if (!norm) return;
-        const recent = recentLocal.get(norm.serial);
-        if (recent && Date.now() - recent < 10000) return;
-        const t = db.transaction('devices', 'readwrite');
-        t.objectStore('devices').put(norm);
-        t.oncomplete = () => loadLocal();
-      })
-      .subscribe();
-  } catch(e) {}
-}
 
 function loadLocal() {
   return new Promise(resolve => {
@@ -1087,8 +971,13 @@ function loadLocal() {
     try {
       const tx = db.transaction("devices", "readonly");
       const req = tx.objectStore("devices").getAll();
-      req.onsuccess = () => { state.devices = req.result || []; renderTable(); resolve(); };
+      req.onsuccess = () => {
+        state.devices = req.result || [];
+        renderTable();
+        resolve();
+      };
       req.onerror = () => { state.devices = []; renderTable(); resolve(); };
+      tx.onabort = () => { state.devices = []; renderTable(); resolve(); };
     } catch(e) { state.devices = []; renderTable(); resolve(); }
   });
 }
@@ -1100,25 +989,32 @@ async function rotateMovesIfNeeded() {
       const req = t.objectStore('moves').count();
       req.onsuccess = () => r(req.result || 0);
       req.onerror = () => r(0);
+      t.onabort = () => r(0);
     });
     if (count <= MOVES_ROTATE_THRESHOLD) return;
     const toDelete = count - MOVES_ROTATE_KEEP;
+    if (toDelete <= 0) return;
     await new Promise(r => {
       const t = db.transaction('moves', 'readwrite');
       const s = t.objectStore('moves');
       let deleted = 0;
-      s.openCursor().onsuccess = e => {
+      const req = s.openCursor();
+      req.onsuccess = e => {
         const cur = e.target.result;
         if (cur && deleted < toDelete) { cur.delete(); deleted++; cur.continue(); }
       };
       t.oncomplete = () => r();
+      t.onerror = () => r();
+      t.onabort = () => r();
     });
-  } catch(e) {}
+    logMsg(`🧹 Ротация истории: удалено ${toDelete} старых записей`);
+  } catch(e) { dbg('rotateMoves error', e); }
 }
 
 function saveDevice(dev, actionName, workerName) {
   return new Promise((resolve, reject) => {
-    if (!db || !state.dbReady) return reject(new Error('База данных не готова'));
+    if (!db || !state.dbReady) return reject(new Error('База данных не готова. Обновите страницу (F5).'));
+    if (!dev || !dev.serial) return reject(new Error('Не указан серийный номер'));
     try {
       const t = db.transaction(["devices", "queue", "moves"], "readwrite");
       t.objectStore("devices").put(dev);
@@ -1126,9 +1022,16 @@ function saveDevice(dev, actionName, workerName) {
       t.objectStore("moves").add({ serial: dev.serial, action: actionName, worker: workerName || '', created_at: nowIso() });
       t.oncomplete = () => {
         recentLocal.set(dev.serial, Date.now());
-        loadLocal().then(() => { scheduleSync(150); resolve(); });
+        if (recentLocal.size > 300) {
+          const cutoff = Date.now() - RECENT_LOCAL_TTL;
+          for (const [k, v] of recentLocal) if (v < cutoff) recentLocal.delete(k);
+        }
+        loadLocal()
+          .then(() => { scheduleSync(150); resolve(); })
+          .catch(() => { scheduleSync(150); resolve(); });
       };
-      t.onerror = () => reject(t.error);
+      t.onerror = () => reject(t.error || new Error('Ошибка записи в базу'));
+      t.onabort = () => reject(t.error || new Error('Транзакция отменена'));
     } catch (e) { reject(e); }
   });
 }
@@ -1138,12 +1041,17 @@ function readQueueWithKeys() {
     if (!db) return resolve([]);
     try {
       const t = db.transaction('queue', 'readonly');
+      const s = t.objectStore('queue');
       const out = [];
-      t.objectStore('queue').openCursor().onsuccess = e => {
+      const req = s.openCursor();
+      req.onsuccess = e => {
         const cur = e.target.result;
         if (cur) { out.push({ key: cur.primaryKey, value: cur.value }); cur.continue(); }
         else resolve(out);
       };
+      req.onerror = () => resolve([]);
+      t.onabort = () => resolve([]);
+      t.onerror = () => resolve([]);
     } catch(e) { resolve([]); }
   });
 }
@@ -1154,39 +1062,84 @@ function deleteQueueKey(key) {
     try {
       const t = db.transaction('queue', 'readwrite');
       t.objectStore('queue').delete(key);
-      t.oncomplete = r; t.onerror = r;
+      t.oncomplete = r; t.onerror = r; t.onabort = r;
     } catch(e) { r(); }
   });
 }
 
+/* ============================================================
+   УДАЛЕНИЕ
+   ============================================================ */
 async function deleteSerial(sn) {
-  if (!sn || !db) return;
-  await new Promise((resolve, reject) => {
-    const t = db.transaction(['devices', 'queue'], 'readwrite');
-    t.objectStore('devices').delete(sn);
-    t.objectStore('queue').add({ type: 'delete', serial: sn, ts: nowIso() });
-    t.oncomplete = resolve; t.onerror = () => reject(t.error);
+  if (!sn) throw new Error('Пустой серийник');
+  if (!db) throw new Error('База не готова');
+
+  const { queueKeys, moveKeys } = await new Promise((resolve, reject) => {
+    const t = db.transaction(['queue', 'moves'], 'readonly');
+    const qKeys = [], mKeys = [];
+    const qReq = t.objectStore('queue').openCursor();
+    qReq.onsuccess = e => {
+      const cur = e.target.result;
+      if (cur) {
+        const v = cur.value;
+        if (v && v.type !== 'delete' && ((v.dev && v.dev.serial === sn) || (v.serial === sn && !v.dev))) {
+          qKeys.push(cur.primaryKey);
+        }
+        cur.continue();
+      }
+    };
+    const mReq = t.objectStore('moves').openCursor();
+    mReq.onsuccess = e => {
+      const cur = e.target.result;
+      if (cur) { if (cur.value && cur.value.serial === sn) mKeys.push(cur.primaryKey); cur.continue(); }
+    };
+    t.oncomplete = () => resolve({ queueKeys: qKeys, moveKeys: mKeys });
+    t.onerror = () => reject(t.error);
+    t.onabort = () => reject(t.error || new Error('Транзакция чтения отменена'));
   });
+
+  await new Promise((resolve, reject) => {
+    const t = db.transaction(['devices', 'queue', 'moves'], 'readwrite');
+    t.objectStore('devices').delete(sn);
+    const qs = t.objectStore('queue');
+    queueKeys.forEach(k => qs.delete(k));
+    const ms = t.objectStore('moves');
+    moveKeys.forEach(k => ms.delete(k));
+    qs.add({ type: 'delete', serial: sn, ts: nowIso() });
+    t.oncomplete = resolve;
+    t.onerror = () => reject(t.error);
+    t.onabort = () => reject(t.error || new Error('Транзакция удаления отменена'));
+  });
+
   recentLocal.delete(sn);
   await loadLocal();
+  logMsg(`🗑 УДАЛЕНО: ${sn}`);
 }
 
+/* ============================================================
+   НОРМАЛИЗАЦИЯ ОБЛАКА
+   ============================================================ */
 function normalizeCloudDevice(row) {
   if (!row) return null;
   const sn = row.serial || row.sn || row.serial_number || row.id;
-  if (!sn || !/^[A-Za-z0-9\-_.]+$/.test(String(sn))) return null;
+  if (!sn) return null;
+  if (!/^[A-Za-z0-9\-_.]+$/.test(String(sn))) return null;
   const rawHolder = String(row.holder || row.worker || '').trim();
-  const s = String(row.status || '').toLowerCase().trim();
   let status = 'free';
-  if (s === 'repair' || s === 'ремонт') status = 'repair';
-  else if (s === 'issued' || s === 'на руках' || s === 'выдан') status = 'issued';
+  const s = String(row.status || '').toLowerCase().trim();
+  if (s === 'issued' || s === 'на руках' || s === 'выдан') status = 'issued';
   else if (s === 'free' || s === 'на складе' || s === 'свободен') status = 'free';
   else status = rawHolder.length > 0 ? 'issued' : 'free';
-
-  const cleanHolder = (status === 'issued' || status === 'repair') ? rawHolder : '';
-  const issuedAt = status === 'issued' ? (row.issued_at || null) : null;
+  const cleanHolder = status === 'issued' ? rawHolder : '';
+  const issuedAt = status === 'issued' ? (row.issued_at || row.issue_date || null) : null;
   const lastMove = row.last_move || null;
-  let shift = row.shift || '—';
+  let shift = row.shift;
+  if (!shift || shift === 'null' || shift === '') {
+    if (status === 'issued' && issuedAt) {
+      const h = new Date(issuedAt).getHours();
+      shift = (h >= 6 && h < 18) ? 'Дневная' : 'Ночная';
+    } else shift = '—';
+  }
   return { serial: String(sn), model: row.model || detectModel(sn), status, holder: cleanHolder, issued_at: issuedAt, last_move: lastMove, shift };
 }
 
@@ -1196,21 +1149,26 @@ function normalizeCloudDevice(row) {
 async function syncNow() {
   if (state.syncing) return false;
   if (!cloud || !navigator.onLine) { setSync(false, 'Офлайн'); return false; }
-  if (!state.dbReady) return false;
+  if (!state.dbReady) { setSync(false, 'БД не готова'); return false; }
 
   const token = ++state.syncToken;
   state.syncing = true;
-  setSync(true, 'Синхр...', true);
+  setSync(true, 'Синхронизация...', true);
+
   const alive = () => token === state.syncToken;
+  let anyFailure = false;
 
   const watchdog = setTimeout(() => {
     if (!alive()) return;
     state.syncing = false;
+    state.lastError = 'Таймаут синхронизации (watchdog)';
     setSync(false, 'Таймаут sync');
   }, SYNC_TIMEOUT_MS);
 
   try {
     const items = await readQueueWithKeys();
+    if (!alive()) { clearTimeout(watchdog); return false; }
+
     const recentlySent = new Set();
     let failCount = 0;
 
@@ -1222,10 +1180,14 @@ async function syncNow() {
 
       if (it.type === 'delete') {
         try {
-          const { error } = await withTimeout(cloud.from('devices').delete().eq('serial', it.serial), NET_TIMEOUT_MS, 'del');
-          if (error) { failCount++; continue; }
+          const { error: delDevErr } = await withTimeout(
+            cloud.from('devices').delete().eq('serial', it.serial),
+            NET_TIMEOUT_MS, `del device ${it.serial}`
+          );
+          if (delDevErr) { state.lastError = 'del: ' + delDevErr.message; failCount++; continue; }
+          try { await withTimeout(cloud.from('movements').delete().eq('serial', it.serial), NET_TIMEOUT_MS, 'del movements'); } catch(e) { dbg('del movements failed', e); }
           await deleteQueueKey(key);
-        } catch(e) { failCount++; }
+        } catch(e) { state.lastError = 'del: ' + e.message; failCount++; }
         continue;
       }
 
@@ -1235,32 +1197,48 @@ async function syncNow() {
       const cleanDev = {
         serial: it.dev.serial, model: it.dev.model, status: it.dev.status,
         holder: it.dev.status === 'free' ? null : (it.dev.holder || null),
-        shift: it.dev.status === 'issued' ? (it.dev.shift || null) : null,
-        issued_at: it.dev.status === 'issued' ? it.dev.issued_at : null,
+        shift: it.dev.status === 'free' ? null : (it.dev.shift || null),
+        issued_at: it.dev.status === 'free' ? null : it.dev.issued_at,
         last_move: it.dev.last_move || it.ts
       };
 
       try {
-        const { error } = await withTimeout(cloud.from('devices').upsert(cleanDev, { onConflict: 'serial' }), NET_TIMEOUT_MS, 'upsert');
-        if (error) { state.lastError = error.message; failCount++; continue; }
-        try {
-          await withTimeout(cloud.from('movements').insert({
-            serial: it.dev.serial, action: it.action, worker: it.worker || (it.dev.holder || ''), created_at: it.ts
-          }), NET_TIMEOUT_MS, 'move');
-        } catch(e) {}
-        await deleteQueueKey(key);
-      } catch(e) { failCount++; }
+        const { error: devErr } = await withTimeout(
+          cloud.from('devices').upsert(cleanDev, { onConflict: 'serial' }),
+          NET_TIMEOUT_MS, `upsert ${cleanDev.serial}`
+        );
+        if (devErr) { state.lastError = 'upsert: ' + devErr.message; failCount++; continue; }
+      } catch(e) { state.lastError = 'upsert: ' + e.message; failCount++; continue; }
+
+      const fullMove = {
+        serial: it.dev.serial, action: it.action,
+        worker: it.worker || (it.dev.holder || ''), created_at: it.ts
+      };
+      try {
+        await withTimeout(cloud.from('movements').insert(fullMove), NET_TIMEOUT_MS, `move ${fullMove.serial}`);
+      } catch(e) { dbg('movements insert failed', e); }
+
+      await deleteQueueKey(key);
     }
 
+    if (!alive()) { clearTimeout(watchdog); return false; }
+
     const allData = await pullAllDevices();
-    if (allData === null) { setSync(false, 'Ошибка загрузки'); return false; }
+    if (!alive()) { clearTimeout(watchdog); return false; }
+    if (allData === null) {
+      setSync(false, 'Ошибка загрузки');
+      return false;
+    }
     const norm = allData.map(normalizeCloudDevice).filter(Boolean);
     await applyPull(norm, recentlySent);
+    if (!alive()) { clearTimeout(watchdog); return false; }
 
-    setSync(true, failCount > 0 ? `Онлайн (${failCount} в очереди)` : 'Онлайн');
-    return failCount === 0;
+    anyFailure = failCount > 0;
+    state.lastError = anyFailure ? `отложено: ${failCount}` : '—';
+    setSync(true, anyFailure ? `Онлайн (${failCount} отложено)` : 'Онлайн');
+    return !anyFailure;
   } catch(e) {
-    setSync(false, 'Сбой сети');
+    if (alive()) { state.lastError = e.message || 'Ошибка сети'; setSync(false, 'Сбой сети'); }
     return false;
   } finally {
     clearTimeout(watchdog);
@@ -1270,48 +1248,109 @@ async function syncNow() {
 
 async function pullAllDevices() {
   const pageSize = 1000;
-  let all = [], from = 0;
+  let all = [];
+  let from = 0;
   try {
     while (true) {
-      const { data, error } = await withTimeout(cloud.from('devices').select('*').range(from, from + pageSize - 1), NET_TIMEOUT_MS, 'pull');
+      const { data, error } = await withTimeout(
+        cloud.from('devices').select('*').range(from, from + pageSize - 1),
+        NET_TIMEOUT_MS, 'pull devices'
+      );
       if (error) { state.lastError = error.message; return null; }
       if (!data || !data.length) break;
       all = all.concat(data);
       if (data.length < pageSize) break;
       from += pageSize;
+      if (from > 500000) break;
     }
     return all;
-  } catch(e) { state.lastError = e.message; return null; }
+  } catch(e) { 
+    state.lastError = e.message; 
+    return null; 
+  }
 }
 
 async function applyPull(data, protectedSerials) {
   if (!data) return;
-  const queuedSerials = new Set((await readQueueWithKeys()).map(i => i.value?.dev?.serial || i.value?.serial).filter(Boolean));
+
+  const queuedSerials = await new Promise(r => {
+    const t = db.transaction('queue', 'readonly');
+    const set = new Set();
+    const req = t.objectStore('queue').openCursor();
+    req.onsuccess = (e) => {
+      const cur = e.target.result;
+      if (cur) {
+        const v = cur.value;
+        if (v && v.dev && v.dev.serial) set.add(v.dev.serial);
+        else if (v && v.serial) set.add(v.serial);
+        cur.continue();
+      } else r(set);
+    };
+    req.onerror = () => r(set);
+    t.onabort = () => r(set);
+    t.onerror = () => r(set);
+  });
+
   const cloudSet = new Set(data.map(d => d.serial));
   const now = Date.now();
-  const localMap = new Map(state.devices.map(d => [d.serial, d]));
+
+  const localMap = new Map();
+  await new Promise(r => {
+    try {
+      const t = db.transaction('devices', 'readonly');
+      const req = t.objectStore('devices').openCursor();
+      req.onsuccess = e => {
+        const cur = e.target.result;
+        if (cur) { localMap.set(cur.value.serial, cur.value); cur.continue(); }
+        else r();
+      };
+      req.onerror = () => r();
+      t.onabort = () => r();
+      t.onerror = () => r();
+    } catch(e) { r(); }
+  });
 
   return new Promise(resolve => {
+    let settled = false;
+    const done = () => { if (!settled) { settled = true; resolve(); } };
+
     try {
       const t = db.transaction("devices", "readwrite");
       const s = t.objectStore("devices");
-      s.getAllKeys().onsuccess = e => {
-        (e.target.result || []).forEach(sn => {
-          if (cloudSet.has(sn) || queuedSerials.has(sn) || (protectedSerials && protectedSerials.has(sn))) return;
-          if (recentLocal.get(sn) && now - recentLocal.get(sn) < RECENT_LOCAL_TTL) return;
-          s.delete(sn);
-        });
-        data.forEach(d => {
-          if (queuedSerials.has(d.serial) || (protectedSerials && protectedSerials.has(d.serial))) return;
-          if (recentLocal.get(d.serial) && now - recentLocal.get(d.serial) < RECENT_LOCAL_TTL) return;
-          const ex = localMap.get(d.serial);
-          if (ex && ex.last_move && d.last_move && Date.parse(ex.last_move) > Date.parse(d.last_move)) return;
-          s.put(d);
-        });
+
+      const keysReq = s.getAllKeys();
+      keysReq.onsuccess = () => {
+        try {
+          const localKeys = keysReq.result || [];
+          localKeys.forEach(sn => {
+            if (cloudSet.has(sn)) return;
+            if (queuedSerials.has(sn)) return;
+            if (protectedSerials && protectedSerials.has(sn)) return;
+            const recent = recentLocal.get(sn);
+            if (recent && now - recent < RECENT_LOCAL_TTL) return;
+            s.delete(sn);
+          });
+          data.forEach(d => {
+            if (protectedSerials && protectedSerials.has(d.serial)) return;
+            if (queuedSerials.has(d.serial)) return;
+            const recent = recentLocal.get(d.serial);
+            if (recent && now - recent < RECENT_LOCAL_TTL) return;
+            const existing = localMap.get(d.serial);
+            if (existing && existing.last_move && d.last_move) {
+              const t1 = Date.parse(existing.last_move);
+              const t2 = Date.parse(d.last_move);
+              if (!isNaN(t1) && !isNaN(t2) && t1 > t2) return;
+            }
+            s.put(d);
+          });
+        } catch(e) { dbg('applyPull handler error', e); }
       };
-      t.oncomplete = () => loadLocal().then(resolve);
-      t.onerror = () => resolve();
-    } catch(e) { resolve(); }
+      keysReq.onerror = () => {};
+
+      t.oncomplete = () => { loadLocal().then(done).catch(done); };
+      t.onerror = () => { done(); };
+      t.onabort = () => { done(); };
+    } catch(e) { done(); }
   });
 }
 
@@ -1325,221 +1364,353 @@ function setSync(ok, txt, busy = false) {
 let syncScheduledTimer = null;
 function scheduleSync(delay) {
   clearTimeout(syncScheduledTimer);
+  const d = typeof delay === 'number' ? delay : SYNC_BASE_INTERVAL;
   syncScheduledTimer = setTimeout(async () => {
     const ok = await syncNow();
-    state.syncBackoff = ok ? 0 : Math.min(state.syncBackoff + 1, 5);
-    const next = ok ? SYNC_BASE_INTERVAL : Math.min(SYNC_BASE_INTERVAL * Math.pow(2, state.syncBackoff), SYNC_MAX_INTERVAL);
-    scheduleSync(next);
-  }, typeof delay === 'number' ? delay : SYNC_BASE_INTERVAL);
+    if (ok) {
+      state.syncBackoff = 0;
+      scheduleSync(SYNC_BASE_INTERVAL);
+    } else {
+      const exp = Math.min(state.syncBackoff + 1, 5);
+      const base = Math.min(SYNC_BASE_INTERVAL * Math.pow(2, exp), SYNC_MAX_INTERVAL);
+      const jitter = base * SYNC_JITTER * (Math.random() * 2 - 1);
+      state.syncBackoff = exp;
+      scheduleSync(Math.max(SYNC_BASE_INTERVAL, base + jitter));
+    }
+  }, d);
 }
 
 async function forceSync() {
   closeModal('diagModal');
   state.syncToken++;
   state.syncing = false;
+  state.syncBackoff = 0;
   await syncNow();
+  scheduleSync(SYNC_BASE_INTERVAL);
+}
+
+async function clearStuckQueue() {
+  const items = await readQueueWithKeys();
+  if (!items.length) { showToast('ОЧЕРЕДЬ', 'Пусто', 'warn'); return; }
+  if (!confirm(`Удалить все пакеты из очереди синхронизации?\n\nНайдено: ${items.length}\n\nЛокальная база и облако НЕ пострадают.`)) return;
+  for (const item of items) await deleteQueueKey(item.key);
+  showToast('ОЧЕРЕДЬ ОЧИЩЕНА', `Удалено ${items.length} пакетов`, 'warn');
+  closeModal('diagModal');
+  setTimeout(() => scheduleSync(200), 200);
+}
+
+async function renderQueuePreview() {
+  const items = await readQueueWithKeys();
+  if (!items.length) return '<div style="color:var(--text-muted); padding:6px 0;">Пусто</div>';
+  return items.slice(0, 30).map(item => {
+    const it = item.value || {};
+    const type = it.type || 'upsert';
+    const sn = (it.dev && it.dev.serial) || it.serial || '?';
+    const action = it.action || type;
+    const t = it.ts ? new Date(it.ts).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : '';
+    const color = type === 'delete' ? 'var(--neon-rose)' : 'var(--neon-cyan)';
+    return `<div style="font-size:11px; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; gap:8px;">
+      <span style="color:${color}; font-weight:700;">${esc(type)}</span>
+      <span style="color:#fff; font-family:'JetBrains Mono'; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(sn)}</span>
+      <span style="color:var(--text-muted); font-size:10px;">${esc(action)}</span>
+      <span style="color:var(--text-muted); font-size:10px;">${t}</span>
+    </div>`;
+  }).join('') + (items.length > 30 ? `<div style="font-size:10px; color:var(--text-muted); padding:4px 0;">… ещё ${items.length - 30}</div>` : '');
+}
+
+async function hardReset() {
+  if (!confirm('Это очистит локальную базу, кэш и очередь.\n\nОблако Supabase не пострадает.\n\nПродолжить?')) return;
+  try {
+    localStorage.removeItem('vst_lastPull');
+    localStorage.removeItem('sklad_shift_pref');
+    localStorage.removeItem(AUTO_SWAP_KEY);
+    localStorage.removeItem(DRAFT_KEY);
+    localStorage.removeItem('sklad_worker_shifts');
+    if (db) {
+      const stores = ['devices', 'queue', 'moves'];
+      const t = db.transaction(stores, 'readwrite');
+      stores.forEach(s => t.objectStore(s).clear());
+      await new Promise(r => { t.oncomplete = r; t.onerror = r; t.onabort = r; });
+    }
+    state.devices = [];
+    state.workerShifts = {};
+    state.lastDropQuery = null;
+    state.lastRetDropQuery = null;
+    recentLocal.clear();
+    renderTable();
+    showToast('СБРОШЕНО', 'Данные очищены. Нажмите F5', 'warn');
+  } catch(e) { showToast('ОШИБКА', e.message, 'err'); }
 }
 
 /* ============================================================
-   OMNI-TERMINAL ENGINE (v9.0.1)
+   БЭКАПЫ
    ============================================================ */
-function setOmniPreset(preset) {
-  state.omniPreset = preset;
-  $('modeBtnAuto').classList.toggle('active', preset === 'auto');
-  $('modeBtnIssue').classList.toggle('active', preset === 'issue');
-  $('modeBtnReturn').classList.toggle('active', preset === 'return');
-  resetOmniContext();
-  $('omniInput').focus();
+async function checkAutoBackup() {
+  if (!cloud || !navigator.onLine) return;
+  if (!state.devices.length) return;
+  const lastDate = localStorage.getItem('sklad_last_backup_date');
+  const today = new Date().toISOString().slice(0, 10);
+  if (lastDate === today) return;
+  const lastTime = parseInt(localStorage.getItem('sklad_last_backup_time') || '0');
+  if (Date.now() - lastTime < BACKUP_MIN_INTERVAL) return;
+  await doBackup('auto');
 }
 
-function resetOmniContext() {
-  state.omniStep = 'idle';
-  state.omniLockedSn = null;
-  state.omniLockedWorker = null;
-  state.omniWorkerOldSn = null;
-  updateOmniUI();
+async function doBackup(trigger) {
+  if (!cloud || !navigator.onLine) {
+    if (trigger === 'manual') showToast('БЭКАП', 'Нет соединения', 'warn');
+    return;
+  }
+  if (!state.devices.length) {
+    if (trigger === 'manual') showToast('БЭКАП', 'Нет данных', 'warn');
+    return;
+  }
+  try {
+    const backup = {
+      version: 1, created_at: nowIso(), total: state.devices.length,
+      devices: state.devices.map(d => ({
+        serial: d.serial, model: d.model, status: d.status, holder: d.holder,
+        shift: d.shift, issued_at: d.issued_at, last_move: d.last_move
+      }))
+    };
+    const date = new Date().toISOString().slice(0, 10);
+    const time = new Date().toISOString().slice(11, 16).replace(':', '');
+    const filename = `backup-${date}-${time}.json`;
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const { error } = await withTimeout(
+      cloud.storage.from(BACKUP_BUCKET).upload(filename, blob, { upsert: true, contentType: 'application/json' }),
+      NET_TIMEOUT_MS, 'backup upload'
+    );
+    if (error) throw error;
+    localStorage.setItem('sklad_last_backup_date', date);
+    localStorage.setItem('sklad_last_backup_time', String(Date.now()));
+    logMsg(`💾 бэкап: ${filename} (${state.devices.length} ТСД)`);
+    if (trigger === 'manual') { showToast('БЭКАП СОЗДАН', `${state.devices.length} ТСД → ${filename}`); renderBackupList(); }
+    await cleanupOldBackups();
+  } catch(e) {
+    const msg = e.message || '?';
+    state.lastError = 'backup: ' + msg;
+    if (trigger === 'manual') {
+      if (/bucket.*not.*found|does not exist/i.test(msg)) showToast('НЕТ БАКЕТА', 'Создайте bucket "sklad-backups"', 'err');
+      else if (/permission|policy|unauthorized/i.test(msg)) showToast('НЕТ ДОСТУПА', 'Проверьте RLS', 'err');
+      else showToast('ОШИБКА БЭКАПА', msg, 'err');
+    }
+  }
 }
 
-function clearOmniAll() {
-  $('omniInput').value = '';
-  $('omniDrop').classList.remove('show');
-  resetOmniContext();
-  $('omniInput').focus();
+async function cleanupOldBackups() {
+  try {
+    const { data, error } = await withTimeout(
+      cloud.storage.from(BACKUP_BUCKET).list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } }),
+      NET_TIMEOUT_MS, 'backup list'
+    );
+    if (error || !data) return;
+    const backups = data.filter(f => f.name.startsWith('backup-') && f.name.endsWith('.json')).sort((a, b) => b.name.localeCompare(a.name));
+    if (backups.length <= BACKUP_KEEP) return;
+    for (const f of backups.slice(BACKUP_KEEP)) {
+      try { await withTimeout(cloud.storage.from(BACKUP_BUCKET).remove([f.name]), NET_TIMEOUT_MS, 'backup remove'); } catch(e) { dbg('backup remove failed', e); }
+    }
+  } catch(e) { dbg('cleanupOldBackups error', e); }
 }
 
-function updateOmniUI() {
-  const deck = $('omniDeck');
-  const pill = $('omniContext');
-  const inp = $('omniInput');
-  const btn = $('omniSubmitBtn');
-  const hint = $('omniHint');
+async function listBackups() {
+  if (!cloud) return [];
+  try {
+    const { data, error } = await withTimeout(
+      cloud.storage.from(BACKUP_BUCKET).list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } }),
+      NET_TIMEOUT_MS, 'backup list'
+    );
+    if (error || !data) return [];
+    return data.filter(f => f.name.startsWith('backup-') && f.name.endsWith('.json')).sort((a, b) => b.name.localeCompare(a.name));
+  } catch(e) { return []; }
+}
 
-  deck.className = 'omni-deck';
-  pill.className = 'omni-context-pill';
-  btn.className = 'omni-submit';
+async function renderBackupList() {
+  const wrap = $('backupList'); if (!wrap) return;
+  wrap.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8; font-size:12px;">Загрузка...</div>';
+  const files = await listBackups();
+  if (!files.length) {
+    wrap.innerHTML = '<div style="padding:30px 20px; text-align:center; color:#475569; font-size:12px;">Бэкапов пока нет</div>';
+    return;
+  }
+  wrap.innerHTML = files.map(f => {
+    const sizeKb = Math.round((f.metadata?.size || 0) / 1024);
+    const date = new Date(f.created_at || f.updated_at || Date.now());
+    const dateStr = date.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return `<div class="backup-row">
+      <div class="backup-info">
+        <div class="backup-name">${esc(f.name)}</div>
+        <div class="backup-meta">${dateStr} · ${sizeKb} КБ</div>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button class="backup-btn-restore" data-bk-action="restore" data-bk-file="${esc(f.name)}">📥 Восстановить</button>
+        <button class="backup-btn-delete" data-bk-action="delete" data-bk-file="${esc(f.name)}">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  if (state.omniStep === 'await_worker') {
-    deck.classList.add('mode-issue');
-    pill.classList.add('show', 'ctx-issue');
-    pill.innerHTML = `📤 ВЫДАЧА: <b>${esc(state.omniLockedSn)}</b> <span>✕</span>`;
-    inp.placeholder = 'Шаг 2: Введите или пикните ID / ФИО сотрудника ➔ Enter';
-    btn.innerText = 'ВЫДАТЬ (ENTER)';
-    hint.innerText = 'Выбран свободный сканер • Введите получателя (Esc — отмена)';
-  } else if (state.omniStep === 'await_sn') {
-    deck.classList.add('mode-issue');
-    pill.classList.add('show', 'ctx-worker');
-    pill.innerHTML = `👤 ПОЛУЧАТЕЛЬ: <b>${esc(state.omniLockedWorker)}</b> <span>✕</span>`;
-    inp.placeholder = 'Шаг 2: Пикните свободный ТСД (или введите хвост SN) ➔ Enter';
-    btn.innerText = 'ВЫДАТЬ (ENTER)';
-    hint.innerText = 'Выбран сотрудник • Отсканируйте сканер для выдачи';
-  } else if (state.omniStep === 'worker_active') {
-    deck.classList.add('mode-swap');
-    pill.classList.add('show', 'ctx-swap');
-    pill.innerHTML = `🔄 ${esc(state.omniLockedWorker)} (на руках ${esc(state.omniWorkerOldSn)}) <span>✕</span>`;
-    inp.placeholder = 'Enter (пусто) = Принять на склад  |  Скан нового ТСД = Экспресс-замена';
-    btn.classList.add('btn-swp');
-    btn.innerText = 'ПРИНЯТЬ / ЗАМЕНИТЬ';
-    hint.innerText = 'На сотруднике уже есть прибор! Нажмите Enter для сдачи или пикните новый ТСД для замены';
-  } else {
-    if (state.omniPreset === 'issue') {
-      deck.classList.add('mode-issue');
-      inp.placeholder = 'Режим выдачи: пикните свободный ТСД (или хвост SN) ➔ Enter';
-      btn.innerText = 'ДАЛЕЕ (ENTER)';
-      hint.innerText = 'Принудительный режим выдачи (F1)';
-    } else if (state.omniPreset === 'return') {
-      deck.classList.add('mode-return');
-      inp.placeholder = 'Режим приёма: пикните сдаваемый ТСД, хвост или ID сотрудника ➔ Enter';
-      btn.classList.add('btn-ret');
-      btn.innerText = 'ПРИНЯТЬ (ENTER)';
-      hint.innerText = 'Принудительный режим сдачи на склад (F2)';
+async function restoreFromBackup(filename) {
+  if (!cloud) return;
+  try {
+    const { data, error } = await withTimeout(
+      cloud.storage.from(BACKUP_BUCKET).download(filename),
+      NET_TIMEOUT_MS, 'backup download'
+    );
+    if (error) throw error;
+    const text = await data.text();
+    const backup = JSON.parse(text);
+    const devices = backup.devices || [];
+    if (!devices.length) throw new Error('Пустой бэкап');
+    const ok = confirm(`Восстановить из "${filename}"?\n\nТСД: ${devices.length}\n\n⚠️ Локальные и облачные данные будут заменены на копию.`);
+    if (!ok) return;
+
+    // Сразу пишем в облако, чтобы предотвратить стирание при плановом pull
+    showToast('ВОССТАНОВЛЕНИЕ', 'Загрузка данных в облако...', 'warn');
+    const { error: cloudErr } = await withTimeout(
+      cloud.from('devices').upsert(devices, { onConflict: 'serial' }),
+      NET_TIMEOUT_MS * 2, 'restore cloud upsert'
+    );
+    if (cloudErr) throw new Error('Облако отклонило бэкап: ' + cloudErr.message);
+
+    await new Promise((res, rej) => {
+      const t = db.transaction(['devices', 'queue'], 'readwrite');
+      t.objectStore('devices').clear(); t.objectStore('queue').clear();
+      t.oncomplete = res; t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+    });
+    await new Promise((res, rej) => {
+      const t = db.transaction('devices', 'readwrite');
+      const s = t.objectStore('devices');
+      devices.forEach(d => { if (d && d.serial) s.put(d); });
+      t.oncomplete = res; t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+    });
+
+    await loadLocal();
+    closeModal('backupModal');
+    showToast('ВОССТАНОВЛЕНО', `${devices.length} ТСД успешно загружено`);
+  } catch(e) { showToast('ОШИБКА', e.message || '?', 'err'); }
+}
+
+async function deleteBackup(filename) {
+  if (!confirm(`Удалить бэкап "${filename}"?`)) return;
+  try {
+    const { error } = await withTimeout(cloud.storage.from(BACKUP_BUCKET).remove([filename]), NET_TIMEOUT_MS, 'backup remove');
+    if (error) throw error;
+    showToast('УДАЛЕНО', filename, 'warn'); renderBackupList();
+  } catch(e) { showToast('ОШИБКА', e.message || '?', 'err'); }
+}
+
+function openBackupModal() { openModal('backupModal'); renderBackupList(); }
+
+/* ============================================================
+   DRAFT
+   ============================================================ */
+function saveDraft() {
+  try {
+    const sn = $('issSn').value;
+    const worker = $('issWorker').value;
+    if (!sn && !worker) { localStorage.removeItem(DRAFT_KEY); return; }
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ sn, worker, ts: Date.now() }));
+  } catch(e) {}
+}
+function restoreDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (!d || !d.ts || Date.now() - d.ts > DRAFT_TTL_MS) { localStorage.removeItem(DRAFT_KEY); return; }
+    if (d.sn) $('issSn').value = d.sn;
+    if (d.worker) $('issWorker').value = d.worker;
+    if (d.sn || d.worker) logMsg('↩ Восстановлен черновик выдачи');
+  } catch(e) {}
+}
+function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); } catch(e) {} }
+
+/* ============================================================
+   DROPDOWN — выдача
+   ============================================================ */
+function resetIssueDropdown() {
+  const drop = $('issDrop');
+  drop.classList.remove('show');
+  drop.innerHTML = '';
+  state.lastDropQuery = null;
+}
+function resetRetDropdown() {
+  const drop = $('retDrop');
+  drop.classList.remove('show');
+  drop.innerHTML = '';
+  state.lastRetDropQuery = null;
+}
+function resetWorkerDropdown() {
+  const drop = $('workerDrop');
+  if (drop) { drop.classList.remove('show'); drop.innerHTML = ''; }
+}
+
+function handleIssSnInput() {
+  const el = $('issSn');
+  const raw = el.value;
+  const fixed = fixLayout(raw);
+  if (fixed !== el.value) {
+    if (hasCyr(raw)) logMsg(`🔧 layout: "${raw}" ➔ "${fixed}"`);
+    el.value = fixed;
+  }
+  const drop = $('issDrop');
+
+  if (fixed.length < 2) {
+    drop.classList.remove('show'); drop.innerHTML = '';
+    state.lastDropQuery = null;
+    $('modelHint').innerText = "F1 • Скан ➔ ID ➔ Enter";
+    return;
+  }
+
+  const freeDevs = state.devices.filter(d => d.status === 'free');
+  const matches = freeDevs.filter(d => d.serial.toUpperCase().endsWith(fixed) || d.serial.toUpperCase().includes(fixed));
+
+  if (!matches.length) {
+    drop.classList.remove('show'); drop.innerHTML = '';
+    state.lastDropQuery = fixed;
+    const exactAny = state.devices.find(d => d.serial.toUpperCase() === fixed);
+    if (exactAny && exactAny.status === 'issued') {
+      $('modelHint').innerText = `⚠️ Прибор уже выдан сотруднику: ${exactAny.holder}`;
     } else {
-      inp.placeholder = 'Пикните любой сканер (или введите хвост SN / табельный ID / ФИО) ➔ Enter';
-      btn.innerText = 'ВВОД (ENTER)';
-      hint.innerText = 'Скан выданного ТСД = мгновенный приём • Скан свободного ТСД = выдача';
+      $('modelHint').innerText = `⚡ Новый: создастся как ${detectModel(fixed)}`;
     }
-  }
-}
-
-/* Обработка ввода и формирование умных подсказок */
-function handleOmniInput() {
-  const inp = $('omniInput');
-  let raw = inp.value;
-
-  if (state.omniStep !== 'await_worker' && isBarcodeInRuLayout(raw)) {
-    const fixed = fixLayout(raw);
-    logMsg(`🔧 Авто-раскладка сканера: "${raw}" ➔ "${fixed}"`);
-    inp.value = fixed;
-    raw = fixed;
-  }
-
-  $('omniClearBtn').classList.toggle('show', raw.length > 0 || state.omniStep !== 'idle');
-
-  const q = raw.trim();
-  const drop = $('omniDrop');
-  if (q.length < 1) {
-    drop.classList.remove('show');
-    drop.innerHTML = '';
     return;
   }
 
-  const qu = q.toUpperCase();
-  const qFixed = hasCyr(q) && !isBarcodeInRuLayout(q) ? qu : fixLayout(q);
-  const suggestions = [];
-
-  if (state.omniStep === 'await_worker') {
-    const workers = getKnownWorkers();
-    workers.filter(w => w.toUpperCase().includes(qu)).slice(0, 7).forEach(w => {
-      const activeDev = state.devices.find(d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === w.toUpperCase());
-      suggestions.push({
-        kind: 'worker',
-        val: w,
-        html: `<div><b style="color:#fff;">👤 ${esc(w)}</b></div>
-               <span style="font-size:11px; color:${activeDev ? 'var(--neon-amber)' : 'var(--neon-cyan)'};">
-                 ${activeDev ? `🔄 Замена ${esc(activeDev.serial)}` : '📤 Выдать'}
-               </span>`
-      });
-    });
-  } else {
-    state.devices.forEach(d => {
-      const s = d.serial.toUpperCase();
-      const h = (d.holder || '').toUpperCase();
-      if (s === qFixed || s.endsWith(qFixed) || s.includes(qFixed) || (d.status === 'issued' && h.includes(qu))) {
-        if (d.status === 'issued' && state.omniPreset !== 'issue' && state.omniStep !== 'await_sn') {
-          // ФИКС ПРИОРИТЕТА: если совпал серийник ИЛИ табельный номер держателя, ставим максимальный вес (100), чтобы сдача была первой строкой!
-          const isExact = (s === qFixed || h === qu);
-          const isTailOrStart = (s.endsWith(qFixed) || h.startsWith(qu));
-          suggestions.push({
-            kind: 'return_sn',
-            val: d.serial,
-            score: isExact ? 100 : (isTailOrStart ? 90 : 75),
-            html: `<div><span class="mono" style="font-weight:800; color:var(--neon-emerald);">📥 СДАТЬ: ${esc(d.serial)}</span> <span style="color:var(--text-secondary); font-size:11px;">(${esc(d.model)})</span></div>
-                   <span style="font-size:11.5px; color:#f1f5f9; font-weight:700;">👤 ${esc(d.holder)} · <span style="color:var(--neon-cyan);">${fmtHoursShort(hoursSince(d.issued_at))}</span></span>`
-          });
-        } else if (d.status === 'free' && state.omniPreset !== 'return') {
-          suggestions.push({
-            kind: 'issue_sn',
-            val: d.serial,
-            score: s === qFixed ? 95 : (s.endsWith(qFixed) ? 85 : 60),
-            html: `<div><span class="mono" style="font-weight:800; color:var(--neon-cyan);">📤 ВЫДАТЬ: ${esc(d.serial)}</span> <span style="color:var(--text-secondary); font-size:11px;">(${esc(d.model)})</span></div>
-                   <span style="font-size:10.5px; color:var(--neon-emerald);">🟢 НА СКЛАДЕ</span>`
-          });
-        } else if (d.status === 'repair') {
-          suggestions.push({
-            kind: 'repair_sn',
-            val: d.serial,
-            score: 40,
-            html: `<div><span class="mono" style="font-weight:800; color:var(--neon-amber);">🛠 РЕМОНТ: ${esc(d.serial)}</span></div>
-                   <span style="font-size:11px; color:var(--neon-amber);">${esc(d.holder)}</span>`
-          });
-        }
-      }
-    });
-
-    if (state.omniStep === 'idle' && q.length >= 2) {
-      getKnownWorkers().filter(w => w.toUpperCase().includes(qu)).slice(0, 3).forEach(w => {
-        const activeDev = state.devices.find(d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === w.toUpperCase());
-        suggestions.push({
-          kind: 'select_worker',
-          val: w,
-          score: activeDev ? 65 : 50,
-          html: `<div><b style="color:#93c5fd;">🔄 СОТРУДНИК (ЗАМЕНА / ВЫДАЧА): ${esc(w)}</b></div>
-                 <span style="font-size:11px; color:${activeDev ? 'var(--neon-amber)' : 'var(--text-secondary)'};">
-                   ${activeDev ? `Заменить ${esc(activeDev.serial)} на другой` : 'Выбрать для выдачи'}
-                 </span>`
-        });
-      });
-    }
-  }
-
-  suggestions.sort((a, b) => (b.score || 0) - (a.score || 0));
-  const top = suggestions.slice(0, 8);
-
-  if (!top.length) {
-    drop.classList.remove('show');
-    drop.innerHTML = '';
-    return;
-  }
-
-  drop.innerHTML = top.map((it, i) => `
-    <div class="drop-item ${i === 0 ? 'selected' : ''}" data-kind="${it.kind}" data-val="${esc(it.val)}">
-      ${it.html}
+  drop.innerHTML = matches.slice(0, 8).map((d, i) => `
+    <div class="drop-item ${i === 0 ? 'selected' : ''}" data-sn="${esc(d.serial)}">
+      <div><span class="mono" style="font-weight:700; color:var(--neon-cyan);">${esc(d.serial)}</span> <span style="color:var(--text-secondary); font-size:11px;">(${esc(d.model)})</span></div>
+      <span style="font-size:10px; color:var(--neon-emerald);">🟢 НА СКЛАДЕ</span>
     </div>
   `).join('');
   drop.classList.add('show');
+  state.lastDropQuery = fixed;
 }
 
-function getKnownWorkers() {
-  const set = new Set();
-  state.devices.forEach(d => { if (d.status === 'issued' && d.holder) set.add(d.holder); });
-  if (state.workerShifts) Object.keys(state.workerShifts).forEach(w => set.add(w));
-  return Array.from(set);
-}
-
-function handleOmniKeydown(e) {
-  const drop = $('omniDrop');
+function handleIssSnKeydown(e) {
+  const el = $('issSn');
+  const drop = $('issDrop');
+  
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    // Принудительно синхронизируем раскладку и поиск прямо перед обработкой
+    handleIssSnInput();
+    const items = Array.from(drop.querySelectorAll('.drop-item'));
+    const cur = items.findIndex(it => it.classList.contains('selected'));
+    const curVal = fixLayout(el.value);
+    const dropIsFresh = state.lastDropQuery !== null && state.lastDropQuery === curVal;
+    
+    if (dropIsFresh && drop.classList.contains('show') && cur >= 0 && items[cur]) {
+      el.value = items[cur].dataset.sn;
+    }
+    resetIssueDropdown();
+    $('issWorker').focus();
+    return;
+  }
+  
   const items = Array.from(drop.querySelectorAll('.drop-item'));
   const cur = items.findIndex(it => it.classList.contains('selected'));
-
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     if (!items.length) return;
     e.preventDefault();
@@ -1549,267 +1720,155 @@ function handleOmniKeydown(e) {
     items[next].scrollIntoView({ block: 'nearest' });
     return;
   }
+  if (e.key === 'Escape') resetIssueDropdown();
+}
+
+function handleWorkerInput() {
+  const q = $('issWorker').value.trim().toUpperCase();
+  const drop = $('workerDrop');
+  if (q.length < 2) { resetWorkerDropdown(); return; }
+
+  const workerSet = new Set();
+  state.devices.forEach(d => { if (d.holder) workerSet.add(d.holder); });
+  if (state.workerShifts) Object.keys(state.workerShifts).forEach(w => workerSet.add(w));
+
+  const matches = Array.from(workerSet).filter(w => w.toUpperCase().includes(q)).slice(0, 5);
+  if (!matches.length) { resetWorkerDropdown(); return; }
+
+  drop.innerHTML = matches.map((w, idx) => `
+    <div class="drop-item ${idx === 0 ? 'selected' : ''}" data-worker="${esc(w)}">
+      <span style="font-weight:700; color:#cbd5e1;">👤 ${esc(w)}</span>
+    </div>
+  `).join('');
+  drop.classList.add('show');
+}
+
+function handleIssWorkerKeydown(e) {
+  const drop = $('workerDrop');
+  const items = Array.from(drop.querySelectorAll('.drop-item'));
+  const cur = items.findIndex(it => it.classList.contains('selected'));
 
   if (e.key === 'Enter') {
     e.preventDefault();
-    handleOmniInput();
-    const freshItems = Array.from(drop.querySelectorAll('.drop-item'));
-    const freshCur = freshItems.findIndex(it => it.classList.contains('selected'));
-
-    if (drop.classList.contains('show') && freshCur >= 0 && freshItems[freshCur]) {
-      const item = freshItems[freshCur];
-      const raw = $('omniInput').value.trim();
-      const qu = raw.toUpperCase();
-      const exactTypedDev = state.devices.find(d => d.serial.toUpperCase() === fixLayout(raw));
-      const exactTypedHolder = state.devices.find(d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === qu);
-      if (exactTypedDev || exactTypedHolder || freshItems.length === 1 || state.omniStep === 'await_worker' || freshCur > 0) {
-        executeDropChoice(item.dataset.kind, item.dataset.val);
-        return;
-      }
+    if (drop.classList.contains('show') && cur >= 0 && items[cur]) {
+      $('issWorker').value = items[cur].dataset.worker;
+      resetWorkerDropdown();
     }
-    handleOmniSubmit();
-  }
-}
-
-async function executeDropChoice(kind, val) {
-  $('omniDrop').classList.remove('show');
-  $('omniInput').value = '';
-
-  if (kind === 'return_sn') {
-    await doReturn(val);
-    resetOmniContext();
-  } else if (kind === 'issue_sn') {
-    if (state.omniStep === 'await_sn' && state.omniLockedWorker) {
-      await finalizeIssue(val, state.omniLockedWorker);
-    } else if (state.omniStep === 'worker_active' && state.omniLockedWorker) {
-      await finalizeIssue(val, state.omniLockedWorker);
-    } else {
-      state.omniStep = 'await_worker';
-      state.omniLockedSn = val;
-      updateOmniUI();
-    }
-  } else if (kind === 'worker') {
-    if (state.omniLockedSn) {
-      await finalizeIssue(state.omniLockedSn, val);
-    }
-  } else if (kind === 'select_worker') {
-    const activeDev = state.devices.find(d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === val.toUpperCase());
-    state.omniLockedWorker = val;
-    if (activeDev) {
-      state.omniStep = 'worker_active';
-      state.omniWorkerOldSn = activeDev.serial;
-    } else {
-      state.omniStep = 'await_sn';
-    }
-    updateOmniUI();
-  } else if (kind === 'repair_sn') {
-    openAudit(val);
-  }
-  $('omniInput').focus();
-}
-
-async function handleOmniSubmit() {
-  const inp = $('omniInput');
-  const raw = inp.value.trim();
-  $('omniDrop').classList.remove('show');
-  $('omniBar').classList.remove('err');
-
-  if (!raw && state.omniStep === 'worker_active' && state.omniWorkerOldSn) {
-    const snToRet = state.omniWorkerOldSn;
-    resetOmniContext();
-    await doReturn(snToRet);
+    submitIssue();
     return;
   }
-
-  if (!raw) {
-    $('omniBar').classList.add('err');
-    setTimeout(() => $('omniBar').classList.remove('err'), 800);
-    beep('err');
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    if (!items.length) return;
+    e.preventDefault();
+    if (cur >= 0) items[cur].classList.remove('selected');
+    const next = e.key === 'ArrowDown' ? (cur + 1) % items.length : (cur - 1 + items.length) % items.length;
+    items[next].classList.add('selected');
+    items[next].scrollIntoView({ block: 'nearest' });
     return;
   }
-
-  if (state.omniStep === 'await_worker' && state.omniLockedSn) {
-    inp.value = '';
-    await finalizeIssue(state.omniLockedSn, raw);
-    return;
-  }
-
-  if ((state.omniStep === 'await_sn' || state.omniStep === 'worker_active') && state.omniLockedWorker) {
-    const resolvedSn = resolveSerialInput(raw);
-    if (!resolvedSn) return;
-    inp.value = '';
-    await finalizeIssue(resolvedSn, state.omniLockedWorker);
-    return;
-  }
-
-  const qu = raw.toUpperCase();
-  const qFixed = (hasCyr(raw) && !isBarcodeInRuLayout(raw)) ? qu : fixLayout(raw);
-
-  // 1. Точное совпадение по серийнику
-  const exactDev = state.devices.find(d => d.serial.toUpperCase() === qFixed);
-  if (exactDev) {
-    inp.value = '';
-    await routeDeviceInOmni(exactDev);
-    return;
-  }
-
-  // 2. Совпадение по держателю (табельный ID / ФИО)
-  const holderMatches = state.devices.filter(d => d.status === 'issued' && d.holder && (d.holder.toUpperCase() === qu || d.holder.toUpperCase().includes(qu)));
-  // 3. Совпадение по хвосту серийника
-  const tailMatches = state.devices.filter(d => d.serial.toUpperCase().endsWith(qFixed));
-
-  if (tailMatches.length === 1 && !hasCyr(raw)) {
-    inp.value = '';
-    await routeDeviceInOmni(tailMatches[0]);
-    return;
-  }
-
-  // ФИКС: если ввели ID сотрудника, у которого 1 прибор на руках — сразу принимаем его на склад!
-  if (holderMatches.length === 1 && state.omniPreset !== 'issue') {
-    inp.value = '';
-    await doReturn(holderMatches[0].serial);
-    return;
-  }
-
-  if (holderMatches.length > 1) {
-    showPickModal(holderMatches);
-    return;
-  }
-
-  if (tailMatches.length > 1) {
-    if (state.omniPreset !== 'issue' && tailMatches.every(d => d.status === 'issued')) {
-      showPickModal(tailMatches);
-      return;
-    }
-    beep('err');
-    showToast('УТОЧНИТЕ СЕРИЙНИК', `Найдено ${tailMatches.length} ТСД с хвостом «${qFixed}»`, 'warn');
-    return;
-  }
-
-  if (hasCyr(raw) && !isBarcodeInRuLayout(raw)) {
-    inp.value = '';
-    state.omniLockedWorker = raw;
-    state.omniStep = 'await_sn';
-    updateOmniUI();
-    return;
-  }
-
-  if (SN_REGEX.test(qFixed) && state.omniPreset !== 'return') {
-    if (/^\d{2,5}$/.test(qFixed)) {
-      if (!confirm(`Сканер с хвостом «${qFixed}» не найден.\nВыбрать «${qFixed}» как ID сотрудника для выдачи?`)) {
-        return;
-      }
-      inp.value = '';
-      state.omniLockedWorker = raw;
-      state.omniStep = 'await_sn';
-      updateOmniUI();
-      return;
-    }
-    inp.value = '';
-    state.omniLockedSn = qFixed;
-    state.omniStep = 'await_worker';
-    updateOmniUI();
-    return;
-  }
-
-  beep('err');
-  showToast('НЕ НАЙДЕНО', `«${raw}» не найден среди активных приборов`, 'err');
-}
-
-function resolveSerialInput(raw) {
-  const clean = fixLayout(raw);
-  const exact = state.devices.find(d => d.serial.toUpperCase() === clean);
-  if (exact) return exact.serial;
-  const tails = state.devices.filter(d => d.serial.toUpperCase().endsWith(clean));
-  if (tails.length === 1) return tails[0].serial;
-  if (tails.length > 1) {
-    beep('err');
-    showToast('УТОЧНИТЕ SN', `Найдено ${tails.length} приборов с хвостом «${clean}»`, 'warn');
-    return null;
-  }
-  if (/^\d{2,5}$/.test(clean)) {
-    if (!confirm(`ТСД с хвостом «${clean}» не найден. Создать новый сканер «${clean}»?`)) return null;
-  }
-  if (!SN_REGEX.test(clean)) {
-    beep('err');
-    showToast('НЕВЕРНЫЙ SN', 'Некорректный формат серийного номера', 'err');
-    return null;
-  }
-  return clean;
-}
-
-async function routeDeviceInOmni(dev) {
-  if (dev.status === 'repair') {
-    beep('err');
-    showToastWithAction('🛠 В РЕМОНТЕ', `${dev.serial}: ${dev.holder}`, 'Вернуть в строй', () => restoreFromRepair(dev.serial), 'warn');
-    return;
-  }
-  if (dev.status === 'issued') {
-    if (state.omniPreset === 'issue') {
-      beep('err');
-      showToastWithAction('ЗАНЯТ', `${dev.serial} уже у ${dev.holder}`, '📥 Принять сейчас', () => doReturn(dev.serial), 'err');
-      return;
-    }
-    await doReturn(dev.serial);
-    return;
-  }
-  if (state.omniPreset === 'return') {
-    beep('err');
-    showToast('УЖЕ НА СКЛАДЕ', `${dev.serial} числится свободным`, 'warn');
-    return;
-  }
-  state.omniLockedSn = dev.serial;
-  state.omniStep = 'await_worker';
-  updateOmniUI();
-}
-
-async function finalizeIssue(sn, worker) {
-  const dev = state.devices.find(d => d.serial === sn);
-  if (dev && dev.status === 'repair') {
-    beep('err');
-    showToast('🛠 СКАНЕР В РЕМОНТЕ', `Причина: ${dev.holder}`, 'err');
-    return;
-  }
-  if (dev && dev.status === 'issued') {
-    beep('err');
-    showToastWithAction('ЗАНЯТ', `${sn} уже выдан: ${dev.holder}`, '📥 Принять сейчас', () => doReturn(sn), 'err');
-    return;
-  }
-
-  let shift = state.issueShift;
-  if (state.issueShiftAuto) shift = computeSmartShift(worker);
-
-  const existingWorkerDev = state.devices.find(d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === worker.toUpperCase());
-
-  if (existingWorkerDev) {
-    const pending = {
-      worker, oldSn: existingWorkerDev.serial, newSn: sn, isNew: !dev, shift,
-      originalIssuedAt: existingWorkerDev.issued_at, originalShift: existingWorkerDev.shift
-    };
-    resetOmniContext();
-    if (state.autoSwap) {
-      state.pendingSwap = pending;
-      await confirmSwap();
-      return;
-    }
-    state.pendingSwap = pending;
-    $('swapWorker').innerText = worker;
-    $('swapOldSn').innerText = existingWorkerDev.serial;
-    $('swapOldModel').innerText = existingWorkerDev.model || '—';
-    $('swapNewSn').innerText = sn;
-    $('swapNewModel').innerText = dev ? dev.model : detectModel(sn);
-    $('swapInheritTime').innerText = fmtHoursShort(hoursSince(existingWorkerDev.issued_at));
-    openModal('swapModal');
-    return;
-  }
-
-  resetOmniContext();
-  await performIssue(sn, worker, dev, shift);
+  if (e.key === 'Escape') resetWorkerDropdown();
 }
 
 /* ============================================================
-   ОПЕРАЦИИ ВЫДАЧИ / ПРИЁМА / ЗАМЕНЫ
+   ВЫДАЧА
    ============================================================ */
+async function submitIssue() {
+  if (!state.dbReady) { showToast('БАЗА НЕ ГОТОВА', 'Подождите пару секунд', 'err'); return; }
+  const rawSn = $('issSn').value.trim();
+  const worker = $('issWorker').value.trim();
+  $('issSn').classList.remove('err'); $('issWorker').classList.remove('err');
+
+  if (!rawSn) { $('issSn').classList.add('err'); beep('err'); return; }
+  if (!worker) { $('issWorker').classList.add('err'); beep('err'); return; }
+
+  const cleanRaw = fixLayout(rawSn);
+  if (!SN_REGEX.test(cleanRaw)) {
+    $('issSn').classList.add('err'); beep('err');
+    showToast('НЕВЕРНЫЙ SN', 'Только A-Z, 0-9, дефис, точка, _ (2-60)', 'err');
+    return;
+  }
+
+  const btn = $('btnIssue');
+  btn.classList.add('busy');
+
+  try {
+    const existingWorkerDev = state.devices.find(d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === worker.toUpperCase());
+
+    // Ищем точное совпадение
+    const exactMatch = state.devices.find(d => d.serial.toUpperCase() === cleanRaw);
+    // Ищем совпадения по хвосту среди ВСЕХ устройств базы
+    const allTailMatches = state.devices.filter(d => d.serial.toUpperCase().endsWith(cleanRaw));
+
+    let sn = cleanRaw;
+    if (!exactMatch) {
+      if (allTailMatches.length === 1) {
+        sn = allTailMatches[0].serial;
+      } else if (allTailMatches.length > 1) {
+        $('issSn').classList.add('err'); beep('err');
+        showToast('УТОЧНИТЕ СЕРИЙНИК', `Найдено ${allTailMatches.length} сканеров с хвостом «${cleanRaw}»`, 'warn');
+        return;
+      } else if (/^\d{2,5}$/.test(cleanRaw)) {
+        // Защита от мусорных ТСД из опечаток
+        if (!confirm(`Сканер с хвостом «${cleanRaw}» не найден в базе.\nСоздать новый прибор с серийником «${cleanRaw}»?`)) return;
+      }
+    }
+
+    if (!SN_REGEX.test(sn)) {
+      $('issSn').classList.add('err'); beep('err');
+      showToast('НЕВЕРНЫЙ SN', 'Серийник не прошёл проверку', 'err');
+      return;
+    }
+
+    const dev = state.devices.find(d => d.serial === sn);
+    if (dev && dev.status === 'issued') {
+      beep('err');
+      // Интерактивный перехват: кнопка приёма прямо из тоста
+      showToastWithAction(
+        'ЗАНЯТ', 
+        `${sn} уже выдан: ${dev.holder}`, 
+        '📥 Принять сейчас', 
+        () => doReturn(sn), 
+        'err'
+      );
+      return;
+    }
+
+    let shift = state.issueShift;
+    if (state.issueShiftAuto) shift = computeSmartShift(worker);
+
+    if (existingWorkerDev) {
+      const pending = {
+        worker, oldSn: existingWorkerDev.serial, newSn: sn, isNew: !dev, shift,
+        originalIssuedAt: existingWorkerDev.issued_at, originalShift: existingWorkerDev.shift
+      };
+      if (state.autoSwap) {
+        state.pendingSwap = pending;
+        await confirmSwap();
+        return;
+      }
+      state.pendingSwap = pending;
+      const hoursOnHands = existingWorkerDev.issued_at ? hoursSince(existingWorkerDev.issued_at) : 0;
+      $('swapWorker').innerText = worker;
+      $('swapOldSn').innerText = existingWorkerDev.serial;
+      $('swapOldModel').innerText = existingWorkerDev.model || '—';
+      $('swapNewSn').innerText = sn;
+      $('swapNewModel').innerText = dev ? dev.model : detectModel(sn);
+      $('swapInheritTime').innerText = fmtHoursShort(hoursOnHands);
+      openModal('swapModal');
+      setTimeout(() => $('swapConfirm').focus(), 80);
+      return;
+    }
+
+    await performIssue(sn, worker, dev, shift);
+  } catch(e) {
+    beep('err');
+    showToast('ОШИБКА ВЫДАЧИ', e.message || 'Не удалось', 'err');
+    state.pendingSwap = null;
+  } finally {
+    btn.classList.remove('busy');
+  }
+}
+
 async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
   const isNew = !dev, ts = nowIso();
   const issuedAt = inheritedIssuedAt || ts;
@@ -1830,49 +1889,51 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
   renderTable();
   setTimeout(() => { state.justIssued = null; }, 2500);
 
-  await saveDevice(updated, isNew ? 'Создан и выдан' : 'Выдан', worker);
-  rememberWorkerShift(worker, shift);
-  beep('issue');
-  pushLiveFeed('iss', `📤 ${sn} → ${worker}`);
+  const actionName = inheritedIssuedAt
+    ? (isNew ? 'Создан и выдан (время перенесено)' : 'Выдан (время перенесено)')
+    : (isNew ? 'Создан и выдан' : 'Выдан');
 
-  setUndo('Отменить выдачу', async () => {
-    if (isNew) await deleteSerial(sn);
-    else await saveDevice({ ...oldSnapshot, last_move: nowIso() }, 'Отмена выдачи', worker);
-    beep('return');
-    showToast('ВЫДАЧА ОТМЕНЕНА', `${sn} возвращён на склад`);
-  }, 7000);
-
-  showToastWithAction('ВЫДАНО', `${sn} ➔ ${worker} (${shift})`, '↩ Отменить (Ctrl+Z)', () => undoLast(), 'ok');
-  logMsg(`ВЫДАНО: ${sn} ➔ ${worker} (${shift})`);
-  $('omniInput').focus();
-}
-
-async function doReturn(sn) {
-  const dev = state.devices.find(d => d.serial === sn);
-  if (!dev) return;
-  const holder = dev.holder, ts = nowIso();
-  const snapshot = JSON.parse(JSON.stringify(dev));
-
-  const updated = { ...dev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts };
-  const idx = state.devices.findIndex(d => d.serial === sn);
-  if (idx >= 0) state.devices[idx] = updated;
-  state.justReturned = sn;
-  renderTable();
-  setTimeout(() => { state.justReturned = null; }, 2500);
-
-  await saveDevice(updated, 'Возврат', holder);
-  beep('return');
-  pushLiveFeed('ret', `📥 ${sn} (${holder || '—'})`);
-
-  setUndo('Отменить приём', async () => {
-    await saveDevice({ ...snapshot, last_move: nowIso() }, 'Отмена приёма', holder);
+  try {
+    await saveDevice(updated, actionName, worker);
+    rememberWorkerShift(worker, shift);
     beep('issue');
-    showToast('ВОЗВРАТ ОТМЕНЁН', `${sn} снова у ${holder}`);
-  }, 7000);
 
-  showToastWithAction(`ПРИНЯТ: ${sn}`, `Сдал: ${holder || '—'}`, '↩ Отменить (Ctrl+Z)', () => undoLast(), 'ok');
-  logMsg(`ПРИНЯТО: ${sn} от ${holder}`);
-  $('omniInput').focus();
+    // Навешиваем отмену (Ctrl+Z)
+    setUndo('Отменить выдачу', async () => {
+      try {
+        if (isNew) {
+          await deleteSerial(sn);
+        } else {
+          await saveDevice({ ...oldSnapshot, last_move: nowIso() }, 'Отмена выдачи', worker);
+        }
+        beep('return');
+        showToast('ВЫДАЧА ОТМЕНЕНА', `${sn} возвращён`);
+        logMsg(`↩ ОТМЕНА ВЫДАЧИ: ${sn}`);
+      } catch(e) {
+        showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err');
+      }
+    }, 7000);
+
+    showToast('ВЫДАНО', `${sn} ➔ ${worker} (${shift})`);
+    logMsg(`ВЫДАНО: ${sn} ➔ ${worker} (${shift})`);
+    clearDraft();
+  } catch(e) {
+    if (isNew) {
+      state.devices = state.devices.filter(d => d.serial !== sn);
+    } else if (idx >= 0) {
+      state.devices[idx] = dev;
+    }
+    renderTable();
+    throw e;
+  }
+
+  $('issSn').value = ''; $('issWorker').value = '';
+  resetIssueDropdown();
+  resetWorkerDropdown();
+  $('modelHint').innerText = "F1 • Скан ➔ ID ➔ Enter";
+  if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
+  updateShiftPill();
+  $('issSn').focus();
 }
 
 async function confirmSwap() {
@@ -1880,108 +1941,440 @@ async function confirmSwap() {
   if (!p) return;
   closeModal('swapModal');
 
-  const oldDev = state.devices.find(d => d.serial === p.oldSn);
-  const newDev = state.devices.find(d => d.serial === p.newSn);
-  const ts = nowIso();
-  const inheritedIssuedAt = p.originalIssuedAt || ts;
+  try {
+    const oldDev = state.devices.find(d => d.serial === p.oldSn);
+    const newDev = state.devices.find(d => d.serial === p.newSn);
+    const ts = nowIso();
+    const inheritedIssuedAt = p.originalIssuedAt || ts;
 
-  const snapshot = {
-    oldDevSnapshot: oldDev ? JSON.parse(JSON.stringify(oldDev)) : null,
-    newDevSnapshot: newDev ? JSON.parse(JSON.stringify(newDev)) : null,
-    worker: p.worker, newSn: p.newSn, oldSn: p.oldSn
-  };
+    const snapshot = {
+      oldDevSnapshot: oldDev ? JSON.parse(JSON.stringify(oldDev)) : null,
+      newDevSnapshot: newDev ? JSON.parse(JSON.stringify(newDev)) : null,
+      worker: p.worker, newSn: p.newSn, oldSn: p.oldSn, isNew: p.isNew
+    };
 
-  if (oldDev) {
-    await saveDevice({ ...oldDev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts }, 'Возврат (замена)', p.worker);
+    if (oldDev) {
+      const oIdx = state.devices.findIndex(d => d.serial === p.oldSn);
+      if (oIdx >= 0) state.devices[oIdx] = { ...oldDev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts };
+    }
+    const nIdx = state.devices.findIndex(d => d.serial === p.newSn);
+    const newRecord = {
+      serial: p.newSn, model: newDev ? newDev.model : detectModel(p.newSn),
+      status: 'issued', holder: p.worker, issued_at: inheritedIssuedAt, last_move: ts, shift: p.shift
+    };
+    if (nIdx >= 0) state.devices[nIdx] = newRecord; else state.devices.push(newRecord);
+    renderTable();
+
+    if (oldDev) {
+      await saveDevice({
+        ...oldDev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts
+      }, 'Возврат (замена)', p.worker);
+    }
+
+    await saveDevice(newRecord, p.isNew ? 'Создан и выдан (замена, время сохранено)' : 'Выдача (замена, время сохранено)', p.worker);
+
+    rememberWorkerShift(p.worker, p.shift);
+    beep('swap');
+
+    const hoursOnHands = hoursSince(inheritedIssuedAt);
+    showSwapToast(
+      `ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn}`,
+      `${p.worker} · время ${fmtHoursShort(hoursOnHands)} сохранено`,
+      async () => {
+        const t = nowIso();
+        try {
+          if (!snapshot.newDevSnapshot) {
+            await deleteSerial(snapshot.newSn);
+          } else {
+            await saveDevice({ ...snapshot.newDevSnapshot, last_move: t }, 'Отмена замены (новый)', snapshot.worker);
+          }
+          if (snapshot.oldDevSnapshot) {
+            await saveDevice({ ...snapshot.oldDevSnapshot, last_move: t }, 'Отмена замены (старый)', snapshot.worker);
+          }
+          beep('return');
+          showToast('ОТМЕНЕНО', 'Замена откачена');
+          logMsg(`↩ ОТМЕНА ЗАМЕНЫ: ${snapshot.oldSn} ➔ ${snapshot.newSn}`);
+        } catch(e) {
+          showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err');
+        }
+      }
+    );
+    logMsg(`🔄 ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn} у ${p.worker} · время ${fmtHoursShort(hoursOnHands)}`);
+
+    state.pendingSwap = null;
+    $('issSn').value = ''; $('issWorker').value = '';
+    resetIssueDropdown();
+    resetWorkerDropdown();
+    clearDraft();
+    if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
+    updateShiftPill();
+    $('issSn').focus();
+  } catch(e) {
+    beep('err');
+    showToast('ОШИБКА ЗАМЕНЫ', e.message || '?', 'err');
+    state.pendingSwap = null;
+    await loadLocal();
   }
-  const newRecord = {
-    serial: p.newSn, model: newDev ? newDev.model : detectModel(p.newSn),
-    status: 'issued', holder: p.worker, issued_at: inheritedIssuedAt, last_move: ts, shift: p.shift
-  };
-  await saveDevice(newRecord, p.isNew ? 'Создан и выдан (замена)' : 'Выдача (замена)', p.worker);
-
-  rememberWorkerShift(p.worker, p.shift);
-  beep('swap');
-  pushLiveFeed('swp', `🔄 ${p.oldSn} ➔ ${p.newSn} (${p.worker})`);
-
-  setUndo('Отменить замену', async () => {
-    const t = nowIso();
-    if (!snapshot.newDevSnapshot) await deleteSerial(snapshot.newSn);
-    else await saveDevice({ ...snapshot.newDevSnapshot, last_move: t }, 'Отмена замены', snapshot.worker);
-    if (snapshot.oldDevSnapshot) await saveDevice({ ...snapshot.oldDevSnapshot, last_move: t }, 'Отмена замены', snapshot.worker);
-    beep('return');
-    showToast('ЗАМЕНА ОТМЕНЕНА', `${snapshot.oldSn} восстановлен`);
-  }, 7000);
-
-  showToastWithAction(`ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn}`, `${p.worker} · время сохранено`, '↩ Отменить (Ctrl+Z)', () => undoLast(), 'warn');
-  state.pendingSwap = null;
-  $('omniInput').focus();
 }
 
-function showPickModal(candidates) {
+function showSwapToast(title, desc, undoCallback) {
+  const el = $('toast');
+  $('tIcon').innerText = '🔁';
+  $('tIcon').style.background = 'rgba(0,242,254,0.15)';
+  $('tIcon').style.borderColor = 'var(--neon-cyan)';
+  $('tIcon').style.color = 'var(--neon-cyan)';
+  $('tTitle').innerText = title;
+  $('tTitle').style.color = '#67e8f9';
+  $('tDesc').innerText = desc;
+
+  const oldBtn = el.querySelector('.t-undo');
+  if (oldBtn) oldBtn.remove();
+
+  if (undoCallback) {
+    const btn = document.createElement('button');
+    btn.className = 't-undo';
+    btn.innerText = '↩ Отменить (Ctrl+Z)';
+    btn.onclick = () => { clearUndo(); undoCallback(); };
+    el.appendChild(btn);
+    setUndo('Отменить замену', undoCallback, 7000);
+  }
+
+  el.className = '';
+  el.classList.add('show');
+
+  clearTimeout(state.toastTimer);
+  state.toastTimer = setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => {
+      const b = el.querySelector('.t-undo');
+      if (b) b.remove();
+    }, 400);
+  }, 7000);
+}
+
+function showToastWithAction(title, desc, actionLabel, actionCallback, kind = 'warn') {
+  clearUndo();
+  const el = $('toast');
+  $('tTitle').innerText = title;
+  $('tDesc').innerText = desc || '';
+  $('tIcon').innerText = kind === 'err' ? '✕' : '!';
+  $('tIcon').style.background = '';
+  $('tIcon').style.borderColor = '';
+  $('tIcon').style.color = '';
+  $('tTitle').style.color = '';
+  const oldBtn = el.querySelector('.t-undo');
+  if (oldBtn) oldBtn.remove();
+
+  const actBtn = document.createElement('button');
+  actBtn.className = 't-undo';
+  actBtn.innerText = actionLabel;
+  actBtn.onclick = () => {
+    el.classList.remove('show');
+    actionCallback();
+  };
+  el.appendChild(actBtn);
+
+  el.className = kind;
+  el.classList.add('show');
+  clearTimeout(state.toastTimer);
+  state.toastTimer = setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => {
+      const b = el.querySelector('.t-undo');
+      if (b) b.remove();
+    }, 400);
+  }, 5000);
+}
+
+/* ============================================================
+   ПРИЁМ
+   ============================================================ */
+function handleRetInput() {
+  const el = $('retQuery');
+  const raw = el.value;
+  const hasDigits = /[0-9]/.test(raw);
+  const hasCyrHere = hasCyr(raw);
+  if (hasCyrHere && hasDigits) {
+    const fixed = fixLayout(raw);
+    if (fixed !== raw) el.value = fixed;
+  }
+
+  const q = el.value.trim();
+  const drop = $('retDrop');
+  if (q.length < 1) {
+    drop.classList.remove('show'); drop.innerHTML = '';
+    state.lastRetDropQuery = null;
+    return;
+  }
+  const busy = state.devices.filter(d => d.status === 'issued');
+  const qu = q.toUpperCase();
+  const qNoSpace = qu.replace(/\s+/g, '');
+  const qFixed = hasCyr(raw) ? qu : fixLayout(q);
+  const matches = busy.filter(d => {
+    const h = (d.holder || '').toUpperCase();
+    const s = (d.serial || '').toUpperCase();
+    if (h && (h === qu || h === qNoSpace || h === qFixed)) return true;
+    if (h && (h.startsWith(qu) || h.includes(qu))) return true;
+    if (s === qu || s === qFixed) return true;
+    if (s.endsWith(qFixed) || s.endsWith(qNoSpace)) return true;
+    if (s.includes(qFixed)) return true;
+    return false;
+  });
+  if (!matches.length) {
+    drop.classList.remove('show'); drop.innerHTML = '';
+    state.lastRetDropQuery = qFixed;
+    return;
+  }
+  drop.innerHTML = matches.slice(0, 8).map((d, idx) => {
+    const sh = d.shift === 'Ночная' ? '🌙' : (d.shift === 'Дневная' ? '☀' : '');
+    return `<div class="drop-item ${idx === 0 ? 'selected' : ''}" data-sn="${esc(d.serial)}">
+      <div><span class="mono" style="font-weight:700; color:var(--neon-amber);">${esc(d.serial)}</span> <span style="color:var(--text-secondary); font-size:11px;">(${esc(d.model)})</span></div>
+      <span style="font-size:11px; color:#cbd5e1;">${sh} ${esc(d.holder || '—')}</span>
+    </div>`;
+  }).join('');
+  drop.classList.add('show');
+  state.lastRetDropQuery = qFixed;
+}
+
+function handleRetKeydown(e) {
+  const drop = $('retDrop');
+  const items = Array.from(drop.querySelectorAll('.drop-item'));
+  const cur = items.findIndex(it => it.classList.contains('selected'));
+
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (drop.classList.contains('show') && cur >= 0 && items[cur]) {
+      $('retQuery').value = items[cur].dataset.sn;
+    }
+    resetRetDropdown();
+    quickReturn();
+    return;
+  }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    if (!items.length) return;
+    e.preventDefault();
+    if (cur >= 0) items[cur].classList.remove('selected');
+    const next = e.key === 'ArrowDown' ? (cur + 1) % items.length : (cur - 1 + items.length) % items.length;
+    items[next].classList.add('selected');
+    items[next].scrollIntoView({ block: 'nearest' });
+    return;
+  }
+  if (e.key === 'Escape') resetRetDropdown();
+}
+
+async function quickReturn() {
+  if (!state.dbReady) { showToast('БАЗА НЕ ГОТОВА', '', 'err'); return; }
+  const raw = $('retQuery').value.trim();
+  if (!raw) return;
+  resetRetDropdown();
+  const qu = raw.toUpperCase();
+  const qNoSpace = qu.replace(/\s+/g, '');
+  const qFixed = hasCyr(raw) ? qu : fixLayout(raw);
+  const busy = state.devices.filter(d => d.status === 'issued');
+  if (!busy.length) { beep('err'); showToast('НЕЧЕГО ПРИНИМАТЬ', 'Все ТСД на складе', 'warn'); return; }
+  const exactHolders = busy.filter(d => { const h = (d.holder || '').toUpperCase(); return h === qu || h === qNoSpace || h === qFixed; });
+  const exactSerial = busy.filter(d => { const s = (d.serial || '').toUpperCase(); return s === qu || s === qFixed; });
+  const partialHolders = busy.filter(d => { const h = (d.holder || '').toUpperCase(); return h && (h.includes(qu) || h.includes(qNoSpace) || h.replace(/\s+/g,'').includes(qNoSpace)); });
+  const tailSerial = busy.filter(d => { const s = (d.serial || '').toUpperCase(); return s.endsWith(qFixed) || s.endsWith(qNoSpace) || s.includes(qFixed); });
+  const candidates = exactHolders.length ? exactHolders : (exactSerial.length ? exactSerial : (partialHolders.length ? partialHolders : tailSerial));
+  if (!candidates.length) {
+    beep('err'); showToast('НЕ НАЙДЕНО', `«${raw}» нет среди выданных`, 'err');
+    $('retQuery').classList.add('err');
+    setTimeout(() => $('retQuery').classList.remove('err'), 1200);
+    return;
+  }
+  if (candidates.length === 1) { await doReturn(candidates[0].serial); return; }
   $('pickList').innerHTML = candidates.map(d => {
     const ov = hoursSince(d.issued_at) >= OVERDUE_H;
+    const sh = d.shift === 'Ночная' ? '🌙' : (d.shift === 'Дневная' ? '☀' : '');
     return `<div class="drop-item" data-sn="${esc(d.serial)}" style="padding:10px 14px;">
       <div><span class="mono" style="color:var(--neon-cyan); font-weight:700;">${esc(d.serial)}</span>
-      <span style="color:#cbd5e1; margin-left:8px;">👤 ${esc(d.holder)}</span></div>
+      <span style="color:#cbd5e1; margin-left:8px;">${sh} ${esc(d.holder)}</span></div>
       <span class="mono" style="font-size:11px; color:${ov ? 'var(--neon-rose)' : 'var(--neon-cyan)'};">${fmtHoursShort(hoursSince(d.issued_at))}</span>
     </div>`;
   }).join('');
   openModal('pickModal');
 }
 
-/* ============================================================
-   СВОДКА ДЛЯ TELEGRAM / ЧАТА В 1 КЛИК
-   ============================================================ */
-function copyShiftReport() {
-  let free = 0, issued = 0, overdue = 0, dayCount = 0, nightCount = 0, repair = 0;
-  const debts = [];
-  state.devices.forEach(d => {
-    if (d.status === 'repair') { repair++; return; }
-    if (d.status === 'issued') {
-      issued++;
-      const h = hoursSince(d.issued_at);
-      if (h >= OVERDUE_H) { overdue++; debts.push({ sn: d.serial, holder: d.holder, h }); }
-      if (d.shift === 'Ночная') nightCount++; else dayCount++;
-    } else free++;
-  });
+async function doReturn(sn) {
+  const dev = state.devices.find(d => d.serial === sn);
+  if (!dev) { showToast('ОШИБКА', 'Устройство не найдено', 'err'); return; }
+  const holder = dev.holder, ts = nowIso();
+  const snapshot = JSON.parse(JSON.stringify(dev));
 
-  const nowStr = new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-  let lines = [
-    `📊 СВОДКА ТСД (${nowStr} • ${state.issueShift})`,
-    `Всего в базе: ${state.devices.length} шт.`,
-    `🟢 На складе: ${free} шт.`,
-    `🔵 В работе: ${issued} шт. (☀ День: ${dayCount} | 🌙 Ночь: ${nightCount})`,
-    `🛠 В ремонте: ${repair} шт.`,
-    `🚨 Долги (>14ч): ${overdue} шт.`
-  ];
-  if (debts.length) {
-    debts.sort((a, b) => b.h - a.h).slice(0, 15).forEach(x => {
-      lines.push(`  • ${x.sn} — ${x.holder} (${fmtHoursShort(x.h)})`);
-    });
+  const btn = $('retBtn');
+  btn.classList.add('busy');
+  try {
+    const updated = { ...dev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts };
+
+    const idx = state.devices.findIndex(d => d.serial === sn);
+    if (idx >= 0) state.devices[idx] = updated;
+    state.justReturned = sn;
+    renderTable();
+    setTimeout(() => { state.justReturned = null; }, 2500);
+
+    await saveDevice(updated, 'Возврат', holder);
+    beep('return');
+
+    const el = $('toast');
+    $('tIcon').innerText = '✓';
+    $('tIcon').style.background = '';
+    $('tIcon').style.borderColor = '';
+    $('tIcon').style.color = '';
+    $('tTitle').innerText = `ПРИБОР ${sn} ПРИНЯТ`;
+    $('tTitle').style.color = '';
+    $('tDesc').innerText = `Сотрудник: ${holder}`;
+    const oldBtn = el.querySelector('.t-undo');
+    if (oldBtn) oldBtn.remove();
+    const undoBtn = document.createElement('button');
+    undoBtn.className = 't-undo';
+    undoBtn.innerText = '↩ Отменить приём (Ctrl+Z)';
+    undoBtn.onclick = () => undoLast();
+    el.appendChild(undoBtn);
+
+    setUndo('Отменить приём', async () => {
+      try {
+        const t2 = nowIso();
+        await saveDevice({ ...snapshot, last_move: t2 }, 'Отмена приёма (восстановление)', holder);
+        beep('issue');
+        showToast('ВОЗВРАТ ОТМЕНЁН', `${sn} снова у ${holder}`);
+        logMsg(`↩ ОТМЕНА ПРИЁМА: ${sn} → ${holder}`);
+      } catch(e) {
+        showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err');
+      }
+    }, 7000);
+
+    el.className = '';
+    el.classList.add('show');
+    clearTimeout(state.toastTimer);
+    state.toastTimer = setTimeout(() => {
+      el.classList.remove('show');
+      setTimeout(() => {
+        const b = el.querySelector('.t-undo');
+        if (b) b.remove();
+      }, 400);
+    }, 7000);
+
+    logMsg(`ПРИНЯТО: ${sn} от ${holder}`);
+    $('retQuery').value = ''; $('retQuery').focus();
+    resetRetDropdown();
+    if (state.filter === 'day' || state.filter === 'night') {
+      state.filter = 'all';
+      document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
+      const allCard = document.querySelector('.hud-stat-card[data-filter="all"]');
+      if (allCard) allCard.classList.add('active');
+    }
+  } catch(e) {
+    const idx = state.devices.findIndex(d => d.serial === sn);
+    if (idx >= 0) state.devices[idx] = snapshot;
+    renderTable();
+    beep('err');
+    showToast('ОШИБКА ПРИЁМА', e.message || '?', 'err');
+  } finally {
+    btn.classList.remove('busy');
   }
-  navigator.clipboard?.writeText(lines.join('\n')).then(
-    () => showToast('📋 СВОДКА СКОПИРОВАНА', 'Готова к отправке в Telegram / рабочий чат'),
-    () => showToast('ОШИБКА', 'Не удалось скопировать в буфер', 'err')
-  );
 }
 
 /* ============================================================
-   ТАБЛИЦА И СОРТИРОВКА
+   DEBT MODAL
    ============================================================ */
-function isStaleShift(d, h) {
-  if (d.status !== 'issued' || h < STALE_SHIFT_H || h >= OVERDUE_H) return false;
-  const curShift = computeSmartShift('');
-  return d.shift && d.shift !== '—' && d.shift !== curShift;
+function buildDebtList() {
+  const byHolder = {};
+  state.devices.forEach(d => {
+    if (d.status !== 'issued' || !d.holder) return;
+    const h = hoursSince(d.issued_at);
+    if (h < OVERDUE_H) return;
+    const key = d.holder.trim();
+    if (!byHolder[key]) byHolder[key] = { holder: key, count: 0, maxH: 0 };
+    byHolder[key].count++;
+    if (h > byHolder[key].maxH) byHolder[key].maxH = h;
+  });
+  return Object.values(byHolder).sort((a, b) => b.maxH - a.maxH);
 }
 
+function openDebtModal() {
+  const list = buildDebtList();
+  $('debtModalCount').innerText = list.length;
+
+  const wrap = $('debtModalList');
+  if (!list.length) {
+    wrap.innerHTML = '<div class="debt-empty-modal">🎉 Нет активных долгов (&gt;14ч)</div>';
+    openModal('debtModal');
+    return;
+  }
+
+  wrap.innerHTML = list.map(g => {
+    const holder = g.holder;
+    const idMatch = holder.match(/\b(\d{4,})\b/);
+    let namePart = holder, idPart = '';
+    if (idMatch) {
+      idPart = idMatch[1];
+      namePart = holder.replace(idPart, '').replace(/\s+/g, ' ').trim();
+    }
+    if (!namePart) { namePart = holder; idPart = ''; }
+
+    const word = pluralN(g.count, 'прибор', 'прибора', 'приборов');
+
+    return `<div class="debt-modal-item" data-holder="${esc(holder)}">
+      <div class="dname">
+        <span>${esc(namePart)}</span>
+        ${idPart ? `<span class="id">${esc(idPart)}</span>` : ''}
+      </div>
+      <div class="dtime">${fmtHoursShort(g.maxH)}</div>
+      <div class="dmeta">
+        <span class="dcnt">${g.count}×</span>
+        <span>${word}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  openModal('debtModal');
+}
+
+function showAllDebtsInTable() {
+  closeModal('debtModal');
+  document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
+  const card = document.querySelector('.hud-stat-card[data-filter="overdue"]');
+  if (card) card.classList.add('active');
+  state.filter = 'overdue';
+  $('searchTable').value = '';
+  updateSearchWrap();
+  renderTable();
+}
+
+$('debtModalList').addEventListener('click', e => {
+  const item = e.target.closest('.debt-modal-item');
+  if (!item) return;
+  const holder = item.dataset.holder;
+  closeModal('debtModal');
+  filterByHolder(holder);
+});
+
+function filterByHolder(holder) {
+  $('searchTable').value = holder;
+  updateSearchWrap();
+  state.filter = 'all';
+  document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
+  const allCard = document.querySelector('.hud-stat-card[data-filter="all"]');
+  if (allCard) allCard.classList.add('active');
+  renderTable();
+  $('searchTable').focus();
+  try { $('searchTable').select(); } catch(_) {}
+}
+
+function updateSearchWrap() {
+  const w = $('searchWrap');
+  if (w) w.classList.toggle('has-val', !!$('searchTable').value);
+}
+
+/* ============================================================
+   РЕНДЕР
+   ============================================================ */
 function renderTable() {
   const q = ($('searchTable').value || '').trim().toUpperCase();
-  let free = 0, issued = 0, overdue = 0, dayCount = 0, nightCount = 0, repair = 0;
+  let free = 0, issued = 0, overdue = 0, dayCount = 0, nightCount = 0;
   const issuedTimes = [];
-
   state.devices.forEach(d => {
-    if (d.status === 'repair') { repair++; return; }
     if (d.status === 'issued') {
       issued++;
       const h = hoursSince(d.issued_at);
@@ -1990,22 +2383,22 @@ function renderTable() {
       if (d.shift === 'Ночная') nightCount++; else dayCount++;
     } else free++;
   });
-
   $('mTotal').innerText = state.devices.length;
   $('mFree').innerText = free;
   $('mIssued').innerText = issued;
   $('mOverdue').innerText = overdue;
   $('mDay').innerText = dayCount;
   $('mNight').innerText = nightCount;
-  $('mRepair').innerText = repair;
 
   const statsEl = $('regStats');
   if (statsEl) {
     if (issuedTimes.length) {
       const avg = issuedTimes.reduce((a, b) => a + b, 0) / issuedTimes.length;
       const max = Math.max(...issuedTimes);
+      const avgCls = timeClass(avg);
+      const maxCls = timeClass(max);
       const colors = { fresh: '#34d399', mid: '#fbbf24', late: '#fb923c', over: '#f43f5e' };
-      statsEl.innerHTML = `Σ <span style="color:${colors[timeClass(avg)]};">${fmtHoursShort(avg)}</span> · ↑ <span style="color:${colors[timeClass(max)]};">${fmtHoursShort(max)}</span>`;
+      statsEl.innerHTML = `Σ <span style="color:${colors[avgCls] || '#fff'};">${fmtHoursShort(avg)}</span> · ↑ <span style="color:${colors[maxCls] || '#fff'};">${fmtHoursShort(max)}</span>`;
     } else {
       statsEl.innerHTML = 'Σ <span style="color:var(--text-muted);">—</span> · ↑ <span style="color:var(--text-muted);">—</span>';
     }
@@ -2014,34 +2407,23 @@ function renderTable() {
   const filtered = state.devices.filter(d => {
     if (state.filter === 'free' && d.status !== 'free') return false;
     if (state.filter === 'issued' && d.status !== 'issued') return false;
-    if (state.filter === 'repair' && d.status !== 'repair') return false;
-    if (state.filter === 'overdue' && (d.status !== 'issued' || hoursSince(d.issued_at) < OVERDUE_H)) return false;
-    if (state.filter === 'day' && (d.status !== 'issued' || d.shift === 'Ночная')) return false;
-    if (state.filter === 'night' && (d.status !== 'issued' || d.shift !== 'Ночная')) return false;
+    if (state.filter === 'overdue') {
+      if (d.status !== 'issued' || hoursSince(d.issued_at) < OVERDUE_H) return false;
+    }
+    if (state.filter === 'day') { if (d.status !== 'issued' || d.shift === 'Ночная') return false; }
+    if (state.filter === 'night') { if (d.status !== 'issued' || d.shift !== 'Ночная') return false; }
     if (q) {
-      const hay = (d.serial + ' ' + (d.holder || '') + ' ' + (d.model || '')).toUpperCase();
+      // Ищет по серийнику, держателю и МОДЕЛИ
+      const hay = (d.serial + ' ' + (d.holder ? d.holder : '') + ' ' + (d.model || '')).toUpperCase();
       if (!hay.includes(q)) return false;
     }
     return true;
   });
 
   filtered.sort((a, b) => {
-    if (state.sortField === 'serial') {
-      return (state.sortAsc ? 1 : -1) * String(a.serial).localeCompare(String(b.serial));
-    }
-    if (state.sortField === 'model') {
-      return (state.sortAsc ? 1 : -1) * String(a.model || '').localeCompare(String(b.model || ''));
-    }
-    if (state.sortField === 'holder') {
-      return (state.sortAsc ? 1 : -1) * String(a.holder || '').localeCompare(String(b.holder || ''));
-    }
-    if (state.sortField === 'time') {
-      const ha = a.status === 'issued' ? hoursSince(a.issued_at) : -1;
-      const hb = b.status === 'issued' ? hoursSince(b.issued_at) : -1;
-      return (state.sortAsc ? 1 : -1) * (ha - hb);
-    }
-    const rank = s => s === 'issued' ? 0 : (s === 'repair' ? 1 : 2);
-    if (rank(a.status) !== rank(b.status)) return rank(a.status) - rank(b.status);
+    const aIssued = a.status === 'issued' ? 0 : 1;
+    const bIssued = b.status === 'issued' ? 0 : 1;
+    if (aIssued !== bIssued) return aIssued - bIssued;
     const aTime = parseTime(a.last_move) || parseTime(a.issued_at);
     const bTime = parseTime(b.last_move) || parseTime(b.issued_at);
     if (aTime !== bTime) return bTime - aTime;
@@ -2052,96 +2434,103 @@ function renderTable() {
     $('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-muted);">Ничего не найдено</td></tr>';
     return;
   }
-  $('tbody').innerHTML = filtered.map(d => renderRow(d)).join('');
+  $('tbody').innerHTML = filtered.map(d => renderRow(d, d.status === 'issued')).join('');
 }
 
-function renderRow(d) {
-  const busy = d.status === 'issued';
-  const isRep = d.status === 'repair';
+function renderRow(d, busy) {
   const h = busy ? hoursSince(d.issued_at) : 0;
   const over = busy && h >= OVERDUE_H;
-  const stale = isStaleShift(d, h);
   const inherited = busy && isInheritedTime(d);
 
   let badge = '';
-  if (isRep) badge = '<span class="badge-chip chip-repair">🛠 В РЕМОНТЕ</span>';
-  else if (over) badge = '<span class="badge-chip chip-over">🚨 ДОЛГ (&gt;14ч)</span>';
+  if (busy && over) badge = '<span class="badge-chip chip-over">🚨 ДОЛГ (&gt;14ч)</span>';
   else if (busy) badge = '<span class="badge-chip chip-busy">НА РУКАХ</span>';
   else badge = '<span class="badge-chip chip-free">НА СКЛАДЕ</span>';
 
   let shiftChip = '';
   if (busy && d.shift === 'Дневная') {
-    shiftChip = ` <span class="badge-chip chip-day" style="cursor:pointer;" data-action="toggle-shift" data-sn="${esc(d.serial)}">☀ День ⇄</span>`;
+    shiftChip = ` <span class="badge-chip chip-day" style="cursor:pointer;" data-action="toggle-shift" data-sn="${esc(d.serial)}" title="Клик — переключить на НОЧЬ">☀ День ⇄</span>`;
   } else if (busy && d.shift === 'Ночная') {
-    shiftChip = ` <span class="badge-chip chip-night" style="cursor:pointer;" data-action="toggle-shift" data-sn="${esc(d.serial)}">🌙 Ночь ⇄</span>`;
-  }
-  if (stale) {
-    shiftChip += `<span class="badge-chip chip-stale" title="Не сдан с прошлой смены!">⚠️ ОСТАТОК</span>`;
+    shiftChip = ` <span class="badge-chip chip-night" style="cursor:pointer;" data-action="toggle-shift" data-sn="${esc(d.serial)}" title="Клик — переключить на ДЕНЬ">🌙 Ночь ⇄</span>`;
   }
 
-  let action = '';
-  if (isRep) {
-    action = `<button class="btn-hud" style="border-color:rgba(16,185,129,0.5); color:var(--neon-emerald); padding:4px 10px; font-size:11px;" data-action="repair-restore" data-sn="${esc(d.serial)}">✅ В строй</button>`;
-  } else if (busy) {
-    action = `<button class="btn-hud" style="background:#059669; color:#fff; border:none; padding:5px 11px; font-size:11px;" data-action="return" data-sn="${esc(d.serial)}">Принять</button>
-              <button class="btn-hud" style="padding:5px 7px; font-size:11px;" title="В ремонт" data-action="repair" data-sn="${esc(d.serial)}">🛠</button>`;
-  } else {
-    action = `<button class="btn-hud" style="padding:5px 11px; font-size:11px;" data-action="issue" data-sn="${esc(d.serial)}">Выдать</button>
-              <button class="btn-hud" style="padding:5px 7px; font-size:11px;" title="В ремонт" data-action="repair" data-sn="${esc(d.serial)}">🛠</button>`;
-  }
+  let action = busy
+    ? `<button class="btn-hud" style="background:#059669; color:#fff; border:none; padding:5px 12px; font-size:11px; min-width:auto;" data-action="return" data-sn="${esc(d.serial)}">Принять</button>`
+    : `<button class="btn-hud" style="padding:5px 12px; font-size:11px; min-width:auto;" data-action="issue" data-sn="${esc(d.serial)}">Выдать</button>`;
 
   let timeHtml = '';
+  let timeTitle = '';
   if (busy) {
     const cls = timeClass(h);
     const barW = timeBarWidth(h);
-    const inheritMark = inherited ? '<span class="inherit-mark" title="Время перенесено с предыдущего сканера">🔁</span>' : '';
-    timeHtml = `<div class="time-inline"><span class="val ${cls}">${fmtHoursShort(h)}</span><span class="bar"><span class="bar-fill ${cls}" style="width:${barW}%"></span></span>${inheritMark}</div>`;
+    const issuedStr = d.issued_at
+      ? new Date(d.issued_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '')
+      : '—';
+    timeTitle = 'Выдан: ' + issuedStr;
+    const inheritMark = inherited
+      ? '<span class="inherit-mark" title="Время перенесено с предыдущего сканера">🔁</span>'
+      : '';
+    timeHtml = `
+      <div class="time-inline">
+        <span class="val ${cls}">${fmtHoursShort(h)}</span>
+        <span class="bar"><span class="bar-fill ${cls}" style="width:${barW}%"></span></span>
+        ${inheritMark}
+      </div>
+    `;
   } else {
-    timeHtml = `<div class="time-inline"><span class="val empty">—</span><span class="bar"><span class="bar-fill zero" style="width:100%"></span></span></div>`;
+    const lastMoveStr = d.last_move
+      ? new Date(d.last_move).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '')
+      : '—';
+    timeTitle = 'Принят: ' + lastMoveStr;
+    timeHtml = `
+      <div class="time-inline">
+        <span class="val empty">—</span>
+        <span class="bar"><span class="bar-fill zero" style="width:100%"></span></span>
+      </div>
+    `;
   }
 
   let rowClass = '';
   if (over) rowClass = 'row-overdue';
-  else if (isRep) rowClass = 'row-repair';
   if (state.justIssued === d.serial) rowClass += ' just-issued';
   if (state.justReturned === d.serial) rowClass += ' just-returned';
 
-  const holderColor = isRep ? 'color:var(--neon-amber);' : '';
-
   return `<tr class="${rowClass}">
-    <td><b class="mono sn-link" style="color:var(--neon-cyan); font-size:13px;" data-action="audit" data-sn="${esc(d.serial)}">${esc(d.serial)}</b></td>
+    <td><b class="mono sn-link" style="color:var(--neon-cyan); font-size:13px; font-weight:700;" data-action="audit" data-sn="${esc(d.serial)}">${esc(d.serial)}</b></td>
     <td style="font-size:13px; font-weight:700;">${esc(d.model)}</td>
     <td>${badge}${shiftChip}</td>
-    <td class="mono" style="font-size:13px; font-weight:700; ${holderColor}">${d.holder ? esc(d.holder) : '<span style="color:var(--text-muted); font-weight:400;">—</span>'}</td>
-    <td style="text-align:right;">${timeHtml}</td>
+    <td class="mono" style="font-size:13.5px; font-weight:700;">${d.holder ? esc(d.holder) : '<span style="color:var(--text-muted); font-weight:400;">—</span>'}</td>
+    <td style="text-align:right;" title="${timeTitle}">${timeHtml}</td>
     <td style="text-align:right;" class="row-action-cell">${action}</td>
   </tr>`;
 }
 
-/* ============================================================
-   AUDIT DRAWER & MODALS
-   ============================================================ */
+function quickReturnFromRow(sn) { $('retQuery').value = sn; quickReturn(); }
+function pickForIssue(sn) { $('issSn').value = sn; $('issSn').classList.remove('err'); $('issWorker').focus(); }
+
 async function openAudit(sn) {
   const dev = state.devices.find(d => d.serial === sn); if (!dev) return;
+
   state.auditSn = sn;
+
   $('audSn').innerText = dev.serial;
   $('audModel').innerText = dev.model || '—';
   $('audHolder').innerText = dev.holder || 'На складе';
-
   const badge = $('audStatusBadge');
-  if (dev.status === 'repair') { badge.className = 'badge-chip chip-repair'; badge.innerText = '🛠 В ремонте'; }
-  else if (dev.status === 'issued') { badge.className = 'badge-chip chip-busy'; badge.innerText = 'На руках'; }
+  if (dev.status === 'issued') { badge.className = 'badge-chip chip-busy'; badge.innerText = 'На руках'; }
   else { badge.className = 'badge-chip chip-free'; badge.innerText = 'На складе'; }
-
   $('audDuration').innerText = dev.status === 'issued' && dev.issued_at ? fmtHoursShort(hoursSince(dev.issued_at)) + ' (' + (dev.shift || '—') + ')' : '—';
 
   const shiftBtn = $('audShiftBtn');
-  shiftBtn.style.display = dev.status === 'issued' ? 'inline-flex' : 'none';
-  shiftBtn.onclick = () => toggleDeviceShift(sn);
-
-  const repBtn = $('audRepairBtn');
-  repBtn.innerText = dev.status === 'repair' ? '✅ Вернуть в строй' : '🛠 В ремонт';
-  repBtn.onclick = () => openRepairModal(sn);
+  if (shiftBtn) {
+    if (dev.status === 'issued') {
+      shiftBtn.style.display = 'inline-flex';
+      shiftBtn.innerText = dev.shift === 'Ночная' ? '🔀 На ДЕНЬ' : '🔀 На НОЧЬ';
+      shiftBtn.onclick = () => toggleDeviceShift(sn);
+    } else {
+      shiftBtn.style.display = 'none';
+    }
+  }
 
   $('auditOverlay').classList.add('show');
   $('auditDrawer').classList.add('open');
@@ -2150,27 +2539,45 @@ async function openAudit(sn) {
   let moves = [];
   if (cloud && navigator.onLine) {
     try {
-      const { data } = await withTimeout(cloud.from('movements').select('*').eq('serial', sn).order('id', { ascending: false }).limit(25), NET_TIMEOUT_MS, 'audit');
+      const { data } = await withTimeout(
+        cloud.from('movements').select('*').eq('serial', sn).order('id', { ascending: false }).limit(25),
+        NET_TIMEOUT_MS, 'audit query'
+      );
+      if (state.auditSn !== sn) return;
       if (data) moves = data;
-    } catch(e) {}
+    } catch(e) { dbg('audit query failed', e); }
   }
-  if (!moves.length && db) {
-    moves = await new Promise(r => {
-      const req = db.transaction('moves', 'readonly').objectStore('moves').getAll();
-      req.onsuccess = () => r((req.result || []).filter(m => m.serial === sn).reverse());
-      req.onerror = () => r([]);
+
+  if (state.auditSn !== sn) return;
+
+  if (!moves.length) {
+    const local = await new Promise(r => {
+      if (!db) return r([]);
+      try {
+        const t = db.transaction('moves', 'readonly');
+        const req = t.objectStore('moves').getAll();
+        req.onsuccess = () => r(req.result || []);
+        req.onerror = () => r([]);
+        t.onabort = () => r([]);
+      } catch(e) { r([]); }
     });
+    if (state.auditSn !== sn) return;
+    moves = local.filter(m => m.serial === sn).reverse();
   }
+
+  if (state.auditSn !== sn) return;
+
   const tl = $('audTimeline');
   if (!moves.length) { tl.innerHTML = '<div style="color:var(--text-muted); font-size:12px; text-align:center; padding:15px;">Записей пока нет.</div>'; return; }
   tl.innerHTML = moves.map(h => {
     const isRet = h.action && h.action.startsWith('Возврат');
     const d = h.created_at || h.at;
     const t = d ? new Date(d).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
+    const actColor = isRet ? 'var(--neon-emerald)' : 'var(--neon-cyan)';
     return `<div class="timeline-item ${isRet ? 'return' : ''}">
       <div class="timeline-dot"></div>
       <div class="timeline-time">${t}</div>
-      <div class="timeline-action" style="color:${isRet ? 'var(--neon-emerald)' : 'var(--neon-cyan)'};">${esc(h.action)}</div>
+      <div class="timeline-action" style="color:${actColor};">${esc(h.action)}</div>
       <div class="timeline-actor">👤 ${esc(h.worker || '—')}</div>
     </div>`;
   }).join('');
@@ -2183,142 +2590,98 @@ function closeAuditDrawer() {
   refreshScrollLock();
 }
 
-function openDebtModal() {
-  const byHolder = {};
-  state.devices.forEach(d => {
-    if (d.status !== 'issued' || !d.holder) return;
-    const h = hoursSince(d.issued_at);
-    if (h < OVERDUE_H) return;
-    const key = d.holder.trim();
-    if (!byHolder[key]) byHolder[key] = { holder: key, count: 0, maxH: 0 };
-    byHolder[key].count++;
-    if (h > byHolder[key].maxH) byHolder[key].maxH = h;
-  });
-  const list = Object.values(byHolder).sort((a, b) => b.maxH - a.maxH);
-  $('debtModalCount').innerText = list.length;
-  const wrap = $('debtModalList');
-  if (!list.length) {
-    wrap.innerHTML = '<div class="debt-empty-modal">🎉 Нет активных долгов (&gt;14ч)</div>';
-    openModal('debtModal');
-    return;
-  }
-  wrap.innerHTML = list.map(g => `
-    <div class="debt-modal-item" data-holder="${esc(g.holder)}">
-      <div class="dname"><span>${esc(g.holder)}</span></div>
-      <div class="dtime">${fmtHoursShort(g.maxH)}</div>
-      <div class="dmeta"><span class="dcnt">${g.count}×</span><span>${pluralN(g.count, 'прибор', 'прибора', 'приборов')}</span></div>
-    </div>
-  `).join('');
-  openModal('debtModal');
-}
-
-function showAllDebtsInTable() {
-  closeModal('debtModal');
-  document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
-  document.querySelector('.hud-stat-card[data-filter="overdue"]')?.classList.add('active');
-  state.filter = 'overdue';
-  renderTable();
-}
-
 /* ============================================================
-   БЭКАПЫ, ИМПОРТ, ЭКСПОРТ, ДИАГНОСТИКА
+   ЭКСПОРТ / ИМПОРТ / ДИАГ
    ============================================================ */
-async function checkAutoBackup() {
-  if (!cloud || !navigator.onLine || !state.devices.length) return;
-  const today = new Date().toISOString().slice(0, 10);
-  if (localStorage.getItem('sklad_last_backup_date') === today) return;
-  if (Date.now() - parseInt(localStorage.getItem('sklad_last_backup_time') || '0') < BACKUP_MIN_INTERVAL) return;
-  await doBackup('auto');
+function csvSafe(v) {
+  let str = String(v === null || v === undefined ? '' : v);
+  if (/^[=+\-@\t\r]/.test(str)) str = "'" + str;
+  return '"' + str.replace(/"/g, '""') + '"';
 }
-
-async function doBackup(trigger) {
-  if (!cloud || !navigator.onLine || !state.devices.length) return;
-  try {
-    const backup = { version: 1, created_at: nowIso(), total: state.devices.length, devices: state.devices };
-    const date = new Date().toISOString().slice(0, 10);
-    const time = new Date().toISOString().slice(11, 16).replace(':', '');
-    const filename = `backup-${date}-${time}.json`;
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-    const { error } = await withTimeout(cloud.storage.from(BACKUP_BUCKET).upload(filename, blob, { upsert: true }), NET_TIMEOUT_MS, 'backup');
-    if (error) throw error;
-    localStorage.setItem('sklad_last_backup_date', date);
-    localStorage.setItem('sklad_last_backup_time', String(Date.now()));
-    if (trigger === 'manual') { showToast('БЭКАП СОЗДАН', filename); renderBackupList(); }
-  } catch(e) {
-    if (trigger === 'manual') showToast('ОШИБКА БЭКАПА', e.message || '?', 'err');
-  }
-}
-
-async function renderBackupList() {
-  const wrap = $('backupList'); if (!wrap || !cloud) return;
-  wrap.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8;">Загрузка...</div>';
-  const { data } = await cloud.storage.from(BACKUP_BUCKET).list('', { limit: 50 });
-  const files = (data || []).filter(f => f.name.endsWith('.json')).sort((a, b) => b.name.localeCompare(a.name));
-  if (!files.length) { wrap.innerHTML = '<div style="padding:25px; text-align:center; color:#475569;">Нет копий</div>'; return; }
-  wrap.innerHTML = files.map(f => `
-    <div class="backup-row">
-      <div class="backup-name">${esc(f.name)}</div>
-      <div style="display:flex; gap:6px;">
-        <button class="backup-btn-restore" data-bk-action="restore" data-bk-file="${esc(f.name)}">📥 Восстановить</button>
-        <button class="backup-btn-delete" data-bk-action="delete" data-bk-file="${esc(f.name)}">🗑</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-async function restoreFromBackup(filename) {
-  if (!cloud) return;
-  try {
-    const { data, error } = await cloud.storage.from(BACKUP_BUCKET).download(filename);
-    if (error) throw error;
-    const backup = JSON.parse(await data.text());
-    const devices = backup.devices || [];
-    if (!confirm(`Восстановить ${devices.length} ТСД из "${filename}"?`)) return;
-    await cloud.from('devices').upsert(devices, { onConflict: 'serial' });
-    const t = db.transaction(['devices', 'queue'], 'readwrite');
-    t.objectStore('devices').clear(); t.objectStore('queue').clear();
-    devices.forEach(d => t.objectStore('devices').put(d));
-    t.oncomplete = () => { loadLocal(); closeModal('backupModal'); showToast('ВОССТАНОВЛЕНО', `${devices.length} ТСД`); };
-  } catch(e) { showToast('ОШИБКА', e.message, 'err'); }
-}
-
-function openBackupModal() { openModal('backupModal'); renderBackupList(); }
 
 function exportExcel() {
-  let csv = '\uFEFFСерийный номер;Модель;Статус;Сотрудник/Причина;Смена;Выдан;Активность\n';
+  let csv = '\uFEFFСерийный номер;Модель;Статус;Сотрудник;Смена;Выдан;Активность\n';
   state.devices.forEach(d => {
-    csv += [d.serial, d.model, d.status, d.holder, d.shift, d.issued_at, d.last_move].map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(';') + '\n';
+    csv += [d.serial, d.model, d.status, d.holder, d.shift, d.issued_at, d.last_move].map(csvSafe).join(';') + '\n';
   });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-  a.download = `sklad_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `sklad_export_${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
 }
 
 function processImport() {
-  const raw = [...new Set($('impText').value.trim().split(/\r?\n/).map(fixLayout).filter(sn => SN_REGEX.test(sn)))];
+  if (!state.dbReady) { showToast('БАЗА НЕ ГОТОВА', '', 'err'); return; }
+  const text = $('impText').value.trim();
+  const raw = [...new Set(text.split(/\r?\n/).map(fixLayout).filter(Boolean))];
   if (!raw.length) return;
+  const valid = raw.filter(sn => SN_REGEX.test(sn));
+  const rejected = raw.length - valid.length;
+  if (!valid.length) { showToast('ВСЁ БИТОЕ', `Отклонено: ${rejected}`, 'err'); return; }
   const ts = nowIso();
-  const txm = db.transaction(["devices", "queue"], "readwrite");
-  let added = 0;
-  raw.forEach(sn => {
-    if (state.devices.find(d => d.serial === sn)) return;
-    const d = { serial: sn, model: detectModel(sn), status: 'free', holder: '', last_move: ts };
-    txm.objectStore("devices").put(d);
-    txm.objectStore("queue").add({ type: 'upsert', dev: d, action: 'Импорт', worker: '', ts });
-    added++;
-  });
-  txm.oncomplete = () => { closeModal('impModal'); $('impText').value = ''; loadLocal(); scheduleSync(300); showToast('ИМПОРТ', `Добавлено: ${added}`); };
+  try {
+    const txm = db.transaction(["devices", "queue"], "readwrite");
+    const ds = txm.objectStore("devices");
+    const qs = txm.objectStore("queue");
+    let added = 0, skipped = 0;
+    valid.forEach(sn => {
+      if (state.devices.find(d => d.serial === sn)) { skipped++; return; }
+      const d = { serial: sn, model: detectModel(sn), status: 'free', holder: '', last_move: ts };
+      ds.put(d);
+      qs.add({ type: 'upsert', dev: d, action: 'Импорт', worker: '', ts });
+      added++;
+    });
+    txm.oncomplete = () => {
+      closeModal('impModal'); $('impText').value = '';
+      beep('issue');
+      showToast('ИМПОРТ', `+${added}, пропущено ${skipped}${rejected ? `, битых ${rejected}` : ''}`);
+      loadLocal().then(() => scheduleSync(500)).catch(() => scheduleSync(500));
+    };
+    txm.onerror = () => showToast('ОШИБКА ИМПОРТА', txm.error ? txm.error.message : '?', 'err');
+    txm.onabort = () => showToast('ИМПОРТ ОТМЕНЁН', 'Транзакция прервана', 'err');
+  } catch(e) { showToast('ОШИБКА ИМПОРТА', e.message, 'err'); }
 }
 
 function showDiag() {
-  readQueueWithKeys().then(items => {
+  const countReq = db ? (() => new Promise(r => {
+    try {
+      const t = db.transaction('queue','readonly');
+      const q = t.objectStore('queue').count();
+      q.onsuccess = () => r(q.result);
+      q.onerror = () => r(0);
+      t.onabort = () => r(0);
+    } catch(e) { r(0); }
+  }))() : Promise.resolve(0);
+
+  Promise.all([countReq, renderQueuePreview()]).then(([n, preview]) => {
+    const lastBk = localStorage.getItem('sklad_last_backup_date') || '—';
+    const autoSwapTxt = state.autoSwap ? 'ВКЛ (без окна)' : 'выкл (с окном)';
+    const autoSwapColor = state.autoSwap ? 'var(--neon-emerald)' : 'var(--text-muted)';
+    const dbOk = state.dbReady ? '✅ OK' : '❌ не готова';
+    const dbColor = state.dbReady ? 'var(--neon-emerald)' : 'var(--neon-rose)';
+    const syncTxt = state.syncing ? '<span style="color:var(--neon-amber);">● идёт</span>' : '<span style="color:var(--neon-emerald);">○ idle</span>';
+    const backoff = state.syncBackoff > 0 ? `<span style="color:var(--neon-amber);">${state.syncBackoff}× (backoff)</span>` : '<span style="color:var(--text-muted);">0</span>';
+
     $('diagContent').innerHTML = `
-      <div>ВЕРСИЯ: <b style="color:var(--neon-cyan);">v9.0.1 Omni-Terminal</b></div>
-      <div>ЛОКАЛЬНО В БАЗЕ: <b>${state.devices.length}</b> шт.</div>
-      <div>ОЧЕРЕДЬ СИНХРОНИЗАЦИИ: <b>${items.length}</b> пакетов</div>
-      <div>АВТО-ЗАМЕНА БЕЗ ОКНА: <b>${state.autoSwap ? 'ВКЛ' : 'ВЫКЛ'}</b> <button class="btn-hud" style="padding:2px 8px; font-size:10px;" onclick="toggleAutoSwap()">Переключить</button></div>
+      <div>БД: <span style="color:${dbColor};">${dbOk}</span> &nbsp; SYNC: ${syncTxt}</div>
+      <div>ЛОКАЛЬНО: <span style="color:var(--neon-cyan);">${state.devices.length}</span> шт.</div>
+      <div>SUPABASE: <span style="color:#fff;">${SUPABASE_URL.replace('https://','').split('.')[0]}...</span></div>
+      <div>ОЧЕРЕДЬ ПАКЕТОВ: <span style="color:var(--neon-cyan);">${n}</span></div>
+      <div>BACKOFF: ${backoff}</div>
+      <div>ПОРОГ ДОЛГА: <span style="color:var(--neon-rose);">${OVERDUE_H}ч</span></div>
+      <div>СМЕНА: <span style="color:#fff;">${state.issueShift}</span> (${state.issueShiftAuto ? 'авто' : 'вручную'})</div>
+      <div>АВТО-ЗАМЕНА: <span style="color:${autoSwapColor};">${autoSwapTxt}</span> <button class="btn-hud" style="padding:2px 8px; font-size:10px; margin-left:8px; min-width:auto;" onclick="toggleAutoSwap()">${state.autoSwap ? 'Отключить' : 'Включить'}</button></div>
+      <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--neon-emerald);">${lastBk}</span></div>
       <div>ПОСЛЕДНЯЯ ОШИБКА: <span style="color:var(--neon-rose);">${esc(state.lastError)}</span></div>
+      ${n ? `
+        <div style="margin-top:12px; border-top:1px solid rgba(255,255,255,0.08); padding-top:8px;">
+          <div style="font-size:11px; font-weight:800; color:var(--neon-amber); margin-bottom:6px;">⚠ ОЧЕРЕДЬ (первые 30):</div>
+          <div style="max-height:220px; overflow-y:auto; background:rgba(0,0,0,0.35); border-radius:6px; padding:6px 10px;">${preview}</div>
+          <div style="margin-top:8px;">
+            <button class="btn-hud" style="border-color:rgba(244,63,94,0.4); color:var(--neon-rose); font-size:10px; min-width:auto;" onclick="clearStuckQueue()">🗑 Очистить очередь (данные не тронем)</button>
+          </div>
+        </div>
+      ` : ''}
     `;
     openModal('diagModal');
   });
@@ -2326,42 +2689,61 @@ function showDiag() {
 
 function toggleAutoSwap() {
   state.autoSwap = !state.autoSwap;
-  localStorage.setItem(AUTO_SWAP_KEY, String(state.autoSwap));
+  try { localStorage.setItem(AUTO_SWAP_KEY, state.autoSwap ? 'true' : 'false'); } catch(e) {}
+  showToast('АВТО-ЗАМЕНА', state.autoSwap ? 'Включена — без окна' : 'Отключена — с окном', 'warn');
   closeModal('diagModal');
-  showToast('АВТО-ЗАМЕНА', state.autoSwap ? 'Включена' : 'Отключена', 'warn');
-}
-
-async function hardReset() {
-  if (!confirm('Очистить локальный кэш браузера? (Облако Supabase не пострадает)')) return;
-  const t = db.transaction(['devices', 'queue', 'moves'], 'readwrite');
-  t.objectStore('devices').clear(); t.objectStore('queue').clear(); t.objectStore('moves').clear();
-  t.oncomplete = () => location.reload();
 }
 
 function openDeleteModal() {
   $('delSearch').value = '';
   renderDeleteList();
   openModal('delModal');
+  setTimeout(() => $('delSearch').focus(), 50);
 }
 
 function renderDeleteList() {
   const q = ($('delSearch').value || '').trim().toUpperCase();
-  const list = state.devices.filter(d => !q || (d.serial + ' ' + (d.holder || '')).toUpperCase().includes(q));
-  $('delList').innerHTML = list.map(d => `
-    <div class="del-row">
+  const list = state.devices.filter(d => {
+    if (!q) return true;
+    const hay = ((d.serial || '') + ' ' + (d.model || '') + ' ' + (d.holder || '')).toUpperCase();
+    return hay.includes(q);
+  }).sort((a, b) => String(a.serial).localeCompare(String(b.serial)));
+  const wrap = $('delList');
+  if (!list.length) { wrap.innerHTML = '<div class="del-empty">Ничего не найдено</div>'; return; }
+  wrap.innerHTML = list.map(d => {
+    const status = d.status === 'issued' ? `на руках у ${esc(d.holder || '—')}` : 'на складе';
+    return `<div class="del-row">
       <span class="sn">${esc(d.serial)}</span>
-      <span class="info">${esc(d.model)} · ${esc(d.holder || 'на складе')}</span>
+      <span class="info">${esc(d.model || '—')} · ${status}${d.shift && d.shift !== '—' ? ` · ${esc(d.shift)}` : ''}</span>
       <button class="del-btn" data-del-sn="${esc(d.serial)}">🗑 Удалить</button>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
+}
+
+async function confirmDelete(sn) {
+  const dev = state.devices.find(d => d.serial === sn); if (!dev) return;
+  const ok = confirm(`Удалить ТСД "${sn}"?\n\nМодель: ${dev.model}\nСтатус: ${dev.status === 'issued' ? 'на руках у ' + (dev.holder || '—') : 'на складе'}\n\nДействие необратимо.`);
+  if (!ok) return;
+  try { await deleteSerial(sn); showToast('УДАЛЕНО', sn, 'warn'); renderDeleteList(); }
+  catch(e) { showToast('ОШИБКА УДАЛЕНИЯ', e.message || '?', 'err'); }
 }
 
 /* ============================================================
-   МОДАЛКИ И ТОСТЫ
+   МОДАЛКИ / ТОСТ
    ============================================================ */
-function openModal(id) { $(id)?.classList.add('show'); refreshScrollLock(); }
-function closeModal(id) { $(id)?.classList.remove('show'); refreshScrollLock(); }
-document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); }));
+function openModal(id) {
+  const el = $(id);
+  if (el) el.classList.add('show');
+  refreshScrollLock();
+}
+function closeModal(id) {
+  const el = $(id);
+  if (el) el.classList.remove('show');
+  refreshScrollLock();
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+});
 
 function showToast(title, desc, kind = 'ok') {
   clearUndo();
@@ -2369,6 +2751,10 @@ function showToast(title, desc, kind = 'ok') {
   $('tTitle').innerText = title;
   $('tDesc').innerText = desc || '';
   $('tIcon').innerText = kind === 'err' ? '✕' : (kind === 'warn' ? '!' : '✓');
+  $('tIcon').style.background = '';
+  $('tIcon').style.borderColor = '';
+  $('tIcon').style.color = '';
+  $('tTitle').style.color = '';
   const oldBtn = el.querySelector('.t-undo');
   if (oldBtn) oldBtn.remove();
   el.className = kind === 'err' ? 'err' : (kind === 'warn' ? 'warn' : '');
@@ -2377,101 +2763,51 @@ function showToast(title, desc, kind = 'ok') {
   state.toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
 }
 
-function showToastWithAction(title, desc, actionLabel, actionCallback, kind = 'ok') {
-  const el = $('toast');
-  $('tTitle').innerText = title;
-  $('tDesc').innerText = desc || '';
-  $('tIcon').innerText = kind === 'err' ? '✕' : (kind === 'warn' ? '!' : '✓');
-  const oldBtn = el.querySelector('.t-undo');
-  if (oldBtn) oldBtn.remove();
-  const actBtn = document.createElement('button');
-  actBtn.className = 't-undo';
-  actBtn.innerText = actionLabel;
-  actBtn.onclick = () => { el.classList.remove('show'); actionCallback(); };
-  el.appendChild(actBtn);
-  el.className = kind === 'err' ? 'err' : (kind === 'warn' ? 'warn' : '');
-  el.classList.add('show');
-  clearTimeout(state.toastTimer);
-  state.toastTimer = setTimeout(() => { el.classList.remove('show'); actBtn.remove(); }, 5500);
-}
-
 /* ============================================================
-   СОБЫТИЯ И ДЕЛЕГИРОВАНИЕ
+   ДЕЛЕГИРОВАНИЕ СОБЫТИЙ
    ============================================================ */
-function setupEvents() {
-  $('omniInput').addEventListener('input', debounce(handleOmniInput, 40));
-  $('omniInput').addEventListener('keydown', handleOmniKeydown);
-
-  $('omniDrop').addEventListener('click', e => {
-    const item = e.target.closest('.drop-item');
-    if (item) executeDropChoice(item.dataset.kind, item.dataset.val);
-  });
-
+function setupDelegation() {
   $('tbody').addEventListener('click', e => {
     const target = e.target.closest('[data-action]');
     if (!target) return;
     const action = target.dataset.action;
     const sn = target.dataset.sn;
-    if (action === 'audit') {
-      if (e.ctrlKey || e.metaKey) {
-        navigator.clipboard?.writeText(sn).then(() => showToast('СКОПИРОВАНО', sn));
-        return;
-      }
-      openAudit(sn);
-    } else if (action === 'return') doReturn(sn);
-    else if (action === 'issue') {
-      state.omniLockedSn = sn;
-      state.omniStep = 'await_worker';
-      updateOmniUI();
-      $('omniInput').focus();
-    } else if (action === 'repair') openRepairModal(sn);
-    else if (action === 'repair-restore') restoreFromRepair(sn);
+    if (action === 'audit' && (e.ctrlKey || e.metaKey || e.altKey)) {
+      e.preventDefault();
+      navigator.clipboard?.writeText(sn).then(
+        () => showToast('СКОПИРОВАНО', sn),
+        () => showToast('ОШИБКА', 'Не удалось скопировать', 'err')
+      );
+      return;
+    }
+    if (action === 'audit')  openAudit(sn);
+    else if (action === 'return') quickReturnFromRow(sn);
+    else if (action === 'issue')  pickForIssue(sn);
     else if (action === 'toggle-shift') toggleDeviceShift(sn);
   });
 
-  document.querySelectorAll('th.sortable').forEach(th => {
-    th.addEventListener('click', () => {
-      const f = th.dataset.sort;
-      if (state.sortField === f) state.sortAsc = !state.sortAsc;
-      else { state.sortField = f; state.sortAsc = true; }
-      document.querySelectorAll('.sort-arr').forEach(el => el.innerText = '');
-      const arrow = $('sort-' + f);
-      if (arrow) arrow.innerText = state.sortAsc ? '▲' : '▼';
-      renderTable();
-    });
-  });
-
-  $('repPresets').addEventListener('click', e => {
-    const chip = e.target.closest('.preset-chip');
-    if (!chip) return;
-    $('repReasonInput').value = chip.dataset.reason;
-    $('repReasonInput').focus();
-  });
-  $('repReasonInput').addEventListener('keydown', e => { if (e.key === 'Enter') confirmRepairModal(); });
-
-  document.querySelectorAll('.hud-stat-card').forEach(s => {
-    s.addEventListener('click', () => {
-      const f = s.dataset.filter;
-      if (f === 'overdue') { openDebtModal(); return; }
-      if (f === 'all' && $('searchTable').value) {
-        $('searchTable').value = '';
-        $('searchWrap').classList.remove('has-val');
-      }
-      document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
-      s.classList.add('active');
-      state.filter = f;
-      renderTable();
-    });
-  });
-
-  $('debtModalList').addEventListener('click', e => {
-    const item = e.target.closest('.debt-modal-item');
+  $('issDrop').addEventListener('click', e => {
+    const item = e.target.closest('.drop-item');
     if (!item) return;
-    closeModal('debtModal');
-    $('searchTable').value = item.dataset.holder;
-    $('searchWrap').classList.add('has-val');
-    state.filter = 'all';
-    renderTable();
+    $('issSn').value = item.dataset.sn;
+    resetIssueDropdown();
+    $('issWorker').focus();
+  });
+
+  $('workerDrop').addEventListener('click', e => {
+    const item = e.target.closest('.drop-item');
+    if (!item) return;
+    $('issWorker').value = item.dataset.worker;
+    resetWorkerDropdown();
+    submitIssue();
+  });
+
+  $('retDrop').addEventListener('click', e => {
+    const item = e.target.closest('.drop-item');
+    if (!item) return;
+    $('retQuery').value = item.dataset.sn;
+    resetRetDropdown();
+    quickReturn();
   });
 
   $('pickList').addEventListener('click', e => {
@@ -2481,89 +2817,155 @@ function setupEvents() {
     doReturn(item.dataset.sn);
   });
 
-  $('delList').addEventListener('click', async e => {
+  $('delList').addEventListener('click', e => {
     const btn = e.target.closest('[data-del-sn]');
     if (!btn) return;
-    if (confirm(`Удалить ТСД "${btn.dataset.delSn}" навсегда?`)) {
-      await deleteSerial(btn.dataset.delSn);
-      renderDeleteList();
-    }
+    confirmDelete(btn.dataset.delSn);
   });
 
-  $('backupList').addEventListener('click', async e => {
+  $('backupList').addEventListener('click', e => {
     const btn = e.target.closest('[data-bk-action]');
     if (!btn) return;
-    const f = btn.dataset.bkFile;
-    if (btn.dataset.bkAction === 'restore') restoreFromBackup(f);
-    else if (confirm(`Удалить копию ${f}?`)) {
-      await cloud.storage.from(BACKUP_BUCKET).remove([f]);
-      renderBackupList();
-    }
-  });
-
-  $('searchTable').addEventListener('input', () => {
-    $('searchWrap').classList.toggle('has-val', !!$('searchTable').value);
-    renderTable();
-  });
-  $('searchClearBtn').addEventListener('click', () => {
-    $('searchTable').value = '';
-    $('searchWrap').classList.remove('has-val');
-    renderTable();
-    $('omniInput').focus();
-  });
-
-  $('delSearch').addEventListener('input', debounce(renderDeleteList, 80));
-  $('swapConfirm').addEventListener('click', confirmSwap);
-
-  let brandClicks = 0, brandTimer = null;
-  $('brandTag').addEventListener('click', () => {
-    brandClicks++;
-    clearTimeout(brandTimer);
-    brandTimer = setTimeout(() => { brandClicks = 0; }, 700);
-    if (brandClicks >= 3) { brandClicks = 0; openDeleteModal(); }
-  });
-
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.omni-bar-wrap')) $('omniDrop').classList.remove('show');
-  });
-
-  document.addEventListener('keydown', e => {
-    if (e.ctrlKey && e.key.toLowerCase() === 'z' && state.undoAction) { e.preventDefault(); undoLast(); return; }
-    if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'd') { e.preventDefault(); openDeleteModal(); return; }
-    if (e.key === 'F1') { e.preventDefault(); setOmniPreset('issue'); return; }
-    if (e.key === 'F2') { e.preventDefault(); setOmniPreset('return'); return; }
-    if (e.ctrlKey && e.key.toLowerCase() === 'k') { e.preventDefault(); $('searchTable').focus(); return; }
-    if (e.ctrlKey && e.key.toLowerCase() === 'e') { e.preventDefault(); exportExcel(); return; }
-    if (e.ctrlKey && e.key.toLowerCase() === 'i') { e.preventDefault(); openModal('impModal'); return; }
-    if (e.key === 'Escape') {
-      const anyModal = document.querySelector('.modal-overlay.show');
-      if (anyModal) { document.querySelectorAll('.modal-overlay.show').forEach(m => closeModal(m.id)); return; }
-      if ($('auditDrawer').classList.contains('open')) { closeAuditDrawer(); return; }
-      clearOmniAll();
-    }
+    const file = btn.dataset.bkFile;
+    if (btn.dataset.bkAction === 'restore') restoreFromBackup(file);
+    else if (btn.dataset.bkAction === 'delete') deleteBackup(file);
   });
 }
 
-setInterval(() => updateShiftPill(), 30000);
-setInterval(() => renderTable(), 60000);
+/* ============================================================
+   СОБЫТИЯ
+   ============================================================ */
+$('issSn').addEventListener('input', debounce(handleIssSnInput, 60));
+$('issSn').addEventListener('input', debounce(saveDraft, 500));
+$('issSn').addEventListener('keydown', handleIssSnKeydown);
+
+$('issWorker').addEventListener('input', debounce(handleWorkerInput, 60));
+$('issWorker').addEventListener('input', debounce(() => { if (state.issueShiftAuto) refreshSmartShift(); }, 300));
+$('issWorker').addEventListener('input', debounce(saveDraft, 500));
+$('issWorker').addEventListener('keydown', handleIssWorkerKeydown);
+
+$('issueForm').addEventListener('submit', e => { e.preventDefault(); submitIssue(); });
+
+$('retQuery').addEventListener('input', debounce(handleRetInput, 60));
+$('retQuery').addEventListener('keydown', handleRetKeydown);
+$('retBtn').addEventListener('click', quickReturn);
+
+$('searchTable').addEventListener('input', () => {
+  updateSearchWrap();
+  debounce(renderTable, 80)();
+});
+$('searchClearBtn').addEventListener('click', () => {
+  $('searchTable').value = '';
+  updateSearchWrap();
+  renderTable();
+  $('searchTable').focus();
+});
+
+$('delSearch').addEventListener('input', debounce(renderDeleteList, 100));
+
+document.querySelectorAll('.hud-stat-card').forEach(s => {
+  s.addEventListener('click', () => {
+    const f = s.dataset.filter;
+    if (f === 'overdue') {
+      openDebtModal();
+      return;
+    }
+    // Если нажимаем «ВСЕГО», сбрасываем строку поиска
+    if (f === 'all' && state.filter === 'all' && $('searchTable').value) {
+      $('searchTable').value = '';
+      updateSearchWrap();
+    }
+    document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
+    s.classList.add('active');
+    state.filter = f;
+    renderTable();
+  });
+});
+
+$('swapConfirm').addEventListener('click', confirmSwap);
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.hud-group')) {
+    resetIssueDropdown();
+    resetRetDropdown();
+    resetWorkerDropdown();
+  }
+});
+
+let brandClicks = 0, brandTimer = null;
+$('brandTag').addEventListener('click', () => {
+  brandClicks++;
+  clearTimeout(brandTimer);
+  brandTimer = setTimeout(() => { brandClicks = 0; }, 700);
+  if (brandClicks >= 3) { brandClicks = 0; openDeleteModal(); }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z') {
+    if (state.undoAction) {
+      e.preventDefault();
+      undoLast();
+      return;
+    }
+  }
+  if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'd') { e.preventDefault(); openDeleteModal(); return; }
+  if ($('delModal').classList.contains('show') && e.key === 'Escape') { e.preventDefault(); closeModal('delModal'); return; }
+  if ($('backupModal').classList.contains('show') && e.key === 'Escape') { e.preventDefault(); closeModal('backupModal'); return; }
+  if ($('swapModal').classList.contains('show') && e.key === 'Enter') { e.preventDefault(); confirmSwap(); return; }
+  if (e.key === 'F1') { e.preventDefault(); $('issSn').focus(); }
+  else if (e.key === 'F2') { e.preventDefault(); $('retQuery').focus(); }
+  else if (e.ctrlKey && e.key.toLowerCase() === 'k') { e.preventDefault(); $('searchTable').focus(); }
+  else if (e.ctrlKey && e.key.toLowerCase() === 'e') { e.preventDefault(); exportExcel(); }
+  else if (e.ctrlKey && e.key.toLowerCase() === 'i') { e.preventDefault(); openModal('impModal'); }
+  else if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.show').forEach(m => closeModal(m.id));
+    closeAuditDrawer();
+  }
+});
+
+setInterval(() => {
+  if (state.issueShiftAuto) refreshSmartShift();
+  else updateShiftPill();
+}, 30000);
+
+setInterval(() => {
+  const cutoff = Date.now() - RECENT_LOCAL_TTL;
+  for (const [k, v] of recentLocal) {
+    if (v < cutoff) recentLocal.delete(k);
+  }
+}, 30000);
+
+setInterval(() => {
+  renderTable();
+}, 60000);
 
 window.addEventListener('DOMContentLoaded', () => {
   try {
     const pref = JSON.parse(localStorage.getItem('sklad_shift_pref') || '{}');
     if (pref.auto === false && (pref.shift === 'Дневная' || pref.shift === 'Ночная')) {
-      state.issueShift = pref.shift; state.issueShiftAuto = false;
+      state.issueShift = pref.shift;
+      state.issueShiftAuto = false;
     } else {
-      state.issueShift = computeSmartShift(''); state.issueShiftAuto = true;
+      state.issueShift = computeSmartShift('');
+      state.issueShiftAuto = true;
     }
-  } catch(e) {}
+  } catch(e) {
+    state.issueShift = computeSmartShift('');
+    state.issueShiftAuto = true;
+  }
   updateShiftPill();
-  updateOmniUI();
-  setupEvents();
-  $('omniInput').focus();
+  setupDelegation();
+  $('issSn').focus();
 });
 
-window.addEventListener('online', () => { state.syncBackoff = 0; scheduleSync(500); });
+window.addEventListener('online', () => {
+  state.syncBackoff = 0;
+  scheduleSync(500);
+});
 window.addEventListener('offline', () => setSync(false, 'Офлайн'));
+window.addEventListener('beforeunload', () => {
+  try { saveDraft(); } catch(e) {}
+});
 </script>
 </body>
 </html>
