@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#070913" id="metaThemeColor">
-<title>Учёт Оборудования • Executive Dashboard</title>
+<meta name="theme-color" content="#060811" id="metaThemeColor">
+<title>Учёт Оборудования • Executive v8.85</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -20,14 +20,14 @@
       radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.11) 0px, transparent 50%),
       radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.08) 0px, transparent 55%),
       linear-gradient(180deg, #070a14 0%, #04060c 100%);
-    --card-bg: rgba(15, 20, 35, 0.72);
-    --card-bg-hover: rgba(22, 29, 49, 0.88);
+    --card-bg: rgba(15, 20, 35, 0.75);
+    --card-bg-hover: rgba(22, 29, 49, 0.90);
     --card-border: rgba(255, 255, 255, 0.08);
     --card-border-hover: rgba(129, 140, 248, 0.35);
     --inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.11);
     --shadow-elevated: 0 14px 36px -10px rgba(0, 0, 0, 0.65), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
 
-    --input-bg: rgba(7, 10, 19, 0.85);
+    --input-bg: rgba(7, 10, 19, 0.88);
     --table-bg: rgba(8, 12, 22, 0.5);
     --th-bg: rgba(13, 18, 32, 0.96);
     --tr-even: rgba(255, 255, 255, 0.014);
@@ -57,16 +57,16 @@
     --sn-tail: #ffffff;
   }
 
-  /* ☀️ КВАРЦ (СВЕТЛАЯ КОРПОРАТИВНАЯ ТЕМА ДЛЯ ОТЧЁТОВ) */
+  /* ☀️ КВАРЦ (СВЕТЛАЯ КОРПОРАТИВНАЯ ТЕМА) */
   [data-theme="quartz"] {
     --bg-base: #f1f5f9;
     --bg-mesh:
       radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.10) 0px, transparent 50%),
       radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.09) 0px, transparent 50%),
       linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
-    --card-bg: rgba(255, 255, 255, 0.88);
+    --card-bg: rgba(255, 255, 255, 0.90);
     --card-bg-hover: #ffffff;
-    --card-border: rgba(15, 23, 42, 0.08);
+    --card-border: rgba(15, 23, 42, 0.09);
     --card-border-hover: rgba(79, 70, 229, 0.35);
     --inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
     --shadow-elevated: 0 12px 30px -8px rgba(15, 23, 42, 0.07), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
@@ -108,7 +108,7 @@
       radial-gradient(at 10% 0%, rgba(245, 158, 11, 0.13) 0px, transparent 50%),
       radial-gradient(at 90% 0%, rgba(16, 185, 129, 0.07) 0px, transparent 50%),
       linear-gradient(180deg, #0c0c0e 0%, #050507 100%);
-    --card-bg: rgba(20, 20, 24, 0.82);
+    --card-bg: rgba(20, 20, 24, 0.84);
     --card-bg-hover: rgba(28, 28, 34, 0.94);
     --card-border: rgba(255, 255, 255, 0.08);
     --card-border-hover: rgba(245, 158, 11, 0.4);
@@ -141,7 +141,7 @@
       radial-gradient(at 0% 0%, rgba(0, 242, 254, 0.15) 0px, transparent 50%),
       radial-gradient(at 100% 100%, rgba(192, 132, 252, 0.12) 0px, transparent 50%),
       linear-gradient(180deg, #040916 0%, #02040a 100%);
-    --card-bg: rgba(11, 19, 36, 0.78);
+    --card-bg: rgba(11, 19, 36, 0.80);
     --card-bg-hover: rgba(16, 27, 50, 0.92);
     --card-border: rgba(0, 242, 254, 0.16);
     --card-border-hover: rgba(0, 242, 254, 0.45);
@@ -264,7 +264,6 @@
 
   .hud-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-  /* Переключатель тем */
   .theme-switcher {
     display: inline-flex; align-items: center;
     background: var(--input-bg);
@@ -323,7 +322,7 @@
     transform: translateY(-1px);
   }
 
-  /* ===== KPI METRICS (ПРЕЗЕНТАБЕЛЬНЫЕ КАРТОЧКИ С ИКОНКАМИ) ===== */
+  /* ===== KPI METRICS ===== */
   .metrics-grid { position: relative; z-index: 20; display: grid; grid-template-columns: repeat(6, 1fr); gap: 11px; }
   @media(max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(3, 1fr); } }
   @media(max-width: 600px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -372,7 +371,7 @@
     font-size: 18px; flex-shrink: 0;
   }
 
-  /* ===== TERMINAL DECKS (2 КАРТОЧКИ ОПЕРАЦИЙ) ===== */
+  /* ===== TERMINAL DECKS ===== */
   .terminal-grid { position: relative; z-index: 50; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   @media(max-width: 850px) { .terminal-grid { grid-template-columns: 1fr; } }
 
@@ -383,7 +382,7 @@
     border: 1px solid var(--card-border);
     box-shadow: var(--inner-glow), var(--shadow-elevated);
     border-radius: 16px;
-    padding: 16px 20px;
+    padding: 15px 20px;
     display: flex; flex-direction: column;
     overflow: visible;
   }
@@ -392,7 +391,7 @@
 
   .deck-header {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 12px; padding-bottom: 9px;
+    margin-bottom: 10px; padding-bottom: 8px;
     border-bottom: 1px solid var(--card-border); gap: 8px; flex-wrap: wrap;
   }
   .deck-title {
@@ -417,14 +416,14 @@
     border: 1px solid var(--card-border);
   }
 
-  .hud-group { position: relative; margin-bottom: 10px; }
-  .hud-label { display: block; font-size: 10.5px; font-weight: 700; color: var(--text-sub); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .hud-group { position: relative; margin-bottom: 9px; }
+  .hud-label { display: block; font-size: 10.5px; font-weight: 700; color: var(--text-sub); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
   .hud-input {
     width: 100%;
     background: var(--input-bg);
     border: 1px solid var(--card-border);
     border-radius: 11px;
-    padding: 11px 14px;
+    padding: 10.5px 14px;
     color: var(--text-main); font-size: 14.5px; font-weight: 600;
     outline: none; transition: all 0.2s ease;
   }
@@ -438,9 +437,60 @@
     box-shadow: 0 0 0 3px var(--emerald-glow);
   }
   .hud-input.err { border-color: var(--rose) !important; box-shadow: 0 0 0 3px rgba(244,63,94,0.25) !important; }
+  .hud-input.warn-busy { border-color: var(--amber) !important; box-shadow: 0 0 0 3px rgba(245,158,11,0.22) !important; }
+
+  /* ===== ЖИВОЙ ИНФО-БАННЕР СТАТУСА ПРИ ВВОДЕ СЕРИЙНИКА ===== */
+  .sn-live-banner {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 6px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    line-height: 1.3;
+    animation: bannerSlide 0.18s ease-out;
+  }
+  @keyframes bannerSlide {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .sn-live-banner.show { display: flex; }
+  .sn-live-banner.busy {
+    background: rgba(244, 63, 94, 0.12);
+    border: 1px solid rgba(244, 63, 94, 0.45);
+    color: var(--rose-text);
+  }
+  .sn-live-banner.free {
+    background: rgba(16, 185, 129, 0.11);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: var(--emerald-text);
+  }
+  .sn-live-banner.new-sn {
+    background: rgba(99, 102, 241, 0.11);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    color: var(--brand-text);
+  }
+  .banner-btn-act {
+    padding: 5px 10px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    border: 1px solid rgba(16, 185, 129, 0.5);
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--emerald-text);
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .banner-btn-act:hover {
+    background: var(--emerald);
+    color: #fff;
+  }
 
   .btn-submit {
-    width: 100%; padding: 12px; border-radius: 11px;
+    width: 100%; padding: 11.5px; border-radius: 11px;
     font-size: 12px; font-weight: 800; text-transform: uppercase;
     letter-spacing: 0.06em; border: none; cursor: pointer;
     transition: all 0.2s ease; position: relative;
@@ -469,14 +519,15 @@
     position: absolute; top: calc(100% + 5px); left: 0; right: 0;
     background: var(--modal-bg);
     border: 1px solid var(--brand-1);
-    border-radius: 12px; max-height: 230px; overflow-y: auto;
-    z-index: 9999; box-shadow: 0 20px 50px rgba(0,0,0,0.65); display: none;
+    border-radius: 12px; max-height: 240px; overflow-y: auto;
+    z-index: 9999; box-shadow: 0 20px 50px rgba(0,0,0,0.7); display: none;
   }
   .drop-box.show { display: block; }
   .drop-item {
     padding: 9.5px 14px; border-bottom: 1px solid var(--card-border);
     display: flex; justify-content: space-between; align-items: center;
     cursor: pointer; font-size: 12.5px; color: var(--text-main); transition: background 0.12s;
+    gap: 10px;
   }
   .drop-item:last-child { border-bottom: none; }
   .drop-item:hover, .drop-item.selected { background: var(--tr-hover); }
@@ -527,7 +578,6 @@
   tbody tr.just-issued { animation: glow-blue 2.5s ease-out; }
   @keyframes glow-blue { 0% { background: var(--brand-glow); } 100% { background: transparent; } }
 
-  /* Стилизация серийника (префикс + яркий хвост) */
   .sn-link {
     cursor: pointer; display: inline-flex; align-items: baseline;
     padding: 3.5px 9px; border-radius: 7px;
@@ -542,7 +592,6 @@
     transform: translateX(2px);
   }
 
-  /* Бейдж модели */
   .model-pill {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 3px 9px; border-radius: 7px;
@@ -554,7 +603,6 @@
   .model-pill.pm { color: var(--text-sub); }
   .model-pill.tab { color: var(--purple-text); border-color: rgba(168, 85, 247, 0.28); background: rgba(168, 85, 247, 0.08); }
 
-  /* Исполнитель с мини-аватаром */
   .holder-pill {
     display: inline-flex; align-items: center; gap: 7px;
     padding: 2.5px 10px 2.5px 4px; border-radius: 99px;
@@ -708,12 +756,11 @@
     <div class="brand-zone">
       <div id="brandTag" class="brand-logo-box mono" title="Тройной клик — сервисное меню">WB</div>
       <div class="brand-title">
-        <h1>Учёт Оборудования <span class="version-pill">PRO v8.80</span></h1>
+        <h1>Учёт Оборудования <span class="version-pill">PRO v8.85</span></h1>
         <p>Система контроля парка ТСД в реальном времени • Облачная синхронизация</p>
       </div>
     </div>
     <div class="hud-actions">
-      <!-- Переключатель презентационных тем -->
       <div class="theme-switcher" title="Выбор стиля интерфейса (Alt+T)">
         <button type="button" class="t-btn active" data-set-theme="sapphire">💎 Сапфир</button>
         <button type="button" class="t-btn" data-set-theme="quartz">☀️ Кварц</button>
@@ -820,6 +867,8 @@
           <label class="hud-label">Серийный номер ТСД (или последние 4 цифры):</label>
           <input id="issSn" class="hud-input mono" placeholder="Отсканируйте штрихкод или введите хвост номера..." autocomplete="off" spellcheck="false">
           <div id="issDrop" class="drop-box"></div>
+          <!-- ЖИВОЙ ИНФО-БАННЕР СТАТУСА ПРИБОРА -->
+          <div id="issSnBanner" class="sn-live-banner"></div>
         </div>
         <div class="hud-group">
           <label class="hud-label">Исполнитель (ID бейджа / Табельный / ФИО):</label>
@@ -1217,7 +1266,7 @@ function setUndo(label, callback, ttl = 7000) {
   state.undoTimer = setTimeout(() => {
     state.undoAction = null;
     const el = $('toast');
-    const b = el.querySelector('.t-undo');
+    const b = el?.querySelector('.t-undo');
     if (b) b.remove();
   }, ttl);
 }
@@ -1240,6 +1289,41 @@ async function undoLast() {
     return true;
   }
   return false;
+}
+
+function showUndoToast(title, desc, undoLabel, undoCallback, kind = 'ok') {
+  clearUndo();
+  const el = $('toast');
+  $('tTitle').innerText = title;
+  $('tDesc').innerText = desc || '';
+  $('tIcon').innerText = kind === 'swap' ? '🔁' : '✓';
+  $('tIcon').style.background = '';
+  $('tIcon').style.borderColor = '';
+  $('tIcon').style.color = '';
+  $('tTitle').style.color = '';
+
+  const oldBtn = el.querySelector('.t-undo');
+  if (oldBtn) oldBtn.remove();
+
+  if (undoCallback) {
+    const btn = document.createElement('button');
+    btn.className = 't-undo';
+    btn.innerText = undoLabel || '↩ Отменить (Ctrl+Z)';
+    btn.onclick = () => undoLast();
+    el.appendChild(btn);
+    setUndo(undoLabel, undoCallback, 7000);
+  }
+
+  el.className = kind === 'warn' ? 'warn' : '';
+  el.classList.add('show');
+  clearTimeout(state.toastTimer);
+  state.toastTimer = setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => {
+      const b = el.querySelector('.t-undo');
+      if (b) b.remove();
+    }, 400);
+  }, 7000);
 }
 
 /* ============================================================
@@ -1435,6 +1519,7 @@ function loadLocal() {
       req.onsuccess = () => {
         state.devices = req.result || [];
         renderTable();
+        updateIssBanner(fixLayout($('issSn')?.value || ''));
         resolve();
       };
       req.onerror = () => { state.devices = []; renderTable(); resolve(); };
@@ -2079,7 +2164,7 @@ function restoreDraft() {
     if (!raw) return;
     const d = JSON.parse(raw);
     if (!d || !d.ts || Date.now() - d.ts > DRAFT_TTL_MS) { localStorage.removeItem(DRAFT_KEY); return; }
-    if (d.sn) $('issSn').value = d.sn;
+    if (d.sn) { $('issSn').value = d.sn; updateIssBanner(fixLayout(d.sn)); }
     if (d.worker) $('issWorker').value = d.worker;
     if (d.sn || d.worker) logMsg('↩ Восстановлен черновик выдачи');
   } catch(e) {}
@@ -2087,7 +2172,7 @@ function restoreDraft() {
 function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); } catch(e) {} }
 
 /* ============================================================
-   DROPDOWN — выдача
+   DROPDOWN & ЖИВОЙ ИНФО-БАННЕР ЗАНЯТОСТИ ПРИ ВВОДЕ
    ============================================================ */
 function resetIssueDropdown() {
   const drop = $('issDrop');
@@ -2106,6 +2191,64 @@ function resetWorkerDropdown() {
   if (drop) { drop.classList.remove('show'); drop.innerHTML = ''; }
 }
 
+/* Живой инфо-баннер под полем серийника: сразу показывает, если прибор на ком-то числится */
+function updateIssBanner(fixedQuery) {
+  const banner = $('issSnBanner');
+  const inp = $('issSn');
+  if (!banner || !inp) return;
+
+  const q = String(fixedQuery || '').trim().toUpperCase();
+  if (q.length < 2) {
+    banner.className = 'sn-live-banner';
+    banner.innerHTML = '';
+    inp.classList.remove('warn-busy');
+    $('modelHint').innerText = "F1 • Скан SN ➔ ID ➔ Enter";
+    return;
+  }
+
+  const exact = state.devices.find(d => d.serial.toUpperCase() === q);
+  const tailMatches = state.devices.filter(d => d.serial.toUpperCase().endsWith(q));
+  const target = exact || (tailMatches.length === 1 ? tailMatches[0] : null);
+
+  if (target) {
+    if (target.status === 'issued') {
+      const h = hoursSince(target.issued_at);
+      const shIcon = target.shift === 'Ночная' ? '🌙' : '☀';
+      inp.classList.add('warn-busy');
+      $('modelHint').innerText = `🔴 НА РУКАХ: ${target.holder}`;
+      banner.className = 'sn-live-banner show busy';
+      banner.innerHTML = `
+        <div>
+          <b>🔴 НА РУКАХ:</b> <span class="mono">${esc(target.serial)}</span> числится за <b>👤 ${esc(target.holder)}</b>
+          <span style="opacity:0.85; font-size:11px; margin-left:4px;">(${shIcon} ${esc(target.shift || '—')} • ${fmtHoursShort(h)})</span>
+        </div>
+        <button type="button" class="banner-btn-act" data-banner-return="${esc(target.serial)}">📥 Принять на склад</button>
+      `;
+    } else {
+      inp.classList.remove('warn-busy');
+      $('modelHint').innerText = `🟢 Свободен (${target.model})`;
+      banner.className = 'sn-live-banner show free';
+      banner.innerHTML = `
+        <div><b>🟢 НА СКЛАДЕ:</b> <span class="mono">${esc(target.serial)}</span> (${esc(target.model)}) — свободен и готов к выдаче</div>
+      `;
+    }
+    return;
+  }
+
+  inp.classList.remove('warn-busy');
+  if (tailMatches.length > 1) {
+    const busyCount = tailMatches.filter(d => d.status === 'issued').length;
+    $('modelHint').innerText = `Найдено совпадений: ${tailMatches.length}`;
+    banner.className = 'sn-live-banner show new-sn';
+    banner.innerHTML = `<div>🔎 Найдено <b>${tailMatches.length}</b> ТСД с хвостом «${esc(q)}» (свободно: ${tailMatches.length - busyCount}, на руках: ${busyCount}) — выберите из списка</div>`;
+    return;
+  }
+
+  $('modelHint').innerText = `⚡ Новый: создастся как ${detectModel(q)}`;
+  banner.className = 'sn-live-banner show new-sn';
+  banner.innerHTML = `<div>⚡ Нет в базе: при выдаче создастся новый ТСД <b>${esc(q)}</b> (${esc(detectModel(q))})</div>`;
+}
+
 function handleIssSnInput() {
   const el = $('issSn');
   const raw = el.value;
@@ -2114,36 +2257,62 @@ function handleIssSnInput() {
     if (hasCyr(raw)) logMsg(`🔧 layout: "${raw}" ➔ "${fixed}"`);
     el.value = fixed;
   }
+
+  updateIssBanner(fixed);
+
   const drop = $('issDrop');
-
   if (fixed.length < 2) {
-    drop.classList.remove('show'); drop.innerHTML = '';
-    state.lastDropQuery = null;
-    $('modelHint').innerText = "F1 • Скан SN ➔ ID ➔ Enter";
+    resetIssueDropdown();
     return;
   }
 
-  const freeDevs = state.devices.filter(d => d.status === 'free');
-  const matches = freeDevs.filter(d => d.serial.toUpperCase().endsWith(fixed) || d.serial.toUpperCase().includes(fixed));
+  // Ищем совпадения по ВСЕЙ базе (и свободные, и выданные), чтобы сразу видеть, на ком числится прибор
+  const allMatches = state.devices.filter(d => {
+    const s = d.serial.toUpperCase();
+    return s.endsWith(fixed) || s.includes(fixed);
+  });
 
-  if (!matches.length) {
-    drop.classList.remove('show'); drop.innerHTML = '';
+  if (!allMatches.length) {
+    resetIssueDropdown();
     state.lastDropQuery = fixed;
-    const exactAny = state.devices.find(d => d.serial.toUpperCase() === fixed);
-    if (exactAny && exactAny.status === 'issued') {
-      $('modelHint').innerText = `⚠️ Уже выдан: ${exactAny.holder}`;
-    } else {
-      $('modelHint').innerText = `⚡ Новый: создастся как ${detectModel(fixed)}`;
-    }
     return;
   }
 
-  drop.innerHTML = matches.slice(0, 8).map((d, i) => `
-    <div class="drop-item ${i === 0 ? 'selected' : ''}" data-sn="${esc(d.serial)}">
-      <div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span> <span style="color:var(--text-sub); font-size:11px; margin-left:6px;">(${esc(d.model)})</span></div>
-      <span style="font-size:10px; color:var(--emerald-text); font-weight:700;">🟢 НА СКЛАДЕ</span>
-    </div>
-  `).join('');
+  // Сортируем: сначала точное совпадение, затем совпадение по хвосту, затем свободные выше занятых
+  allMatches.sort((a, b) => {
+    const sa = a.serial.toUpperCase(), sb = b.serial.toUpperCase();
+    const aTail = sa.endsWith(fixed) ? 0 : 1;
+    const bTail = sb.endsWith(fixed) ? 0 : 1;
+    if (aTail !== bTail) return aTail - bTail;
+    const aFree = a.status === 'free' ? 0 : 1;
+    const bFree = b.status === 'free' ? 0 : 1;
+    if (aFree !== bFree) return aFree - bFree;
+    return sa.localeCompare(sb);
+  });
+
+  // Если уже введён полный точный серийник единственного прибора — не закрываем обзор лишним списком из 1 пункта
+  if (allMatches.length === 1 && allMatches[0].serial.toUpperCase() === fixed) {
+    resetIssueDropdown();
+    state.lastDropQuery = fixed;
+    return;
+  }
+
+  drop.innerHTML = allMatches.slice(0, 8).map((d, i) => {
+    const isBusy = d.status === 'issued';
+    const rightBadge = isBusy
+      ? `<span style="font-size:11px; color:var(--rose-text); font-weight:700;">🔴 НА РУКАХ: 👤 ${esc(d.holder)} (${fmtHoursShort(hoursSince(d.issued_at))})</span>`
+      : `<span style="font-size:10.5px; color:var(--emerald-text); font-weight:700;">🟢 НА СКЛАДЕ</span>`;
+
+    return `
+      <div class="drop-item ${i === 0 ? 'selected' : ''}" data-sn="${esc(d.serial)}">
+        <div>
+          <span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span>
+          <span style="color:var(--text-sub); font-size:11px; margin-left:6px;">(${esc(d.model)})</span>
+        </div>
+        ${rightBadge}
+      </div>
+    `;
+  }).join('');
   drop.classList.add('show');
   state.lastDropQuery = fixed;
 }
@@ -2164,6 +2333,7 @@ function handleIssSnKeydown(e) {
       el.value = items[cur].dataset.sn;
     }
     resetIssueDropdown();
+    updateIssBanner(fixLayout(el.value));
     $('issWorker').focus();
     return;
   }
@@ -2177,6 +2347,7 @@ function handleIssSnKeydown(e) {
     const next = e.key === 'ArrowDown' ? (cur + 1) % items.length : (cur - 1 + items.length) % items.length;
     items[next].classList.add('selected');
     items[next].scrollIntoView({ block: 'nearest' });
+    updateIssBanner(items[next].dataset.sn);
     return;
   }
   if (e.key === 'Escape') resetIssueDropdown();
@@ -2191,12 +2362,14 @@ function handleWorkerInput() {
   state.devices.forEach(d => { if (d.holder) workerSet.add(d.holder); });
   if (state.workerShifts) Object.keys(state.workerShifts).forEach(w => workerSet.add(w));
 
-  const matches = Array.from(workerSet).filter(w => w.toUpperCase().includes(q)).slice(0, 5);
+  const matches = Array.from(workerSet).filter(w => w.toUpperCase().includes(q) && w.toUpperCase() !== q).slice(0, 5);
   if (!matches.length) { resetWorkerDropdown(); return; }
 
-  drop.innerHTML = matches.map((w, idx) => `
-    <div class="drop-item ${idx === 0 ? 'selected' : ''}" data-worker="${esc(w)}">
+  // Не выделяем первый пункт автоматически, чтобы Enter не перезаписывал нового сотрудника старым без нажатия стрелки вниз
+  drop.innerHTML = matches.map(w => `
+    <div class="drop-item" data-worker="${esc(w)}">
       <span style="font-weight:700;">👤 ${esc(w)}</span>
+      <span style="font-size:10px; color:var(--text-muted);">выбрать</span>
     </div>
   `).join('');
   drop.classList.add('show');
@@ -2220,7 +2393,9 @@ function handleIssWorkerKeydown(e) {
     if (!items.length) return;
     e.preventDefault();
     if (cur >= 0) items[cur].classList.remove('selected');
-    const next = e.key === 'ArrowDown' ? (cur + 1) % items.length : (cur - 1 + items.length) % items.length;
+    const next = cur < 0
+      ? (e.key === 'ArrowDown' ? 0 : items.length - 1)
+      : (e.key === 'ArrowDown' ? (cur + 1) % items.length : (cur - 1 + items.length) % items.length);
     items[next].classList.add('selected');
     items[next].scrollIntoView({ block: 'nearest' });
     return;
@@ -2275,21 +2450,38 @@ async function submitIssue() {
       return;
     }
 
+    let shift = state.issueShift;
+    if (state.issueShiftAuto) shift = computeSmartShift(worker);
+
     const dev = state.devices.find(d => d.serial === sn);
     if (dev && dev.status === 'issued') {
       beep('err');
-      showToastWithAction(
-        'ЗАНЯТ', 
-        `${sn} уже выдан: ${dev.holder}`, 
-        '📥 Принять сейчас', 
-        () => doReturn(sn), 
-        'err'
-      );
+      updateIssBanner(sn);
+      if (dev.holder && dev.holder.toUpperCase() === worker.toUpperCase()) {
+        showToastWithAction(
+          'УЖЕ ЗАКРЕПЛЁН',
+          `${sn} уже числится за сотрудником ${dev.holder}`,
+          '📥 Принять на склад',
+          async () => {
+            await doReturn(sn);
+            $('issSn').value = ''; $('issWorker').value = '';
+            updateIssBanner('');
+          },
+          'warn'
+        );
+      } else {
+        showToastWithAction(
+          `ЗАНЯТ (У ${dev.holder})`,
+          `${sn} числится за ${dev.holder} (${fmtHoursShort(hoursSince(dev.issued_at))})`,
+          `🔄 Переоформить на ${worker}`,
+          async () => {
+            await performIssue(sn, worker, dev, shift);
+          },
+          'err'
+        );
+      }
       return;
     }
-
-    let shift = state.issueShift;
-    if (state.issueShiftAuto) shift = computeSmartShift(worker);
 
     if (existingWorkerDev) {
       const pending = {
@@ -2353,22 +2545,27 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
     rememberWorkerShift(worker, shift);
     beep('issue');
 
-    setUndo('Отменить выдачу', async () => {
-      try {
-        if (isNew) {
-          await deleteSerial(sn);
-        } else {
-          await saveDevice({ ...oldSnapshot, last_move: nowIso() }, 'Отмена выдачи', worker);
+    showUndoToast(
+      'ВЫДАНО',
+      `${sn} ➔ ${worker} (${shift})`,
+      '↩ Отменить выдачу (Ctrl+Z)',
+      async () => {
+        try {
+          if (isNew) {
+            await deleteSerial(sn);
+          } else {
+            await saveDevice({ ...oldSnapshot, last_move: nowIso() }, 'Отмена выдачи', worker);
+          }
+          beep('return');
+          showToast('ВЫДАЧА ОТМЕНЕНА', `${sn} возвращён в прежний статус`);
+          logMsg(`↩ ОТМЕНА ВЫДАЧИ: ${sn}`);
+        } catch(e) {
+          showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err');
         }
-        beep('return');
-        showToast('ВЫДАЧА ОТМЕНЕНА', `${sn} возвращён`);
-        logMsg(`↩ ОТМЕНА ВЫДАЧИ: ${sn}`);
-      } catch(e) {
-        showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err');
-      }
-    }, 7000);
+      },
+      'ok'
+    );
 
-    showToast('ВЫДАНО', `${sn} ➔ ${worker} (${shift})`);
     logMsg(`ВЫДАНО: ${sn} ➔ ${worker} (${shift})`);
     clearDraft();
   } catch(e) {
@@ -2384,7 +2581,7 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
   $('issSn').value = ''; $('issWorker').value = '';
   resetIssueDropdown();
   resetWorkerDropdown();
-  $('modelHint').innerText = "F1 • Скан SN ➔ ID ➔ Enter";
+  updateIssBanner('');
   if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
   updateShiftPill();
   $('issSn').focus();
@@ -2431,9 +2628,10 @@ async function confirmSwap() {
     beep('swap');
 
     const hoursOnHands = hoursSince(inheritedIssuedAt);
-    showSwapToast(
+    showUndoToast(
       `ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn}`,
       `${p.worker} · время ${fmtHoursShort(hoursOnHands)} сохранено`,
+      '↩ Отменить (Ctrl+Z)',
       async () => {
         const t = nowIso();
         try {
@@ -2451,7 +2649,8 @@ async function confirmSwap() {
         } catch(e) {
           showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err');
         }
-      }
+      },
+      'swap'
     );
     logMsg(`🔄 ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn} у ${p.worker} · время ${fmtHoursShort(hoursOnHands)}`);
 
@@ -2459,6 +2658,7 @@ async function confirmSwap() {
     $('issSn').value = ''; $('issWorker').value = '';
     resetIssueDropdown();
     resetWorkerDropdown();
+    updateIssBanner('');
     clearDraft();
     if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
     updateShiftPill();
@@ -2469,41 +2669,6 @@ async function confirmSwap() {
     state.pendingSwap = null;
     await loadLocal();
   }
-}
-
-function showSwapToast(title, desc, undoCallback) {
-  const el = $('toast');
-  $('tIcon').innerText = '🔁';
-  $('tIcon').style.background = 'var(--tr-hover)';
-  $('tIcon').style.borderColor = 'var(--brand-1)';
-  $('tIcon').style.color = 'var(--brand-text)';
-  $('tTitle').innerText = title;
-  $('tTitle').style.color = 'var(--brand-text)';
-  $('tDesc').innerText = desc;
-
-  const oldBtn = el.querySelector('.t-undo');
-  if (oldBtn) oldBtn.remove();
-
-  if (undoCallback) {
-    const btn = document.createElement('button');
-    btn.className = 't-undo';
-    btn.innerText = '↩ Отменить (Ctrl+Z)';
-    btn.onclick = () => { clearUndo(); undoCallback(); };
-    el.appendChild(btn);
-    setUndo('Отменить замену', undoCallback, 7000);
-  }
-
-  el.className = '';
-  el.classList.add('show');
-
-  clearTimeout(state.toastTimer);
-  state.toastTimer = setTimeout(() => {
-    el.classList.remove('show');
-    setTimeout(() => {
-      const b = el.querySelector('.t-undo');
-      if (b) b.remove();
-    }, 400);
-  }, 7000);
 }
 
 function showToastWithAction(title, desc, actionLabel, actionCallback, kind = 'warn') {
@@ -2537,7 +2702,7 @@ function showToastWithAction(title, desc, actionLabel, actionCallback, kind = 'w
       const b = el.querySelector('.t-undo');
       if (b) b.remove();
     }, 400);
-  }, 5000);
+  }, 5500);
 }
 
 /* ============================================================
@@ -2592,11 +2757,11 @@ function handleRetInput() {
 
 function handleRetKeydown(e) {
   const drop = $('retDrop');
-  const items = Array.from(drop.querySelectorAll('.drop-item'));
-  const cur = items.findIndex(it => it.classList.contains('selected'));
-
   if (e.key === 'Enter') {
     e.preventDefault();
+    handleRetInput();
+    const items = Array.from(drop.querySelectorAll('.drop-item'));
+    const cur = items.findIndex(it => it.classList.contains('selected'));
     if (drop.classList.contains('show') && cur >= 0 && items[cur]) {
       $('retQuery').value = items[cur].dataset.sn;
     }
@@ -2604,6 +2769,8 @@ function handleRetKeydown(e) {
     quickReturn();
     return;
   }
+  const items = Array.from(drop.querySelectorAll('.drop-item'));
+  const cur = items.findIndex(it => it.classList.contains('selected'));
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
     if (!items.length) return;
     e.preventDefault();
@@ -2665,52 +2832,32 @@ async function doReturn(sn) {
     if (idx >= 0) state.devices[idx] = updated;
     state.justReturned = sn;
     renderTable();
+    updateIssBanner(fixLayout($('issSn').value));
     setTimeout(() => { state.justReturned = null; }, 2500);
 
     await saveDevice(updated, 'Возврат', holder);
     beep('return');
 
-    const el = $('toast');
-    $('tIcon').innerText = '✓';
-    $('tIcon').style.background = '';
-    $('tIcon').style.borderColor = '';
-    $('tIcon').style.color = '';
-    $('tTitle').innerText = `ПРИБОР ${sn} ПРИНЯТ`;
-    $('tTitle').style.color = '';
-    $('tDesc').innerText = `Сотрудник: ${holder}`;
-    const oldBtn = el.querySelector('.t-undo');
-    if (oldBtn) oldBtn.remove();
-    const undoBtn = document.createElement('button');
-    undoBtn.className = 't-undo';
-    undoBtn.innerText = '↩ Отменить приём (Ctrl+Z)';
-    undoBtn.onclick = () => undoLast();
-    el.appendChild(undoBtn);
-
-    setUndo('Отменить приём', async () => {
-      try {
-        const t2 = nowIso();
-        await saveDevice({ ...snapshot, last_move: t2 }, 'Отмена приёма (восстановление)', holder);
-        beep('issue');
-        showToast('ВОЗВРАТ ОТМЕНЁН', `${sn} снова у ${holder}`);
-        logMsg(`↩ ОТМЕНА ПРИЁМА: ${sn} → ${holder}`);
-      } catch(e) {
-        showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err');
-      }
-    }, 7000);
-
-    el.className = '';
-    el.classList.add('show');
-    clearTimeout(state.toastTimer);
-    state.toastTimer = setTimeout(() => {
-      el.classList.remove('show');
-      setTimeout(() => {
-        const b = el.querySelector('.t-undo');
-        if (b) b.remove();
-      }, 400);
-    }, 7000);
+    showUndoToast(
+      `ПРИБОР ${sn} ПРИНЯТ`,
+      `Сотрудник: ${holder}`,
+      '↩ Отменить приём (Ctrl+Z)',
+      async () => {
+        try {
+          const t2 = nowIso();
+          await saveDevice({ ...snapshot, last_move: t2 }, 'Отмена приёма (восстановление)', holder);
+          beep('issue');
+          showToast('ВОЗВРАТ ОТМЕНЁН', `${sn} снова у ${holder}`);
+          logMsg(`↩ ОТМЕНА ПРИЁМА: ${sn} → ${holder}`);
+        } catch(e) {
+          showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err');
+        }
+      },
+      'ok'
+    );
 
     logMsg(`ПРИНЯТО: ${sn} от ${holder}`);
-    $('retQuery').value = ''; $('retQuery').focus();
+    $('retQuery').value = '';
     resetRetDropdown();
     if (state.filter === 'day' || state.filter === 'night') {
       state.filter = 'all';
@@ -2971,7 +3118,12 @@ function renderRow(d, busy) {
 }
 
 function quickReturnFromRow(sn) { $('retQuery').value = sn; quickReturn(); }
-function pickForIssue(sn) { $('issSn').value = sn; $('issSn').classList.remove('err'); $('issWorker').focus(); }
+function pickForIssue(sn) {
+  $('issSn').value = sn;
+  $('issSn').classList.remove('err');
+  updateIssBanner(sn);
+  $('issWorker').focus();
+}
 
 async function openAudit(sn) {
   const dev = state.devices.find(d => d.serial === sn); if (!dev) return;
@@ -3128,7 +3280,7 @@ function showDiag() {
     const backoff = state.syncBackoff > 0 ? `<span style="color:var(--amber-text);">${state.syncBackoff}× (backoff)</span>` : '<span style="color:var(--text-muted);">0</span>';
 
     $('diagContent').innerHTML = `
-      <div>ВЕРСИЯ: <span style="color:var(--brand-text);">v8.80 Executive (${THEME_NAMES[state.theme]})</span></div>
+      <div>ВЕРСИЯ: <span style="color:var(--brand-text);">v8.85 Executive (${THEME_NAMES[state.theme]})</span></div>
       <div>БД: <span style="color:${dbColor};">${dbOk}</span> &nbsp; SYNC: ${syncTxt}</div>
       <div>ЛОКАЛЬНО: <span style="color:var(--brand-text);">${state.devices.length}</span> шт.</div>
       <div>SUPABASE: <span style="color:var(--text-main);">${SUPABASE_URL.replace('https://','').split('.')[0]}...</span></div>
@@ -3256,11 +3408,24 @@ function setupDelegation() {
     else if (action === 'toggle-shift') toggleDeviceShift(sn);
   });
 
+  /* Клик по кнопке "Принять на склад" прямо из инфо-баннера занятости */
+  $('issSnBanner').addEventListener('click', async e => {
+    const btn = e.target.closest('[data-banner-return]');
+    if (!btn) return;
+    const sn = btn.dataset.bannerReturn;
+    await doReturn(sn);
+    $('issSn').value = sn;
+    updateIssBanner(sn);
+    $('issWorker').focus();
+  });
+
   $('issDrop').addEventListener('click', e => {
     const item = e.target.closest('.drop-item');
     if (!item) return;
-    $('issSn').value = item.dataset.sn;
+    const sn = item.dataset.sn;
+    $('issSn').value = sn;
     resetIssueDropdown();
+    updateIssBanner(sn);
     $('issWorker').focus();
   });
 
@@ -3305,7 +3470,9 @@ function setupDelegation() {
 /* ============================================================
    СОБЫТИЯ
    ============================================================ */
-$('issSn').addEventListener('input', debounce(handleIssSnInput, 60));
+const debouncedRenderTable = debounce(renderTable, 80);
+
+$('issSn').addEventListener('input', debounce(handleIssSnInput, 45));
 $('issSn').addEventListener('input', debounce(saveDraft, 500));
 $('issSn').addEventListener('keydown', handleIssSnKeydown);
 
@@ -3316,13 +3483,13 @@ $('issWorker').addEventListener('keydown', handleIssWorkerKeydown);
 
 $('issueForm').addEventListener('submit', e => { e.preventDefault(); submitIssue(); });
 
-$('retQuery').addEventListener('input', debounce(handleRetInput, 60));
+$('retQuery').addEventListener('input', debounce(handleRetInput, 50));
 $('retQuery').addEventListener('keydown', handleRetKeydown);
 $('retBtn').addEventListener('click', quickReturn);
 
 $('searchTable').addEventListener('input', () => {
   updateSearchWrap();
-  debounce(renderTable, 80)();
+  debouncedRenderTable();
 });
 $('searchClearBtn').addEventListener('click', () => {
   $('searchTable').value = '';
