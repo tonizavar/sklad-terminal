@@ -1,54 +1,186 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="sapphire">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#090a0f">
-<title>Учёт Оборудования</title>
+<meta name="theme-color" content="#070913" id="metaThemeColor">
+<title>Учёт Оборудования • Executive Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root {
-    --bg-main: #090a0f;
-    --bg-elevated: #11141d;
-    --card-surface: rgba(18, 21, 30, 0.88);
-    --card-hover: rgba(26, 30, 44, 0.95);
-    --border-subtle: rgba(255, 255, 255, 0.07);
-    --border-highlight: rgba(255, 255, 255, 0.14);
+  /* ============================================================
+     ПРЕМИАЛЬНЫЕ ТЕМЫ ОФОРМЛЕНИЯ (EXECUTIVE EDITION)
+     ============================================================ */
+  :root, [data-theme="sapphire"] {
+    --bg-base: #060811;
+    --bg-mesh: 
+      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.16) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.11) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.08) 0px, transparent 55%),
+      linear-gradient(180deg, #070a14 0%, #04060c 100%);
+    --card-bg: rgba(15, 20, 35, 0.72);
+    --card-bg-hover: rgba(22, 29, 49, 0.88);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-border-hover: rgba(129, 140, 248, 0.35);
+    --inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.11);
+    --shadow-elevated: 0 14px 36px -10px rgba(0, 0, 0, 0.65), 0 4px 12px -2px rgba(0, 0, 0, 0.4);
 
-    /* Новая палитра акцентов: Indigo / Sapphire / Mint / Coral */
-    --accent-indigo: #6366f1;
-    --accent-indigo-glow: rgba(99, 102, 241, 0.35);
-    --neon-cyan: #38bdf8;
-    --neon-blue: #818cf8;
-    --neon-emerald: #10b981;
-    --neon-amber: #f59e0b;
-    --neon-rose: #f43f5e;
-    --neon-purple: #a855f7;
+    --input-bg: rgba(7, 10, 19, 0.85);
+    --table-bg: rgba(8, 12, 22, 0.5);
+    --th-bg: rgba(13, 18, 32, 0.96);
+    --tr-even: rgba(255, 255, 255, 0.014);
+    --tr-hover: rgba(99, 102, 241, 0.09);
+    --modal-bg: #0e1322;
 
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
+    --brand-1: #6366f1;
+    --brand-2: #3b82f6;
+    --brand-text: #a5b4fc;
+    --brand-glow: rgba(99, 102, 241, 0.35);
+
+    --emerald: #10b981;
+    --emerald-text: #34d399;
+    --emerald-glow: rgba(16, 185, 129, 0.3);
+
+    --amber: #f59e0b;
+    --amber-text: #fbbf24;
+    --rose: #f43f5e;
+    --rose-text: #fb7185;
+    --purple: #a855f7;
+    --purple-text: #c084fc;
+
+    --text-main: #f8fafc;
+    --text-sub: #94a3b8;
     --text-muted: #475569;
+    --sn-prefix: #64748b;
+    --sn-tail: #ffffff;
+  }
+
+  /* ☀️ КВАРЦ (СВЕТЛАЯ КОРПОРАТИВНАЯ ТЕМА ДЛЯ ОТЧЁТОВ) */
+  [data-theme="quartz"] {
+    --bg-base: #f1f5f9;
+    --bg-mesh:
+      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.10) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.09) 0px, transparent 50%),
+      linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+    --card-bg: rgba(255, 255, 255, 0.88);
+    --card-bg-hover: #ffffff;
+    --card-border: rgba(15, 23, 42, 0.08);
+    --card-border-hover: rgba(79, 70, 229, 0.35);
+    --inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+    --shadow-elevated: 0 12px 30px -8px rgba(15, 23, 42, 0.07), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+
+    --input-bg: #f8fafc;
+    --table-bg: #ffffff;
+    --th-bg: #f1f5f9;
+    --tr-even: rgba(15, 23, 42, 0.018);
+    --tr-hover: rgba(79, 70, 229, 0.055);
+    --modal-bg: #ffffff;
+
+    --brand-1: #4f46e5;
+    --brand-2: #2563eb;
+    --brand-text: #4338ca;
+    --brand-glow: rgba(79, 70, 229, 0.22);
+
+    --emerald: #059669;
+    --emerald-text: #047857;
+    --emerald-glow: rgba(5, 150, 105, 0.2);
+
+    --amber: #d97706;
+    --amber-text: #b45309;
+    --rose: #e11d48;
+    --rose-text: #be123c;
+    --purple: #9333ea;
+    --purple-text: #7e22ce;
+
+    --text-main: #0f172a;
+    --text-sub: #475569;
+    --text-muted: #94a3b8;
+    --sn-prefix: #64748b;
+    --sn-tail: #0f172a;
+  }
+
+  /* ✨ ГРАФИТ И ЗОЛОТО (VIP OBSIDIAN) */
+  [data-theme="gold"] {
+    --bg-base: #09090b;
+    --bg-mesh:
+      radial-gradient(at 10% 0%, rgba(245, 158, 11, 0.13) 0px, transparent 50%),
+      radial-gradient(at 90% 0%, rgba(16, 185, 129, 0.07) 0px, transparent 50%),
+      linear-gradient(180deg, #0c0c0e 0%, #050507 100%);
+    --card-bg: rgba(20, 20, 24, 0.82);
+    --card-bg-hover: rgba(28, 28, 34, 0.94);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-border-hover: rgba(245, 158, 11, 0.4);
+    --inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.09);
+    --shadow-elevated: 0 14px 36px -10px rgba(0, 0, 0, 0.8);
+
+    --input-bg: rgba(10, 10, 13, 0.92);
+    --table-bg: rgba(10, 10, 13, 0.6);
+    --th-bg: #141418;
+    --tr-even: rgba(255, 255, 255, 0.015);
+    --tr-hover: rgba(245, 158, 11, 0.08);
+    --modal-bg: #141418;
+
+    --brand-1: #f59e0b;
+    --brand-2: #d97706;
+    --brand-text: #fcd34d;
+    --brand-glow: rgba(245, 158, 11, 0.3);
+
+    --text-main: #fafafa;
+    --text-sub: #a1a1aa;
+    --text-muted: #52525b;
+    --sn-prefix: #71717a;
+    --sn-tail: #ffffff;
+  }
+
+  /* 🌌 АВРОРА (CYBER NEON) */
+  [data-theme="aurora"] {
+    --bg-base: #030712;
+    --bg-mesh:
+      radial-gradient(at 0% 0%, rgba(0, 242, 254, 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(192, 132, 252, 0.12) 0px, transparent 50%),
+      linear-gradient(180deg, #040916 0%, #02040a 100%);
+    --card-bg: rgba(11, 19, 36, 0.78);
+    --card-bg-hover: rgba(16, 27, 50, 0.92);
+    --card-border: rgba(0, 242, 254, 0.16);
+    --card-border-hover: rgba(0, 242, 254, 0.45);
+    --inner-glow: inset 0 1px 0 0 rgba(0, 242, 254, 0.15);
+    --shadow-elevated: 0 14px 36px -10px rgba(0, 0, 0, 0.75), 0 0 25px rgba(0, 242, 254, 0.05);
+
+    --input-bg: rgba(4, 9, 20, 0.9);
+    --table-bg: rgba(5, 9, 19, 0.6);
+    --th-bg: #091326;
+    --tr-even: rgba(0, 242, 254, 0.015);
+    --tr-hover: rgba(0, 242, 254, 0.08);
+    --modal-bg: #0a1428;
+
+    --brand-1: #0ea5e9;
+    --brand-2: #0284c7;
+    --brand-text: #38bdf8;
+    --brand-glow: rgba(14, 165, 233, 0.35);
+
+    --text-main: #f8fafc;
+    --text-sub: #94a3b8;
+    --text-muted: #475569;
+    --sn-prefix: #38bdf8;
+    --sn-tail: #ffffff;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
   html { height: 100%; }
   html, body { min-height: 100%; }
   body {
-    background-color: var(--bg-main);
-    background-image: 
-      radial-gradient(ellipse 60% 50% at 15% 0%, rgba(99, 102, 241, 0.10) 0%, transparent 70%),
-      radial-gradient(ellipse 50% 50% at 85% 0%, rgba(16, 185, 129, 0.07) 0%, transparent 70%),
-      linear-gradient(180deg, #090a0f 0%, #06070b 100%);
-    color: var(--text-primary);
+    background-color: var(--bg-base);
+    background-image: var(--bg-mesh);
+    color: var(--text-main);
     padding: 14px 22px;
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    transition: background-color 0.3s ease, color 0.25s ease;
   }
   body.no-scroll { overflow: hidden !important; }
   @media (min-width: 900px) {
@@ -57,212 +189,261 @@
     .app-shell { height: 100dvh; }
   }
 
-  /* Кастомный тёмный скроллбар */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: rgba(9, 10, 15, 0.6); }
-  ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.22); border-radius: 99px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(129, 140, 248, 0.5); }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--brand-1); }
 
   .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum"; }
-  .app-shell { max-width: 1620px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .app-shell { max-width: 1640px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
 
   /* ===== BOOT OVERLAY ===== */
   .boot-overlay {
     position: fixed; inset: 0;
-    background: #090a0f;
+    background: var(--bg-base);
     z-index: 100000;
     display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 22px;
-    transition: opacity 0.4s ease;
+    align-items: center; justify-content: center; gap: 20px;
+    transition: opacity 0.45s ease;
   }
   .boot-overlay.hide { opacity: 0; pointer-events: none; }
   .boot-spinner {
-    width: 50px; height: 50px;
-    border: 3px solid rgba(99, 102, 241, 0.15);
-    border-top-color: var(--accent-indigo);
+    width: 52px; height: 52px;
+    border: 3px solid var(--card-border);
+    border-top-color: var(--brand-1);
     border-radius: 50%;
-    animation: bootSpin 0.85s linear infinite;
-    box-shadow: 0 0 28px rgba(99, 102, 241, 0.35);
+    animation: bootSpin 0.8s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+    box-shadow: 0 0 30px var(--brand-glow);
   }
   @keyframes bootSpin { to { transform: rotate(360deg); } }
   .boot-logo {
-    font-weight: 900; font-size: 24px;
-    letter-spacing: 0.18em;
-    background: linear-gradient(90deg, #fff 30%, #818cf8);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800; font-size: 24px;
+    letter-spacing: 0.16em;
+    color: var(--text-main);
   }
-  .boot-text { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-secondary); }
+  .boot-text { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-sub); }
 
   /* ===== HEADER ===== */
   .hud-header {
     position: relative; z-index: 60;
-    background: var(--card-surface);
-    backdrop-filter: blur(24px);
-    border: 1px solid var(--border-subtle);
-    box-shadow: 0 1px 0 0 rgba(255,255,255,0.06) inset, 0 10px 30px -10px rgba(0,0,0,0.6);
+    background: var(--card-bg);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--inner-glow), var(--shadow-elevated);
     border-radius: 16px;
     padding: 10px 20px;
     display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
   }
   .brand-zone { display: flex; align-items: center; gap: 14px; }
-  .brand-tag {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-    color: #fff; font-weight: 800; font-size: 11px;
-    padding: 5px 11px; border-radius: 8px;
-    letter-spacing: 0.08em; cursor: pointer; user-select: none;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  .brand-logo-box {
+    width: 38px; height: 38px; border-radius: 11px;
+    background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 900; font-size: 16px;
+    box-shadow: 0 6px 16px var(--brand-glow), inset 0 1px 0 rgba(255,255,255,0.3);
+    cursor: pointer; user-select: none;
+    transition: transform 0.2s ease;
   }
+  .brand-logo-box:hover { transform: scale(1.05); }
   .brand-title h1 {
-    font-size: 17px; font-weight: 800; letter-spacing: -0.02em;
-    color: #f8fafc;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 17.5px; font-weight: 800; letter-spacing: -0.02em;
+    color: var(--text-main);
+    display: flex; align-items: center; gap: 8px;
   }
-  .brand-title p { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+  .version-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 7px; border-radius: 99px;
+    background: rgba(99, 102, 241, 0.14);
+    color: var(--brand-text);
+    border: 1px solid var(--card-border);
+  }
+  .brand-title p { font-size: 11.5px; color: var(--text-sub); margin-top: 1px; font-weight: 500; }
+
   .hud-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  /* Переключатель тем */
+  .theme-switcher {
+    display: inline-flex; align-items: center;
+    background: var(--input-bg);
+    border: 1px solid var(--card-border);
+    padding: 3px; border-radius: 11px; gap: 2px;
+  }
+  .t-btn {
+    border: none; background: transparent;
+    color: var(--text-sub); font-size: 11px; font-weight: 700;
+    padding: 5px 10px; border-radius: 8px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: all 0.18s ease;
+  }
+  .t-btn:hover { color: var(--text-main); }
+  .t-btn.active {
+    background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+    color: #fff;
+    box-shadow: 0 2px 10px var(--brand-glow);
+  }
+
+  .shift-pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 13px; border-radius: 11px; font-size: 11.5px; font-weight: 700;
+    cursor: pointer; user-select: none; transition: all 0.18s; border: 1px solid;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .shift-pill.day { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.35); color: var(--amber-text); }
+  .shift-pill.night { background: rgba(168,85,247,0.12); border-color: rgba(168,85,247,0.35); color: var(--purple-text); }
+  .shift-pill:hover { transform: translateY(-1px); filter: brightness(1.1); }
+  .shift-pill .badge-auto { font-size: 9px; opacity: 0.75; padding: 2px 5px; border-radius: 5px; background: rgba(128,128,128,0.15); }
+  .shift-pill .badge-manual { font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 5px; background: var(--brand-1); color: #fff; }
 
   .pill-badge {
     display: inline-flex; align-items: center; gap: 8px;
     font-size: 11.5px; font-weight: 700; padding: 6px 14px;
-    border-radius: 10px; cursor: pointer; user-select: none; transition: all 0.2s ease;
+    border-radius: 11px; cursor: pointer; user-select: none; transition: all 0.2s ease;
   }
-  .pill-online { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #34d399; }
-  .pill-offline { background: rgba(244,63,94,0.12); border: 1px solid rgba(244,63,94,0.35); color: #fb7185; }
-  .pill-busy { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.35); color: #fbbf24; }
+  .pill-online { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); color: var(--emerald-text); }
+  .pill-offline { background: rgba(244,63,94,0.12); border: 1px solid rgba(244,63,94,0.35); color: var(--rose-text); }
+  .pill-busy { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.35); color: var(--amber-text); }
   .dot-ping { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
   .pill-busy .dot-ping { animation: pulse 1.2s infinite; }
   @keyframes pulse { 50% { opacity: 0.3; } }
 
   .btn-hud {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--border-subtle);
-    color: #cbd5e1; padding: 7px 14px; border-radius: 10px;
+    background: var(--input-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-main); padding: 7px 14px; border-radius: 11px;
     font-size: 11.5px; font-weight: 700; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 7px;
-    transition: all 0.15s ease; justify-content: center;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.18s ease; justify-content: center;
   }
   .btn-hud:hover {
-    background: rgba(99, 102, 241, 0.12);
-    border-color: rgba(99, 102, 241, 0.45);
-    color: #fff; transform: translateY(-1px);
+    border-color: var(--brand-1);
+    box-shadow: 0 4px 14px var(--brand-glow);
+    transform: translateY(-1px);
   }
 
-  /* Пилюля смены */
-  .shift-pill {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 6px 13px; border-radius: 10px; font-size: 11.5px; font-weight: 700;
-    cursor: pointer; user-select: none; transition: all 0.15s; border: 1px solid;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .shift-pill.day { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.35); color: #fbbf24; }
-  .shift-pill.night { background: rgba(168,85,247,0.12); border-color: rgba(168,85,247,0.35); color: #c084fc; }
-  .shift-pill:hover { filter: brightness(1.15); }
-  .shift-pill .t { opacity: 0.85; }
-  .shift-pill.manual { box-shadow: 0 0 0 1px currentColor inset; }
-  .shift-pill .badge-auto { font-size: 9px; opacity: 0.6; padding: 2px 5px; border-radius: 5px; background: rgba(255,255,255,0.06); }
-  .shift-pill .badge-manual { font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 5px; background: rgba(99, 102, 241, 0.25); border: 1px solid rgba(99, 102, 241, 0.5); color: #a5b4fc; }
-
-  /* ===== METRICS ===== */
-  .metrics-grid { position: relative; z-index: 20; display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
-  @media(max-width: 1000px) { .metrics-grid { grid-template-columns: repeat(3, 1fr); } }
+  /* ===== KPI METRICS (ПРЕЗЕНТАБЕЛЬНЫЕ КАРТОЧКИ С ИКОНКАМИ) ===== */
+  .metrics-grid { position: relative; z-index: 20; display: grid; grid-template-columns: repeat(6, 1fr); gap: 11px; }
+  @media(max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(3, 1fr); } }
   @media(max-width: 600px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
 
-  .hud-stat-card {
+  .kpi-card {
     position: relative;
-    background: var(--card-surface);
-    border: 1px solid var(--border-subtle);
-    box-shadow: 0 1px 0 0 rgba(255,255,255,0.05) inset, 0 4px 16px rgba(0,0,0,0.3);
-    border-radius: 14px;
-    padding: 10px 16px;
+    background: var(--card-bg);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--inner-glow), var(--shadow-elevated);
+    border-radius: 15px;
+    padding: 12px 15px;
     cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
     overflow: hidden;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  .hud-stat-card::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-    background: var(--card-accent, #6366f1); opacity: 0.45; transition: opacity 0.2s, width 0.2s;
+  .kpi-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+    background: var(--kpi-color, var(--brand-1));
+    opacity: 0.35; transition: opacity 0.2s, height 0.2s;
   }
-  .hud-stat-card:hover {
-    transform: translateY(-2px);
-    background: var(--card-hover);
-    border-color: var(--border-highlight);
+  .kpi-card:hover {
+    transform: translateY(-3px);
+    background: var(--card-bg-hover);
+    border-color: var(--card-border-hover);
   }
-  .hud-stat-card.active {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.14) 0%, rgba(18, 21, 30, 0.95) 100%);
-    border-color: var(--card-accent, var(--accent-indigo));
-    box-shadow: 0 8px 24px -6px rgba(0,0,0,0.5), 0 0 18px -4px var(--card-accent, var(--accent-indigo));
+  .kpi-card.active {
+    border-color: var(--kpi-color, var(--brand-1));
+    box-shadow: var(--inner-glow), 0 10px 28px -8px var(--brand-glow);
   }
-  .hud-stat-card.active::before { opacity: 1; width: 4px; }
+  .kpi-card.active::after { opacity: 1; height: 4px; }
 
-  .stat-label { font-size: 10px; font-weight: 800; color: var(--text-secondary); letter-spacing: 0.06em; text-transform: uppercase; }
-  .stat-value { font-size: 22px; font-weight: 800; margin-top: 4px; letter-spacing: -0.03em; }
+  .kpi-info { display: flex; flex-direction: column; min-width: 0; }
+  .kpi-label { font-size: 10px; font-weight: 800; color: var(--text-sub); letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+  .kpi-val-row { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; }
+  .kpi-value { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; color: var(--text-main); line-height: 1; }
+  .kpi-sub { font-size: 10.5px; font-weight: 700; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
 
-  /* ===== TERMINAL DECKS (2 КАРТОЧКИ) ===== */
+  .kpi-icon-box {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: var(--kpi-bg, rgba(99, 102, 241, 0.12));
+    border: 1px solid var(--kpi-border, rgba(99, 102, 241, 0.25));
+    color: var(--kpi-color, var(--brand-1));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+
+  /* ===== TERMINAL DECKS (2 КАРТОЧКИ ОПЕРАЦИЙ) ===== */
   .terminal-grid { position: relative; z-index: 50; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   @media(max-width: 850px) { .terminal-grid { grid-template-columns: 1fr; } }
 
   .deck-card {
     position: relative;
-    background: linear-gradient(180deg, rgba(23, 27, 40, 0.92) 0%, rgba(15, 18, 27, 0.92) 100%);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(99, 102, 241, 0.28);
-    border-top: 2px solid var(--accent-indigo);
+    background: var(--card-bg);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--inner-glow), var(--shadow-elevated);
     border-radius: 16px;
     padding: 16px 20px;
     display: flex; flex-direction: column;
-    box-shadow: 0 12px 32px -8px rgba(0,0,0,0.5), 0 0 24px -10px rgba(99, 102, 241, 0.25);
+    overflow: visible;
   }
-  .deck-card.return-deck {
-    border-color: rgba(16, 185, 129, 0.28);
-    border-top: 2px solid var(--neon-emerald);
-    background: linear-gradient(180deg, rgba(16, 33, 32, 0.85) 0%, rgba(15, 18, 27, 0.92) 100%);
-    box-shadow: 0 12px 32px -8px rgba(0,0,0,0.5), 0 0 24px -10px rgba(16, 185, 129, 0.25);
-  }
+  .deck-card.issue-deck { border-top: 3px solid var(--brand-1); }
+  .deck-card.return-deck { border-top: 3px solid var(--emerald); }
 
   .deck-header {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 12px; padding-bottom: 8px;
-    border-bottom: 1px solid rgba(255,255,255,0.06); gap: 8px; flex-wrap: wrap;
+    margin-bottom: 12px; padding-bottom: 9px;
+    border-bottom: 1px solid var(--card-border); gap: 8px; flex-wrap: wrap;
   }
   .deck-title {
-    font-size: 12.5px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.05em; display: flex; align-items: center; gap: 9px;
+  }
+  .deck-step-badge {
+    width: 22px; height: 22px; border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 900; color: #fff;
+    background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+  }
+  .return-deck .deck-step-badge {
+    background: linear-gradient(135deg, #10b981, #059669);
   }
   .deck-badge-key {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; font-weight: 700;
-    padding: 2px 7px; border-radius: 5px;
-    background: rgba(255,255,255,0.06); color: var(--text-secondary);
-    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 10.5px; font-weight: 700;
+    padding: 3px 8px; border-radius: 6px;
+    background: var(--input-bg); color: var(--text-sub);
+    border: 1px solid var(--card-border);
   }
 
   .hud-group { position: relative; margin-bottom: 10px; }
-  .hud-label { display: block; font-size: 10.5px; font-weight: 700; color: var(--text-secondary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .hud-label { display: block; font-size: 10.5px; font-weight: 700; color: var(--text-sub); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
   .hud-input {
     width: 100%;
-    background: rgba(7, 9, 14, 0.9);
-    border: 1px solid rgba(255,255,255,0.11);
-    border-radius: 10px;
+    background: var(--input-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 11px;
     padding: 11px 14px;
-    color: #fff; font-size: 14.5px; font-weight: 600;
-    outline: none; transition: all 0.18s ease;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.35) inset;
+    color: var(--text-main); font-size: 14.5px; font-weight: 600;
+    outline: none; transition: all 0.2s ease;
   }
-  .hud-input::placeholder { color: #475569; font-weight: 500; }
+  .hud-input::placeholder { color: var(--text-muted); font-weight: 500; }
   .hud-input:focus {
-    border-color: var(--accent-indigo);
-    background: #07090e;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18), 0 0 16px rgba(99, 102, 241, 0.15);
+    border-color: var(--brand-1);
+    box-shadow: 0 0 0 3px var(--brand-glow);
   }
   .return-deck .hud-input:focus {
-    border-color: var(--neon-emerald);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18), 0 0 16px rgba(16, 185, 129, 0.15);
+    border-color: var(--emerald);
+    box-shadow: 0 0 0 3px var(--emerald-glow);
   }
-  .hud-input.err { border-color: var(--neon-rose) !important; box-shadow: 0 0 0 3px rgba(244,63,94,0.25) !important; }
+  .hud-input.err { border-color: var(--rose) !important; box-shadow: 0 0 0 3px rgba(244,63,94,0.25) !important; }
 
   .btn-submit {
-    width: 100%; padding: 11.5px; border-radius: 10px;
+    width: 100%; padding: 12px; border-radius: 11px;
     font-size: 12px; font-weight: 800; text-transform: uppercase;
     letter-spacing: 0.06em; border: none; cursor: pointer;
-    transition: all 0.18s ease; position: relative;
+    transition: all 0.2s ease; position: relative;
   }
   .deck-card .btn-submit { margin-top: auto; }
   .btn-submit.busy { opacity: 0.65; pointer-events: none; }
@@ -270,248 +451,239 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .btn-issue {
-    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
     color: #fff;
-    box-shadow: 0 1px 0 0 rgba(255,255,255,0.2) inset, 0 6px 20px -4px rgba(99, 102, 241, 0.5);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 8px 20px -4px var(--brand-glow);
   }
-  .btn-issue:hover { filter: brightness(1.12); transform: translateY(-1px); }
+  .btn-issue:hover { filter: brightness(1.1); transform: translateY(-1px); }
 
   .btn-return-action {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: #fff;
-    box-shadow: 0 1px 0 0 rgba(255,255,255,0.2) inset, 0 6px 20px -4px rgba(16, 185, 129, 0.45);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 8px 20px -4px var(--emerald-glow);
   }
-  .btn-return-action:hover { filter: brightness(1.12); transform: translateY(-1px); }
+  .btn-return-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
 
   /* ===== DROPDOWN ===== */
   .drop-box {
     position: absolute; top: calc(100% + 5px); left: 0; right: 0;
-    background: #111522;
-    border: 1px solid rgba(129, 140, 248, 0.45);
-    border-radius: 11px; max-height: 230px; overflow-y: auto;
-    z-index: 9999; box-shadow: 0 20px 45px rgba(0,0,0,0.9); display: none;
+    background: var(--modal-bg);
+    border: 1px solid var(--brand-1);
+    border-radius: 12px; max-height: 230px; overflow-y: auto;
+    z-index: 9999; box-shadow: 0 20px 50px rgba(0,0,0,0.65); display: none;
   }
   .drop-box.show { display: block; }
   .drop-item {
-    padding: 9px 14px; border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 9.5px 14px; border-bottom: 1px solid var(--card-border);
     display: flex; justify-content: space-between; align-items: center;
-    cursor: pointer; font-size: 12.5px; transition: background 0.12s;
+    cursor: pointer; font-size: 12.5px; color: var(--text-main); transition: background 0.12s;
   }
   .drop-item:last-child { border-bottom: none; }
-  .drop-item:hover, .drop-item.selected { background: rgba(99, 102, 241, 0.2); }
+  .drop-item:hover, .drop-item.selected { background: var(--tr-hover); }
 
   /* ===== REGISTRY ===== */
   .registry-deck {
     position: relative; z-index: 10;
-    background: var(--card-surface);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border-subtle);
-    box-shadow: 0 1px 0 0 rgba(255,255,255,0.05) inset, 0 12px 32px rgba(0,0,0,0.45);
+    background: var(--card-bg);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--inner-glow), var(--shadow-elevated);
     border-radius: 16px; padding: 12px 18px;
-    display: flex; flex-direction: column; flex: 1; min-height: 320px;
+    display: flex; flex-direction: column; flex: 1; min-height: 310px;
   }
   .reg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
   .reg-stats {
-    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-secondary);
-    font-weight: 600; background: rgba(0,0,0,0.3); padding: 5px 11px;
-    border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-sub);
+    font-weight: 600; background: var(--input-bg); padding: 6px 12px;
+    border-radius: 9px; border: 1px solid var(--card-border);
   }
-  .reg-wrap { overflow-y: auto; flex: 1; border-radius: 12px; border: 1px solid rgba(255,255,255,0.07); min-height: 0; background: rgba(7, 9, 14, 0.55); }
+  .reg-wrap { overflow-y: auto; flex: 1; border-radius: 12px; border: 1px solid var(--card-border); min-height: 0; background: var(--table-bg); }
 
   .search-wrap { position: relative; display: inline-flex; align-items: center; }
-  .search-clear-btn { position: absolute; right: 8px; background: transparent; border: none; color: var(--text-secondary); font-size: 14px; cursor: pointer; display: none; padding: 2px 4px; border-radius: 4px; }
-  .search-clear-btn:hover { color: #fff; }
+  .search-clear-btn { position: absolute; right: 8px; background: transparent; border: none; color: var(--text-sub); font-size: 14px; cursor: pointer; display: none; padding: 2px 4px; border-radius: 4px; }
+  .search-clear-btn:hover { color: var(--text-main); }
   .search-wrap.has-val .search-clear-btn { display: block; }
 
   table { width: 100%; border-collapse: collapse; font-size: 12.5px; table-layout: fixed; }
   th {
-    background: #10131d;
+    background: var(--th-bg);
     font-size: 10.5px; font-weight: 800; text-transform: uppercase;
-    color: #64748b; letter-spacing: 0.08em;
+    color: var(--text-sub); letter-spacing: 0.08em;
     position: sticky; top: 0; z-index: 2; padding: 11px 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left; vertical-align: middle;
+    border-bottom: 1px solid var(--card-border); text-align: left; vertical-align: middle;
   }
-  td { padding: 8px 16px; border-bottom: 1px solid rgba(255,255,255,0.045); text-align: left; vertical-align: middle; line-height: 1.3; }
-  tbody tr { height: 40px; transition: background 0.12s ease; }
-  tbody tr:nth-child(even) { background: rgba(255, 255, 255, 0.014); }
-  tbody tr:hover { background: rgba(99, 102, 241, 0.08); }
-  tbody tr:hover td:first-child { box-shadow: 3px 0 0 0 var(--accent-indigo) inset; }
+  td { padding: 8px 16px; border-bottom: 1px solid var(--card-border); text-align: left; vertical-align: middle; line-height: 1.3; color: var(--text-main); }
+  tbody tr { height: 42px; transition: background 0.14s ease; }
+  tbody tr:nth-child(even) { background: var(--tr-even); }
+  tbody tr:hover { background: var(--tr-hover); }
+  tbody tr:hover td:first-child { box-shadow: 3px 0 0 0 var(--brand-1) inset; }
 
   tbody tr.row-overdue { background: rgba(244, 63, 94, 0.10); }
   tbody tr.row-overdue:hover { background: rgba(244, 63, 94, 0.16); }
-  tbody tr.row-overdue td:first-child { box-shadow: 3px 0 0 0 var(--neon-rose) inset; }
+  tbody tr.row-overdue td:first-child { box-shadow: 3px 0 0 0 var(--rose) inset; }
 
   tbody tr.just-returned { animation: glow-green 2.5s ease-out; }
-  @keyframes glow-green { 0% { background: rgba(16,185,129,0.5); } 100% { background: transparent; } }
+  @keyframes glow-green { 0% { background: rgba(16,185,129,0.45); } 100% { background: transparent; } }
   tbody tr.just-issued { animation: glow-blue 2.5s ease-out; }
-  @keyframes glow-blue { 0% { background: rgba(99,102,241,0.5); } 100% { background: transparent; } }
+  @keyframes glow-blue { 0% { background: var(--brand-glow); } 100% { background: transparent; } }
 
   /* Стилизация серийника (префикс + яркий хвост) */
   .sn-link {
     cursor: pointer; display: inline-flex; align-items: baseline;
-    padding: 3px 8px; border-radius: 6px;
-    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    padding: 3.5px 9px; border-radius: 7px;
+    background: var(--input-bg); border: 1px solid var(--card-border);
     transition: all 0.15s ease;
   }
-  .sn-prefix { color: #64748b; font-weight: 500; font-size: 12px; }
-  .sn-tail { color: #f8fafc; font-weight: 800; font-size: 13.5px; letter-spacing: 0.01em; }
+  .sn-prefix { color: var(--sn-prefix); font-weight: 500; font-size: 12px; }
+  .sn-tail { color: var(--sn-tail); font-weight: 800; font-size: 13.5px; letter-spacing: 0.01em; }
   .sn-link:hover {
-    background: rgba(99, 102, 241, 0.15);
-    border-color: rgba(129, 140, 248, 0.5);
+    border-color: var(--brand-1);
+    box-shadow: 0 0 12px var(--brand-glow);
     transform: translateX(2px);
   }
-  .sn-link:hover .sn-prefix { color: #a5b4fc; }
-  .sn-link:hover .sn-tail { color: #fff; text-shadow: 0 0 10px rgba(129, 140, 248, 0.6); }
 
   /* Бейдж модели */
   .model-pill {
-    display: inline-block; padding: 2.5px 8px; border-radius: 6px;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 9px; border-radius: 7px;
     font-size: 11px; font-weight: 700;
-    background: rgba(255,255,255,0.04); color: #cbd5e1;
-    border: 1px solid rgba(255,255,255,0.06);
+    background: var(--input-bg); color: var(--text-sub);
+    border: 1px solid var(--card-border);
   }
-  .model-pill.zebra { color: #93c5fd; background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.25); }
-  .model-pill.pm { color: #cbd5e1; background: rgba(148, 163, 184, 0.1); border-color: rgba(148, 163, 184, 0.22); }
-  .model-pill.tab { color: #d8b4fe; background: rgba(168, 85, 247, 0.12); border-color: rgba(168, 85, 247, 0.28); }
+  .model-pill.zebra { color: var(--brand-text); border-color: rgba(99, 102, 241, 0.28); background: rgba(99, 102, 241, 0.08); }
+  .model-pill.pm { color: var(--text-sub); }
+  .model-pill.tab { color: var(--purple-text); border-color: rgba(168, 85, 247, 0.28); background: rgba(168, 85, 247, 0.08); }
 
-  /* Бейдж исполнителя */
+  /* Исполнитель с мини-аватаром */
   .holder-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 2.5px 9px; border-radius: 6px;
-    background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.22);
-    color: #e2e8f0; font-size: 12.5px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 2.5px 10px 2.5px 4px; border-radius: 99px;
+    background: var(--input-bg); border: 1px solid var(--card-border);
+    color: var(--text-main); font-size: 12.5px; font-weight: 700;
+  }
+  .holder-avatar {
+    width: 21px; height: 21px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+    color: #fff; font-size: 10px; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
   }
 
-  .badge-chip { display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 10px; font-weight: 700; user-select: none; vertical-align: middle; }
-  .chip-free { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
-  .chip-busy { background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.35); }
-  .chip-over { background: rgba(244,63,94,0.22); color: #fb7185; border: 1px solid rgba(244,63,94,0.65); font-weight: 800; box-shadow: 0 0 10px rgba(244,63,94,0.3); }
-  .chip-day { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
-  .chip-night { background: rgba(168,85,247,0.14); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
+  .badge-chip { display: inline-block; padding: 3.5px 9px; border-radius: 7px; font-size: 10px; font-weight: 800; user-select: none; vertical-align: middle; letter-spacing: 0.02em; }
+  .chip-free { background: rgba(16,185,129,0.13); color: var(--emerald-text); border: 1px solid rgba(16,185,129,0.32); }
+  .chip-busy { background: rgba(99,102,241,0.14); color: var(--brand-text); border: 1px solid rgba(99,102,241,0.32); }
+  .chip-over { background: rgba(244,63,94,0.2); color: var(--rose-text); border: 1px solid rgba(244,63,94,0.6); box-shadow: 0 0 12px rgba(244,63,94,0.25); }
+  .chip-day { background: rgba(245,158,11,0.13); color: var(--amber-text); border: 1px solid rgba(245,158,11,0.32); }
+  .chip-night { background: rgba(168,85,247,0.14); color: var(--purple-text); border: 1px solid rgba(168,85,247,0.32); }
 
   .time-inline { display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; font-family: 'JetBrains Mono', monospace; vertical-align: middle; }
   .time-inline .val { font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; min-width: 68px; text-align: right; }
-  .time-inline .val.fresh { color: var(--neon-emerald); }
-  .time-inline .val.mid { color: #fbbf24; }
-  .time-inline .val.late { color: #fb923c; }
-  .time-inline .val.over { color: var(--neon-rose); text-shadow: 0 0 8px rgba(244,63,94,0.4); }
+  .time-inline .val.fresh { color: var(--emerald-text); }
+  .time-inline .val.mid { color: var(--amber-text); }
+  .time-inline .val.late { color: #f97316; }
+  .time-inline .val.over { color: var(--rose-text); }
   .time-inline .val.empty { color: var(--text-muted); font-weight: 500; font-size: 12px; }
-  .time-inline .bar { width: 64px; height: 5px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; flex-shrink: 0; }
+  .time-inline .bar { width: 64px; height: 5px; background: var(--card-border); border-radius: 99px; overflow: hidden; flex-shrink: 0; }
   .time-inline .bar-fill { height: 100%; border-radius: 99px; display: block; }
   .time-inline .bar-fill.fresh { background: #10b981; }
   .time-inline .bar-fill.mid { background: #f59e0b; }
   .time-inline .bar-fill.late { background: #f97316; }
   .time-inline .bar-fill.over { background: #f43f5e; }
-  .time-inline .bar-fill.zero { background: rgba(255,255,255,0.04); }
-  .time-inline .inherit-mark { font-size: 12px; color: var(--neon-blue); cursor: help; margin-left: -2px; }
+  .time-inline .bar-fill.zero { background: transparent; }
+  .time-inline .inherit-mark { font-size: 12px; color: var(--brand-text); cursor: help; margin-left: -2px; }
 
-  .row-action-cell { opacity: 0.65; transition: opacity 0.18s ease; }
+  .row-action-cell { opacity: 0.78; transition: opacity 0.18s ease; }
   tbody tr:hover .row-action-cell { opacity: 1; }
   @media (hover: none) { .row-action-cell { opacity: 1; } }
 
-  /* Кнопки действий внутри таблицы */
   .btn-row-return {
-    background: rgba(16, 185, 129, 0.16); color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.4);
+    background: rgba(16, 185, 129, 0.15); color: var(--emerald-text);
+    border: 1px solid rgba(16, 185, 129, 0.38);
     padding: 5px 13px; border-radius: 8px; font-size: 11px; font-weight: 700;
     cursor: pointer; transition: all 0.15s;
   }
-  .btn-row-return:hover { background: var(--neon-emerald); color: #051b14; border-color: var(--neon-emerald); }
+  .btn-row-return:hover { background: var(--emerald); color: #fff; border-color: var(--emerald); box-shadow: 0 4px 12px var(--emerald-glow); }
 
   .btn-row-issue {
-    background: rgba(99, 102, 241, 0.12); color: #a5b4fc;
+    background: rgba(99, 102, 241, 0.13); color: var(--brand-text);
     border: 1px solid rgba(99, 102, 241, 0.35);
     padding: 5px 13px; border-radius: 8px; font-size: 11px; font-weight: 700;
     cursor: pointer; transition: all 0.15s;
   }
-  .btn-row-issue:hover { background: var(--accent-indigo); color: #fff; border-color: var(--accent-indigo); }
+  .btn-row-issue:hover { background: var(--brand-1); color: #fff; border-color: var(--brand-1); box-shadow: 0 4px 12px var(--brand-glow); }
 
   /* ===== TOAST ===== */
   #toast {
     position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-120px);
-    background: #111522; border: 1.5px solid var(--neon-emerald);
+    background: var(--modal-bg); border: 1.5px solid var(--emerald);
     border-radius: 14px; padding: 14px 24px;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.85), 0 0 25px rgba(16,185,129,0.25);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.55);
     display: flex; align-items: center; gap: 16px; z-index: 10000;
     opacity: 0; transition: all 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     pointer-events: none; max-width: 90vw;
   }
   #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
-  #toast.err { border-color: var(--neon-rose); box-shadow: 0 16px 40px rgba(0,0,0,0.85), 0 0 25px rgba(244,63,94,0.3); }
-  #toast.err .t-icon { background: rgba(244,63,94,0.2); border-color: var(--neon-rose); color: var(--neon-rose); }
-  #toast.warn { border-color: var(--neon-amber); box-shadow: 0 16px 40px rgba(0,0,0,0.85), 0 0 25px rgba(245,158,11,0.3); }
-  #toast.warn .t-icon { background: rgba(245,158,11,0.2); border-color: var(--neon-amber); color: var(--neon-amber); }
-  .t-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(16,185,129,0.18); border: 1px solid var(--neon-emerald); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--neon-emerald); flex-shrink: 0; }
-  .t-body h4 { font-size: 14px; font-weight: 800; color: #34d399; }
-  #toast.err .t-body h4 { color: #fb7185; }
-  #toast.warn .t-body h4 { color: #fbbf24; }
-  .t-body p { font-size: 12px; color: #cbd5e1; margin-top: 2px; }
-  .t-undo { margin-left: 8px; padding: 6px 12px; background: rgba(99,102,241,0.2); border: 1px solid rgba(129,140,248,0.5); color: #c7d2fe; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; pointer-events: auto; white-space: nowrap; }
-  .t-undo:hover { background: var(--accent-indigo); color: #fff; border-color: var(--accent-indigo); }
+  #toast.err { border-color: var(--rose); }
+  #toast.err .t-icon { background: rgba(244,63,94,0.18); border-color: var(--rose); color: var(--rose-text); }
+  #toast.warn { border-color: var(--amber); }
+  #toast.warn .t-icon { background: rgba(245,158,11,0.18); border-color: var(--amber); color: var(--amber-text); }
+  .t-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(16,185,129,0.18); border: 1px solid var(--emerald); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--emerald-text); flex-shrink: 0; }
+  .t-body h4 { font-size: 14px; font-weight: 800; color: var(--emerald-text); }
+  #toast.err .t-body h4 { color: var(--rose-text); }
+  #toast.warn .t-body h4 { color: var(--amber-text); }
+  .t-body p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+  .t-undo { margin-left: 8px; padding: 6px 12px; background: var(--tr-hover); border: 1px solid var(--brand-1); color: var(--brand-text); border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; pointer-events: auto; white-space: nowrap; }
+  .t-undo:hover { background: var(--brand-1); color: #fff; }
 
-  /* ===== DRAWER ===== */
-  .audit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.68); backdrop-filter: blur(6px); display: none; z-index: 9998; opacity: 0; transition: opacity 0.25s ease; }
+  /* ===== DRAWER & MODALS ===== */
+  .audit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: none; z-index: 9998; opacity: 0; transition: opacity 0.25s ease; }
   .audit-overlay.show { display: block; opacity: 1; }
-  .audit-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 440px; max-width: 90vw; background: #0d1018; border-left: 1px solid rgba(129,140,248,0.25); box-shadow: -15px 0 40px rgba(0,0,0,0.85); z-index: 9999; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding: 22px; }
+  .audit-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 440px; max-width: 90vw; background: var(--modal-bg); border-left: 1px solid var(--card-border-hover); box-shadow: -15px 0 40px rgba(0,0,0,0.6); z-index: 9999; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding: 22px; color: var(--text-main); }
   .audit-drawer.open { transform: translateX(0); }
-  .audit-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 14px; gap: 10px; }
-  .audit-header h3 { font-size: 18px; font-weight: 800; color: #fff; word-break: break-all; }
-  .audit-summary { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 14px; margin-bottom: 16px; font-size: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .audit-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 14px; border-bottom: 1px solid var(--card-border); margin-bottom: 14px; gap: 10px; }
+  .audit-header h3 { font-size: 18px; font-weight: 800; color: var(--brand-text); word-break: break-all; }
+  .audit-summary { background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; margin-bottom: 16px; font-size: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .summary-item label { color: var(--text-muted); font-size: 10px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px; }
-  .summary-item b { color: #fff; font-size: 13px; }
+  .summary-item b { color: var(--text-main); font-size: 13px; }
   .timeline-box { flex: 1; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 12px; }
-  .timeline-item { position: relative; padding-left: 20px; border-left: 2px solid rgba(129,140,248,0.3); }
-  .timeline-dot { position: absolute; left: -6px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent-indigo); box-shadow: 0 0 8px var(--accent-indigo); }
-  .timeline-item.return .timeline-dot { background: var(--neon-emerald); box-shadow: 0 0 8px var(--neon-emerald); }
+  .timeline-item { position: relative; padding-left: 20px; border-left: 2px solid var(--card-border-hover); }
+  .timeline-dot { position: absolute; left: -6px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--brand-1); }
+  .timeline-item.return .timeline-dot { background: var(--emerald); }
   .timeline-time { font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
-  .timeline-action { font-size: 12px; font-weight: 800; color: #fff; margin-top: 1px; }
-  .timeline-actor { font-size: 11.5px; color: #cbd5e1; margin-top: 2px; }
+  .timeline-action { font-size: 12px; font-weight: 800; color: var(--text-main); margin-top: 1px; }
+  .timeline-actor { font-size: 11.5px; color: var(--text-sub); margin-top: 2px; }
 
-  /* ===== MODALS ===== */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.82); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 14px; overflow-y: auto; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 14px; overflow-y: auto; }
   .modal-overlay.show { display: flex; }
-  .modal-card { background: #111520; border: 1px solid rgba(129,140,248,0.28); border-radius: 16px; width: 100%; max-width: 480px; padding: 22px; box-shadow: 0 24px 60px rgba(0,0,0,0.9); max-height: 90vh; overflow-y: auto; margin: auto; }
+  .modal-card { background: var(--modal-bg); color: var(--text-main); border: 1px solid var(--card-border-hover); border-radius: 16px; width: 100%; max-width: 480px; padding: 22px; box-shadow: 0 24px 60px rgba(0,0,0,0.65); max-height: 90vh; overflow-y: auto; margin: auto; }
   .swap-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin: 14px 0; }
-  .swap-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px; text-align: center; }
-  .swap-card.old { border-color: rgba(244,63,94,0.4); background: rgba(244,63,94,0.05); }
-  .swap-card.new { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.05); }
-  .swap-card .label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; }
+  .swap-card { background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 12px; text-align: center; }
+  .swap-card.old { border-color: rgba(244,63,94,0.4); }
+  .swap-card.new { border-color: rgba(16,185,129,0.4); }
+  .swap-card .label { font-size: 10px; color: var(--text-sub); text-transform: uppercase; font-weight: 700; }
   .swap-card .sn { font-size: 16px; font-weight: 800; margin-top: 4px; font-family: 'JetBrains Mono', monospace; word-break: break-all; }
-  .swap-card.old .sn { color: #fb7185; }
-  .swap-card.new .sn { color: #34d399; }
-  .swap-arrow { font-size: 26px; color: var(--neon-amber); }
-  .swap-inherit-note { display: flex; align-items: center; gap: 8px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.35); border-radius: 8px; padding: 9px 12px; font-size: 11.5px; color: #a5b4fc; margin-bottom: 8px; }
+  .swap-card.old .sn { color: var(--rose-text); }
+  .swap-card.new .sn { color: var(--emerald-text); }
+  .swap-arrow { font-size: 26px; color: var(--amber-text); }
+  .swap-inherit-note { display: flex; align-items: center; gap: 8px; background: var(--tr-hover); border: 1px solid var(--card-border-hover); border-radius: 8px; padding: 9px 12px; font-size: 11.5px; color: var(--brand-text); margin-bottom: 8px; }
 
-  /* ===== DEBT MODAL ===== */
   .debt-modal-list { display: flex; flex-direction: column; gap: 6px; max-height: 60vh; overflow-y: auto; padding-right: 4px; }
-  .debt-modal-item { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 11px 14px; background: rgba(244,63,94,0.06); border: 1px solid rgba(244,63,94,0.22); border-radius: 10px; cursor: pointer; transition: all 0.15s; line-height: 1; }
+  .debt-modal-item { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 11px 14px; background: rgba(244,63,94,0.08); border: 1px solid rgba(244,63,94,0.28); border-radius: 10px; cursor: pointer; transition: all 0.15s; line-height: 1; }
   .debt-modal-item:hover { background: rgba(244,63,94,0.16); border-color: rgba(244,63,94,0.5); }
-  .debt-modal-item .dname { font-size: 13px; font-weight: 700; color: #f1f5f9; display: flex; align-items: center; gap: 8px; line-height: 1.2; }
-  .debt-modal-item .dname .id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-secondary); font-weight: 500; }
-  .debt-modal-item .dmeta { display: flex; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.2; }
-  .debt-modal-item .dcnt { color: #fb7185; font-weight: 800; }
-  .debt-modal-item .dtime { grid-column: 2 / 3; grid-row: 1 / 3; color: var(--neon-rose); font-size: 14px; font-weight: 800; align-self: center; font-family: 'JetBrains Mono', monospace; }
+  .debt-modal-item .dname { font-size: 13px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; line-height: 1.2; }
+  .debt-modal-item .dname .id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-sub); font-weight: 500; }
+  .debt-modal-item .dmeta { display: flex; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.2; color: var(--text-sub); }
+  .debt-modal-item .dcnt { color: var(--rose-text); font-weight: 800; }
+  .debt-modal-item .dtime { grid-column: 2 / 3; grid-row: 1 / 3; color: var(--rose-text); font-size: 14px; font-weight: 800; align-self: center; font-family: 'JetBrains Mono', monospace; }
   .debt-empty-modal { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
 
-  .del-search { width: 100%; padding: 10px 14px; background: rgba(7,9,14,0.9); border: 1px solid rgba(255,255,255,0.12); border-radius: 9px; color: #fff; font-size: 13px; outline: none; font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; }
-  .del-search:focus { border-color: var(--neon-rose); }
-  .del-list { max-height: 50vh; overflow-y: auto; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; }
-  .del-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; gap: 10px; }
-  .del-row:last-child { border-bottom: none; }
-  .del-row:hover { background: rgba(244,63,94,0.05); }
-  .del-row .sn { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #a5b4fc; min-width: 130px; font-size: 11.5px; }
-  .del-row .info { flex: 1; color: var(--text-secondary); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .del-row .del-btn { padding: 4px 10px; border-radius: 6px; background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.4); color: var(--neon-rose); font-size: 10.5px; font-weight: 700; cursor: pointer; }
-  .del-row .del-btn:hover { background: var(--neon-rose); color: #fff; }
-  .del-empty { padding: 30px 20px; text-align: center; color: var(--text-muted); font-size: 12px; }
-
-  .backup-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 12px; gap: 10px; }
-  .backup-row:last-child { border-bottom: none; }
-  .backup-info { flex: 1; min-width: 0; }
-  .backup-name { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #a5b4fc; font-size: 11.5px; }
-  .backup-meta { font-size: 10.5px; color: var(--text-secondary); margin-top: 2px; }
-  .backup-btn-restore { padding: 4px 10px; border-radius: 6px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: var(--neon-emerald); font-size: 10.5px; font-weight: 700; cursor: pointer; }
-  .backup-btn-delete { padding: 4px 10px; border-radius: 6px; background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.4); color: var(--neon-rose); font-size: 10.5px; font-weight: 700; cursor: pointer; }
+  .del-search { width: 100%; padding: 10px 14px; background: var(--input-bg); border: 1px solid var(--card-border-hover); border-radius: 9px; color: var(--text-main); font-size: 13px; outline: none; font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; }
+  .del-list { max-height: 50vh; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 10px; }
+  .del-row, .backup-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-bottom: 1px solid var(--card-border); font-size: 12px; gap: 10px; }
+  .del-row:last-child, .backup-row:last-child { border-bottom: none; }
+  .del-row .sn, .backup-name { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--brand-text); font-size: 11.5px; }
+  .del-row .info { flex: 1; color: var(--text-sub); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .del-btn, .backup-btn-delete { padding: 4px 10px; border-radius: 6px; background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.4); color: var(--rose-text); font-size: 10.5px; font-weight: 700; cursor: pointer; }
+  .backup-btn-restore { padding: 4px 10px; border-radius: 6px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: var(--emerald-text); font-size: 10.5px; font-weight: 700; cursor: pointer; }
 
   @media print {
     body { background: #fff !important; color: #000 !important; overflow: visible !important; height: auto !important; padding: 0 !important; }
@@ -520,118 +692,171 @@
     .reg-wrap { border: none !important; overflow: visible !important; }
     table { width: 100% !important; border: 1px solid #000 !important; color: #000 !important; font-size: 10pt !important; }
     th, td { border: 1px solid #999 !important; color: #000 !important; padding: 6px !important; }
-    th { background: #f0f0f0 !important; color: #000 !important; }
-    .badge-chip, .model-pill, .holder-pill { border: none !important; color: #000 !important; font-weight: 700 !important; padding: 0 !important; background: transparent !important; }
-    .sn-link, .sn-prefix, .sn-tail { text-decoration: none !important; color: #000 !important; background: transparent !important; border: none !important; }
   }
 </style>
 </head>
 <body>
 
 <div class="boot-overlay" id="bootOverlay">
-  <div class="boot-logo">SKLAD OPS</div>
+  <div class="boot-logo">SKLAD EXECUTIVE</div>
   <div class="boot-spinner"></div>
-  <div class="boot-text" id="bootText">Инициализация базы данных…</div>
+  <div class="boot-text" id="bootText">Синхронизация складского комплекса…</div>
 </div>
 
 <div class="app-shell">
   <header class="hud-header">
     <div class="brand-zone">
-      <div id="brandTag" class="brand-tag mono" title="v8.45 • Тройной клик — удаление из БД">TERMINAL</div>
+      <div id="brandTag" class="brand-logo-box mono" title="Тройной клик — сервисное меню">WB</div>
       <div class="brand-title">
-        <h1>Учёт Оборудования</h1>
-        <p>Двухпостовой Cloud • Автономная работа • Экспресс-замена</p>
+        <h1>Учёт Оборудования <span class="version-pill">PRO v8.80</span></h1>
+        <p>Система контроля парка ТСД в реальном времени • Облачная синхронизация</p>
       </div>
     </div>
     <div class="hud-actions">
-      <div id="shiftPill" class="shift-pill day" onclick="toggleShift()" title="Клик — переключить День/Ночь вручную. Клик по бейджу MANUAL — вернуть AUTO">
+      <!-- Переключатель презентационных тем -->
+      <div class="theme-switcher" title="Выбор стиля интерфейса (Alt+T)">
+        <button type="button" class="t-btn active" data-set-theme="sapphire">💎 Сапфир</button>
+        <button type="button" class="t-btn" data-set-theme="quartz">☀️ Кварц</button>
+        <button type="button" class="t-btn" data-set-theme="gold">✨ Золото</button>
+        <button type="button" class="t-btn" data-set-theme="aurora">🌌 Аврора</button>
+      </div>
+
+      <div id="shiftPill" class="shift-pill day" onclick="toggleShift()" title="Клик — переключить смену День/Ночь">
         <span id="shiftIcon">☀</span>
         <span id="shiftLabel">ДЕНЬ</span>
         <span class="t" id="shiftTime">--:--</span>
-        <span id="shiftBadge" class="badge-auto" onclick="resetShiftToAuto(event)" title="Вернуть автоопределение">AUTO</span>
+        <span id="shiftBadge" class="badge-auto" onclick="resetShiftToAuto(event)">AUTO</span>
       </div>
       <div id="syncStatus" class="pill-badge pill-online" onclick="showDiag()">
         <span class="dot-ping"></span>
         <span id="syncText">Онлайн</span>
       </div>
       <button class="btn-hud" onclick="openBackupModal()" title="Резервные копии">💾 Бэкап</button>
-      <button class="btn-hud" onclick="exportExcel()" title="Ctrl+E">📊 Excel</button>
-      <button class="btn-hud" onclick="openModal('impModal')" title="Ctrl+I">📥 Импорт</button>
+      <button class="btn-hud" onclick="exportExcel()" title="Выгрузить отчёт в Excel (Ctrl+E)">📊 Отчёт Excel</button>
+      <button class="btn-hud" onclick="openModal('impModal')" title="Импорт списка ТСД (Ctrl+I)">📥 Импорт</button>
     </div>
   </header>
 
+  <!-- КАРТОЧКИ ПОКАЗАТЕЛЕЙ (KPI) -->
   <section class="metrics-grid">
-    <div class="hud-stat-card active" data-filter="all" style="--card-accent: #6366f1;">
-      <div class="stat-label">ВСЕГО СКАНЕРОВ</div>
-      <div id="mTotal" class="stat-value mono">0</div>
+    <div class="kpi-card active" data-filter="all" style="--kpi-color: var(--brand-1); --kpi-bg: rgba(99,102,241,0.12); --kpi-border: rgba(99,102,241,0.28);">
+      <div class="kpi-info">
+        <span class="kpi-label">Весь парк ТСД</span>
+        <div class="kpi-val-row">
+          <span id="mTotal" class="kpi-value mono">0</span>
+          <span class="kpi-sub">100%</span>
+        </div>
+      </div>
+      <div class="kpi-icon-box">📦</div>
     </div>
-    <div class="hud-stat-card" data-filter="free" style="--card-accent: #10b981;">
-      <div class="stat-label" style="color:var(--neon-emerald);">● НА СКЛАДЕ</div>
-      <div id="mFree" class="stat-value mono" style="color:var(--neon-emerald);">0</div>
+
+    <div class="kpi-card" data-filter="free" style="--kpi-color: var(--emerald); --kpi-bg: rgba(16,185,129,0.12); --kpi-border: rgba(16,185,129,0.28);">
+      <div class="kpi-info">
+        <span class="kpi-label" style="color:var(--emerald-text);">Доступно (Склад)</span>
+        <div class="kpi-val-row">
+          <span id="mFree" class="kpi-value mono" style="color:var(--emerald-text);">0</span>
+          <span id="mFreePct" class="kpi-sub">0%</span>
+        </div>
+      </div>
+      <div class="kpi-icon-box">🟢</div>
     </div>
-    <div class="hud-stat-card" data-filter="issued" style="--card-accent: #818cf8;">
-      <div class="stat-label" style="color:#a5b4fc;">● НА РУКАХ</div>
-      <div id="mIssued" class="stat-value mono" style="color:#a5b4fc;">0</div>
+
+    <div class="kpi-card" data-filter="issued" style="--kpi-color: var(--brand-2); --kpi-bg: rgba(59,130,246,0.12); --kpi-border: rgba(59,130,246,0.28);">
+      <div class="kpi-info">
+        <span class="kpi-label" style="color:var(--brand-text);">В работе (На руках)</span>
+        <div class="kpi-val-row">
+          <span id="mIssued" class="kpi-value mono" style="color:var(--brand-text);">0</span>
+          <span id="mIssuedPct" class="kpi-sub">0%</span>
+        </div>
+      </div>
+      <div class="kpi-icon-box">⚡</div>
     </div>
-    <div class="hud-stat-card" data-filter="overdue" style="--card-accent: #f43f5e;" title="Выдано более 14 часов назад">
-      <div class="stat-label" style="color:var(--neon-rose);">🚨 ДОЛГИ (&gt;14Ч)</div>
-      <div id="mOverdue" class="stat-value mono" style="color:var(--neon-rose);">0</div>
+
+    <div class="kpi-card" data-filter="overdue" style="--kpi-color: var(--rose); --kpi-bg: rgba(244,63,94,0.12); --kpi-border: rgba(244,63,94,0.28);" title="Выдано более 14 часов назад">
+      <div class="kpi-info">
+        <span class="kpi-label" style="color:var(--rose-text);">Просрочка (&gt;14ч)</span>
+        <div class="kpi-val-row">
+          <span id="mOverdue" class="kpi-value mono" style="color:var(--rose-text);">0</span>
+          <span class="kpi-sub">контроль</span>
+        </div>
+      </div>
+      <div class="kpi-icon-box">🚨</div>
     </div>
-    <div class="hud-stat-card" data-filter="day" style="--card-accent: #f59e0b;" title="Сейчас на руках у дневной смены">
-      <div class="stat-label" style="color:#fbbf24;">☀️ ДЕНЬ (ВЫДАНО)</div>
-      <div id="mDay" class="stat-value mono" style="color:#fbbf24;">0</div>
+
+    <div class="kpi-card" data-filter="day" style="--kpi-color: var(--amber); --kpi-bg: rgba(245,158,11,0.12); --kpi-border: rgba(245,158,11,0.28);">
+      <div class="kpi-info">
+        <span class="kpi-label" style="color:var(--amber-text);">Дневная смена</span>
+        <div class="kpi-val-row">
+          <span id="mDay" class="kpi-value mono" style="color:var(--amber-text);">0</span>
+          <span class="kpi-sub">активно</span>
+        </div>
+      </div>
+      <div class="kpi-icon-box">☀️</div>
     </div>
-    <div class="hud-stat-card" data-filter="night" style="--card-accent: #a855f7;" title="Сейчас на руках у ночной смены">
-      <div class="stat-label" style="color:#c084fc;">🌙 НОЧЬ (ВЫДАНО)</div>
-      <div id="mNight" class="stat-value mono" style="color:#c084fc;">0</div>
+
+    <div class="kpi-card" data-filter="night" style="--kpi-color: var(--purple); --kpi-bg: rgba(168,85,247,0.12); --kpi-border: rgba(168,85,247,0.28);">
+      <div class="kpi-info">
+        <span class="kpi-label" style="color:var(--purple-text);">Ночная смена</span>
+        <div class="kpi-val-row">
+          <span id="mNight" class="kpi-value mono" style="color:var(--purple-text);">0</span>
+          <span class="kpi-sub">активно</span>
+        </div>
+      </div>
+      <div class="kpi-icon-box">🌙</div>
     </div>
   </section>
 
+  <!-- ДВУХПОСТОВОЙ ТЕРМИНАЛ -->
   <section class="terminal-grid">
-    <div class="deck-card">
+    <div class="deck-card issue-deck">
       <div class="deck-header">
-        <span class="deck-title" style="color:#a5b4fc;">📤 1. ВЫДАЧА СКАНЕРА</span>
-        <span id="modelHint" class="deck-badge-key">F1 • Скан ➔ ID ➔ Enter</span>
+        <span class="deck-title" style="color:var(--brand-text);">
+          <span class="deck-step-badge">1</span> ВЫДАЧА ОБОРУДОВАНИЯ
+        </span>
+        <span id="modelHint" class="deck-badge-key">F1 • Скан SN ➔ ID ➔ Enter</span>
       </div>
       <form id="issueForm" autocomplete="off" style="display:flex; flex-direction:column; flex:1;">
         <div class="hud-group">
-          <label class="hud-label">Серийный номер (или последние цифры):</label>
-          <input id="issSn" class="hud-input mono" placeholder="S10023 или 0635..." autocomplete="off" spellcheck="false">
+          <label class="hud-label">Серийный номер ТСД (или последние 4 цифры):</label>
+          <input id="issSn" class="hud-input mono" placeholder="Отсканируйте штрихкод или введите хвост номера..." autocomplete="off" spellcheck="false">
           <div id="issDrop" class="drop-box"></div>
         </div>
         <div class="hud-group">
-          <label class="hud-label">ID / Табельный / ФИО сотрудника:</label>
-          <input id="issWorker" class="hud-input" placeholder="611252 или Иванов..." autocomplete="off" spellcheck="false" maxlength="40">
+          <label class="hud-label">Исполнитель (ID бейджа / Табельный / ФИО):</label>
+          <input id="issWorker" class="hud-input" placeholder="Например: 611252 или Иванов И.И." autocomplete="off" spellcheck="false" maxlength="40">
           <div id="workerDrop" class="drop-box"></div>
         </div>
-        <button type="submit" class="btn-submit btn-issue" id="btnIssue">ВЫДАТЬ СКАНЕР (ENTER)</button>
+        <button type="submit" class="btn-submit btn-issue" id="btnIssue">ОФОРМИТЬ ВЫДАЧУ (ENTER)</button>
       </form>
     </div>
 
     <div class="deck-card return-deck">
       <div class="deck-header">
-        <span class="deck-title" style="color:#34d399;">📥 2. СДАЧА СКАНЕРА</span>
-        <span class="deck-badge-key">F2 • Enter = мгновенный приём</span>
+        <span class="deck-title" style="color:var(--emerald-text);">
+          <span class="deck-step-badge">2</span> ПРИЁМ НА СКЛАД
+        </span>
+        <span class="deck-badge-key">F2 • Мгновенный возврат по Enter</span>
       </div>
       <div class="hud-group">
-        <label class="hud-label">Введите ID / Табельный / Фамилию / Серийник:</label>
-        <input id="retQuery" class="hud-input mono" placeholder="611252, Иванов или S10023 ➔ Enter" autocomplete="off" spellcheck="false">
+        <label class="hud-label">Серийный номер ТСД или ID сотрудника:</label>
+        <input id="retQuery" class="hud-input mono" placeholder="Отсканируйте возвращаемый прибор или бейдж сотрудника ➔ Enter" autocomplete="off" spellcheck="false">
         <div id="retDrop" class="drop-box"></div>
       </div>
       <button type="button" class="btn-submit btn-return-action" id="retBtn">ПРИНЯТЬ НА СКЛАД (ENTER)</button>
     </div>
   </section>
 
+  <!-- РЕЕСТР ОБОРУДОВАНИЯ -->
   <section class="registry-deck">
     <div class="reg-head">
-      <div style="font-weight:800; font-size:12.5px; text-transform:uppercase; letter-spacing:0.04em; color:#e2e8f0;">
-        РЕЕСТР ОБОРУДОВАНИЯ 
-        <span style="color:var(--text-muted); font-weight:500; font-size:10.5px; text-transform:none; margin-left:6px;">(клик по SN → история · Ctrl+клик → копировать · клик по смене ⇄ → переключить)</span>
+      <div style="font-family:'Plus Jakarta Sans', sans-serif; font-weight:800; font-size:13px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-main);">
+        ОПЕРАТИВНЫЙ РЕЕСТР ПАРКА ТСД
+        <span style="color:var(--text-muted); font-family:'Inter', sans-serif; font-weight:500; font-size:11px; text-transform:none; margin-left:8px;">(клик по серийному номеру — детальное досье и журнал перемещений)</span>
       </div>
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-        <div class="reg-stats" id="regStats">Σ <span style="color:var(--text-muted);">—</span> · ↑ <span style="color:var(--text-muted);">—</span></div>
+        <div class="reg-stats" id="regStats">Среднее время: — · Макс: —</div>
         <div class="search-wrap" id="searchWrap">
-          <input id="searchTable" class="hud-input mono" style="width:240px; padding:7px 28px 7px 12px; font-size:12px;" placeholder="Поиск (Ctrl+K)..." spellcheck="false">
+          <input id="searchTable" class="hud-input mono" style="width:240px; padding:7px 28px 7px 12px; font-size:12px;" placeholder="Быстрый поиск (Ctrl+K)..." spellcheck="false">
           <button class="search-clear-btn" id="searchClearBtn" title="Очистить поиск">✕</button>
         </div>
       </div>
@@ -640,35 +865,35 @@
       <table>
         <thead>
           <tr>
-            <th style="width:200px;">СЕРИЙНЫЙ НОМЕР</th>
-            <th style="width:145px;">МОДЕЛЬ</th>
-            <th style="width:225px;">СТАТУС</th>
-            <th style="width:190px;">ИСПОЛНИТЕЛЬ</th>
-            <th style="text-align:right;">ВРЕМЯ НА РУКАХ</th>
-            <th style="text-align:right; width:115px;">ДЕЙСТВИЕ</th>
+            <th style="width:205px;">СЕРИЙНЫЙ НОМЕР</th>
+            <th style="width:150px;">МОДЕЛЬ ТСД</th>
+            <th style="width:230px;">ТЕКУЩИЙ СТАТУС</th>
+            <th style="width:210px;">СОТРУДНИК (ДЕРЖАТЕЛЬ)</th>
+            <th style="text-align:right;">ВРЕМЯ В РАБОТЕ</th>
+            <th style="text-align:right; width:120px;">ОПЕРАЦИЯ</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
-    <div style="margin-top:7px; font-family:'JetBrains Mono'; font-size:11px; color:#64748b;" id="logStatus">[SYSTEM] Инициализация...</div>
+    <div style="margin-top:7px; font-family:'JetBrains Mono'; font-size:11px; color:var(--text-muted);" id="logStatus">[SYSTEM] Система готова к работе</div>
   </section>
 </div>
 
 <div id="toast"><div class="t-icon" id="tIcon">✓</div><div class="t-body"><h4 id="tTitle">ГОТОВО</h4><p id="tDesc"></p></div></div>
 
 <div id="debtModal" class="modal-overlay">
-  <div class="modal-card" style="max-width:560px; border-color:rgba(244,63,94,0.35);">
+  <div class="modal-card" style="max-width:560px; border-color:rgba(244,63,94,0.4);">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:10px;">
-      <h3 style="font-size:14px; color:var(--neon-rose); display:flex; align-items:center; gap:10px;">
-        🚨 НЕ СДАЮТ <span id="debtModalCount" style="font-family:'JetBrains Mono'; background:rgba(244,63,94,0.25); border:1px solid rgba(244,63,94,0.55); color:#fb7185; padding:2px 9px; border-radius:9px; font-size:11px;">0</span>
+      <h3 style="font-size:14px; color:var(--rose-text); display:flex; align-items:center; gap:10px;">
+        🚨 ПРОСРОЧЕННЫЙ ВОЗВРАТ (&gt;14Ч) <span id="debtModalCount" style="font-family:'JetBrains Mono'; background:rgba(244,63,94,0.2); border:1px solid rgba(244,63,94,0.5); color:var(--rose-text); padding:2px 9px; border-radius:9px; font-size:11px;">0</span>
       </h3>
       <div style="display:flex; gap:8px;">
-        <button class="btn-hud" style="min-width:auto; padding:4px 10px; font-size:11px; border-color:rgba(244,63,94,0.4); color:var(--neon-rose);" onclick="showAllDebtsInTable()">📋 Показать все в таблице</button>
+        <button class="btn-hud" style="min-width:auto; padding:4px 10px; font-size:11px; border-color:rgba(244,63,94,0.4); color:var(--rose-text);" onclick="showAllDebtsInTable()">📋 Показать в реестре</button>
         <button class="btn-hud" style="min-width:auto; padding:4px 10px; font-size:11px;" onclick="closeModal('debtModal')">✕</button>
       </div>
     </div>
-    <p style="font-size:11.5px; color:var(--text-secondary); margin-bottom:12px;">Клик по сотруднику → фильтр в реестре</p>
+    <p style="font-size:11.5px; color:var(--text-sub); margin-bottom:12px;">Нажмите на сотрудника для фильтрации в основном реестре:</p>
     <div class="debt-modal-list" id="debtModalList"></div>
   </div>
 </div>
@@ -677,7 +902,7 @@
 <div id="auditDrawer" class="audit-drawer">
   <div class="audit-header">
     <div style="min-width:0;">
-      <h3 id="audSn" class="mono" style="color:#a5b4fc;">S10023</h3>
+      <h3 id="audSn" class="mono">S10023</h3>
       <span id="audStatusBadge" class="badge-chip chip-free" style="margin-top:4px;">На складе</span>
     </div>
     <button class="btn-hud" style="padding:4px 8px; font-size:12px; min-width:auto;" onclick="closeAuditDrawer()">✕ Закрыть</button>
@@ -691,22 +916,22 @@
       <button id="audShiftBtn" class="btn-hud" style="min-width:auto; padding:5px 12px; font-size:11px;">🔀 Сменить</button>
     </div>
   </div>
-  <div style="font-size:11px; font-weight:800; color:var(--text-secondary); text-transform:uppercase; margin-bottom:10px; letter-spacing:0.04em;">📜 Хронология перемещений:</div>
+  <div style="font-size:11px; font-weight:800; color:var(--text-sub); text-transform:uppercase; margin-bottom:10px; letter-spacing:0.04em;">📜 Журнал операций по устройству:</div>
   <div id="audTimeline" class="timeline-box"></div>
 </div>
 
 <div id="swapModal" class="modal-overlay">
   <div class="modal-card">
-    <h3 style="font-size:15px; margin-bottom:10px; color:var(--neon-amber);">🔄 ЭКСПРЕСС-ЗАМЕНА СКАНЕРА</h3>
-    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:6px;">На сотруднике <b id="swapWorker" style="color:#fff;"></b> уже числится прибор:</p>
+    <h3 style="font-size:15px; margin-bottom:10px; color:var(--amber-text);">🔄 ЭКСПРЕСС-ЗАМЕНА СКАНЕРА</h3>
+    <p style="font-size:12px; color:var(--text-sub); margin-bottom:6px;">На сотруднике <b id="swapWorker" style="color:var(--text-main);"></b> уже числится прибор:</p>
     <div class="swap-grid">
-      <div class="swap-card old"><div class="label">Сдать на склад</div><div class="sn" id="swapOldSn">—</div><div class="model" id="swapOldModel" style="font-size:11px; color:var(--text-secondary); margin-top:2px;">—</div></div>
+      <div class="swap-card old"><div class="label">Сдать на склад</div><div class="sn" id="swapOldSn">—</div><div class="model" id="swapOldModel" style="font-size:11px; color:var(--text-sub); margin-top:2px;">—</div></div>
       <div class="swap-arrow">→</div>
-      <div class="swap-card new"><div class="label">Выдать в работу</div><div class="sn" id="swapNewSn">—</div><div class="model" id="swapNewModel" style="font-size:11px; color:var(--text-secondary); margin-top:2px;">—</div></div>
+      <div class="swap-card new"><div class="label">Выдать в работу</div><div class="sn" id="swapNewSn">—</div><div class="model" id="swapNewModel" style="font-size:11px; color:var(--text-sub); margin-top:2px;">—</div></div>
     </div>
     <div class="swap-inherit-note">
       <span style="font-size:16px;">🔁</span>
-      <span>Время на руках: <b id="swapInheritTime" style="color:#fff;">—</b> — переносится со старого сканера</span>
+      <span>Время на руках: <b id="swapInheritTime" style="color:var(--text-main);">—</b> — переносится со старого сканера</span>
     </div>
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
       <button class="btn-hud" onclick="closeModal('swapModal')">Отмена</button>
@@ -717,9 +942,9 @@
 
 <div id="pickModal" class="modal-overlay">
   <div class="modal-card">
-    <h3 style="font-size:14px; margin-bottom:8px; color:var(--neon-amber);">⚠️ НЕСКОЛЬКО СОВПАДЕНИЙ</h3>
-    <p style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">Уточните, какой именно сканер принимается:</p>
-    <div id="pickList" style="max-height:240px; overflow-y:auto; border:1px solid rgba(255,255,255,0.08); border-radius:8px;"></div>
+    <h3 style="font-size:14px; margin-bottom:8px; color:var(--amber-text);">⚠️ НЕСКОЛЬКО СОВПАДЕНИЙ</h3>
+    <p style="font-size:12px; color:var(--text-sub); margin-bottom:10px;">Уточните, какой именно сканер принимается:</p>
+    <div id="pickList" style="max-height:240px; overflow-y:auto; border:1px solid var(--card-border); border-radius:8px;"></div>
     <div style="display:flex; justify-content:flex-end; margin-top:12px;"><button class="btn-hud" onclick="closeModal('pickModal')">Отмена</button></div>
   </div>
 </div>
@@ -737,11 +962,11 @@
 
 <div id="diagModal" class="modal-overlay">
   <div class="modal-card" style="max-width:560px;">
-    <h3 style="font-size:14px; margin-bottom:10px; color:#a5b4fc;">⚡ СТАТУС СИНХРОНИЗАЦИИ</h3>
-    <div id="diagContent" class="mono" style="font-size:12px; line-height:1.8; color:#94a3b8; margin-bottom:14px;"></div>
+    <h3 style="font-size:14px; margin-bottom:10px; color:var(--brand-text);">⚡ СТАТУС СИНХРОНИЗАЦИИ</h3>
+    <div id="diagContent" class="mono" style="font-size:12px; line-height:1.8; color:var(--text-sub); margin-bottom:14px;"></div>
     <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
       <button class="btn-hud" onclick="closeModal('diagModal')">Закрыть</button>
-      <button class="btn-hud" style="border-color:rgba(244,63,94,0.4); color:var(--neon-rose);" onclick="hardReset()">🔥 Жёсткий сброс</button>
+      <button class="btn-hud" style="border-color:rgba(244,63,94,0.4); color:var(--rose-text);" onclick="hardReset()">🔥 Жёсткий сброс</button>
       <button class="btn-submit btn-issue" style="width:auto; padding:6px 14px;" onclick="forceSync()">Форсировать sync</button>
     </div>
   </div>
@@ -749,8 +974,8 @@
 
 <div id="delModal" class="modal-overlay">
   <div class="modal-card" style="max-width:640px; border-color: rgba(244,63,94,0.4);">
-    <h3 style="font-size:14px; margin-bottom:10px; color:var(--neon-rose);">🗑 УДАЛЕНИЕ ТСД ИЗ БАЗЫ</h3>
-    <p style="font-size:11.5px; color:var(--text-secondary); margin-bottom:10px;">Удаляет из локальной базы, очереди, истории и облака Supabase. Действие необратимо.</p>
+    <h3 style="font-size:14px; margin-bottom:10px; color:var(--rose-text);">🗑 УДАЛЕНИЕ ТСД ИЗ БАЗЫ</h3>
+    <p style="font-size:11.5px; color:var(--text-sub); margin-bottom:10px;">Удаляет из локальной базы, очереди, истории и облака Supabase. Действие необратимо.</p>
     <input id="delSearch" class="del-search" placeholder="Поиск по SN / модели / держателю..." autocomplete="off" spellcheck="false">
     <div id="delList" class="del-list"></div>
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
@@ -761,16 +986,15 @@
 
 <div id="backupModal" class="modal-overlay">
   <div class="modal-card" style="max-width:640px;">
-    <h3 style="font-size:14px; margin-bottom:6px; color:#a5b4fc;">💾 РЕЗЕРВНЫЕ КОПИИ</h3>
-    <p style="font-size:11.5px; color:var(--text-secondary); margin-bottom:14px;">
-      Автосохранение раз в день в Supabase Storage. Хранятся последние 7 файлов.<br>
-      <span style="color:var(--neon-amber);">⚠ Убедитесь, что RLS на bucket 'sklad-backups' ограничивает доступ.</span>
+    <h3 style="font-size:14px; margin-bottom:6px; color:var(--brand-text);">💾 РЕЗЕРВНЫЕ КОПИИ</h3>
+    <p style="font-size:11.5px; color:var(--text-sub); margin-bottom:14px;">
+      Автосохранение раз в день в Supabase Storage. Хранятся последние 7 файлов.
     </p>
     <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
-      <button class="btn-hud" style="border-color:rgba(99,102,241,0.45); color:#a5b4fc;" onclick="doBackup('manual')">💾 Создать бэкап сейчас</button>
+      <button class="btn-hud" style="border-color:var(--brand-1); color:var(--brand-text);" onclick="doBackup('manual')">💾 Создать бэкап сейчас</button>
       <button class="btn-hud" onclick="renderBackupList()">🔄 Обновить список</button>
     </div>
-    <div id="backupList" style="max-height:50vh; overflow-y:auto; border:1px solid rgba(255,255,255,0.06); border-radius:10px;"></div>
+    <div id="backupList" style="max-height:50vh; overflow-y:auto; border:1px solid var(--card-border); border-radius:10px;"></div>
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
       <button class="btn-hud" onclick="closeModal('backupModal')">Закрыть</button>
     </div>
@@ -779,7 +1003,7 @@
 
 <script>
 /* ============================================================
-   КОНФИГ
+   КОНФИГ И ПРЕЗЕНТАЦИОННЫЕ ТЕМЫ
    ============================================================ */
 const SUPABASE_URL = "https://sgpkvnymkqwuhepkaoxw.supabase.co";
 const SUPABASE_KEY = "sb_publishable_dqlmOngeOHVYMFUG1s4kLw_N1Pxi9KW";
@@ -790,6 +1014,7 @@ const BACKUP_KEEP = 7;
 const BACKUP_MIN_INTERVAL = 6 * 60 * 60 * 1000;
 const RECENT_LOCAL_TTL = 60 * 1000;
 const AUTO_SWAP_KEY = 'sklad_auto_swap_v2';
+const THEME_STORAGE_KEY = 'sklad_exec_theme';
 const DRAFT_KEY = 'sklad_draft_iss';
 const DRAFT_TTL_MS = 5 * 60 * 1000;
 const SN_REGEX = /^[A-Z0-9\-_.]{2,60}$/;
@@ -802,11 +1027,26 @@ const SYNC_BASE_INTERVAL = 20000;
 const SYNC_MAX_INTERVAL = 300000;
 const SYNC_JITTER = 0.25;
 
+const THEMES = ['sapphire', 'quartz', 'gold', 'aurora'];
+const THEME_NAMES = {
+  sapphire: '💎 Сапфир (Executive Dark)',
+  quartz: '☀️ Кварц (Светлая)',
+  gold: '✨ Графит и Золото',
+  aurora: '🌌 Аврора (Неон)'
+};
+const THEME_META_COLORS = {
+  sapphire: '#060811',
+  quartz: '#f1f5f9',
+  gold: '#09090b',
+  aurora: '#030712'
+};
+
 const DEBUG = false;
 function dbg(...args) { if (DEBUG) console.log('[DBG]', ...args); }
 
 const state = {
   devices: [], filter: 'all',
+  theme: 'sapphire',
   issueShift: 'Дневная', issueShiftAuto: true, workerShifts: {},
   syncing: false, dbReady: false, lastError: '—',
   pendingSwap: null,
@@ -827,11 +1067,35 @@ try {
   state.autoSwap = v === null ? true : v === 'true';
 } catch(e) { state.autoSwap = true; }
 
+try {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  if (savedTheme && THEMES.includes(savedTheme)) state.theme = savedTheme;
+} catch(e) {}
+
 try { state.workerShifts = JSON.parse(localStorage.getItem('sklad_worker_shifts') || '{}'); } catch(e) { state.workerShifts = {}; }
 
 const recentLocal = new Map();
 const $ = id => document.getElementById(id);
 const nowIso = () => new Date().toISOString();
+
+function applyTheme(themeName, notify = false) {
+  const t = THEMES.includes(themeName) ? themeName : 'sapphire';
+  state.theme = t;
+  document.documentElement.setAttribute('data-theme', t);
+  const meta = $('metaThemeColor');
+  if (meta) meta.setAttribute('content', THEME_META_COLORS[t] || '#060811');
+  document.querySelectorAll('[data-set-theme]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.setTheme === t);
+  });
+  try { localStorage.setItem(THEME_STORAGE_KEY, t); } catch(e) {}
+  if (notify) showToast('СТИЛЬ ИНТЕРФЕЙСА', THEME_NAMES[t]);
+}
+
+function cycleTheme() {
+  const idx = THEMES.indexOf(state.theme);
+  applyTheme(THEMES[(idx + 1) % THEMES.length], true);
+}
+applyTheme(state.theme, false);
 
 function esc(s) {
   return String(s !== null && s !== undefined ? s : '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -869,11 +1133,18 @@ function detectModel(sn) {
   return 'Point Mobile';
 }
 
-/* Форматирование серийника с выделением последних 4 цифр */
 function formatSnSplit(sn) {
   const s = String(sn || '');
   if (s.length <= 4) return `<span class="sn-tail">${esc(s)}</span>`;
   return `<span class="sn-prefix">${esc(s.slice(0, -4))}</span><span class="sn-tail">${esc(s.slice(-4))}</span>`;
+}
+
+function getInitials(holder) {
+  const s = String(holder || '').trim();
+  if (!s) return '•';
+  const letters = s.match(/[А-ЯЁA-Z]/gi);
+  if (letters && letters.length >= 2) return (letters[0] + letters[1]).toUpperCase();
+  return s.slice(-2).toUpperCase();
 }
 
 function hoursSince(iso) {
@@ -918,7 +1189,7 @@ function logMsg(msg) {
 }
 
 /* ============================================================
-   BOOT
+   BOOT & SCROLL
    ============================================================ */
 function hideBoot() {
   const el = $('bootOverlay');
@@ -931,9 +1202,6 @@ function bootText(txt) {
   if (el) el.textContent = txt;
 }
 
-/* ============================================================
-   SCROLL LOCK
-   ============================================================ */
 function refreshScrollLock() {
   const anyModal = document.querySelector('.modal-overlay.show');
   const drawerOpen = $('auditDrawer') && $('auditDrawer').classList.contains('open');
@@ -1008,11 +1276,9 @@ function updateShiftPill() {
   if (state.issueShiftAuto) {
     badge.className = 'badge-auto';
     badge.innerText = 'AUTO';
-    badge.title = 'Смена определяется по времени. Клик по пилюле → ручной режим';
   } else {
     badge.className = 'badge-manual';
     badge.innerText = 'MANUAL ↻';
-    badge.title = 'Ручной режим. Клик → вернуть автоопределение';
   }
   const now = new Date();
   $('shiftTime').innerText = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
@@ -1603,10 +1869,10 @@ async function renderQueuePreview() {
     const sn = (it.dev && it.dev.serial) || it.serial || '?';
     const action = it.action || type;
     const t = it.ts ? new Date(it.ts).toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : '';
-    const color = type === 'delete' ? 'var(--neon-rose)' : '#a5b4fc';
-    return `<div style="font-size:11px; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; gap:8px;">
+    const color = type === 'delete' ? 'var(--rose-text)' : 'var(--brand-text)';
+    return `<div style="font-size:11px; padding:3px 0; border-bottom:1px solid var(--card-border); display:flex; gap:8px;">
       <span style="color:${color}; font-weight:700;">${esc(type)}</span>
-      <span style="color:#fff; font-family:'JetBrains Mono'; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(sn)}</span>
+      <span style="color:var(--text-main); font-family:'JetBrains Mono'; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(sn)}</span>
       <span style="color:var(--text-muted); font-size:10px;">${esc(action)}</span>
       <span style="color:var(--text-muted); font-size:10px;">${t}</span>
     </div>`;
@@ -1722,10 +1988,10 @@ async function listBackups() {
 
 async function renderBackupList() {
   const wrap = $('backupList'); if (!wrap) return;
-  wrap.innerHTML = '<div style="padding:20px; text-align:center; color:#94a3b8; font-size:12px;">Загрузка...</div>';
+  wrap.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-sub); font-size:12px;">Загрузка...</div>';
   const files = await listBackups();
   if (!files.length) {
-    wrap.innerHTML = '<div style="padding:30px 20px; text-align:center; color:#475569; font-size:12px;">Бэкапов пока нет</div>';
+    wrap.innerHTML = '<div style="padding:30px 20px; text-align:center; color:var(--text-muted); font-size:12px;">Бэкапов пока нет</div>';
     return;
   }
   wrap.innerHTML = files.map(f => {
@@ -1853,7 +2119,7 @@ function handleIssSnInput() {
   if (fixed.length < 2) {
     drop.classList.remove('show'); drop.innerHTML = '';
     state.lastDropQuery = null;
-    $('modelHint').innerText = "F1 • Скан ➔ ID ➔ Enter";
+    $('modelHint').innerText = "F1 • Скан SN ➔ ID ➔ Enter";
     return;
   }
 
@@ -1874,8 +2140,8 @@ function handleIssSnInput() {
 
   drop.innerHTML = matches.slice(0, 8).map((d, i) => `
     <div class="drop-item ${i === 0 ? 'selected' : ''}" data-sn="${esc(d.serial)}">
-      <div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span> <span style="color:var(--text-secondary); font-size:11px; margin-left:6px;">(${esc(d.model)})</span></div>
-      <span style="font-size:10px; color:var(--neon-emerald); font-weight:700;">🟢 НА СКЛАДЕ</span>
+      <div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span> <span style="color:var(--text-sub); font-size:11px; margin-left:6px;">(${esc(d.model)})</span></div>
+      <span style="font-size:10px; color:var(--emerald-text); font-weight:700;">🟢 НА СКЛАДЕ</span>
     </div>
   `).join('');
   drop.classList.add('show');
@@ -1930,7 +2196,7 @@ function handleWorkerInput() {
 
   drop.innerHTML = matches.map((w, idx) => `
     <div class="drop-item ${idx === 0 ? 'selected' : ''}" data-worker="${esc(w)}">
-      <span style="font-weight:700; color:#e2e8f0;">👤 ${esc(w)}</span>
+      <span style="font-weight:700;">👤 ${esc(w)}</span>
     </div>
   `).join('');
   drop.classList.add('show');
@@ -2118,7 +2384,7 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
   $('issSn').value = ''; $('issWorker').value = '';
   resetIssueDropdown();
   resetWorkerDropdown();
-  $('modelHint').innerText = "F1 • Скан ➔ ID ➔ Enter";
+  $('modelHint').innerText = "F1 • Скан SN ➔ ID ➔ Enter";
   if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
   updateShiftPill();
   $('issSn').focus();
@@ -2208,11 +2474,11 @@ async function confirmSwap() {
 function showSwapToast(title, desc, undoCallback) {
   const el = $('toast');
   $('tIcon').innerText = '🔁';
-  $('tIcon').style.background = 'rgba(99,102,241,0.2)';
-  $('tIcon').style.borderColor = 'var(--accent-indigo)';
-  $('tIcon').style.color = '#a5b4fc';
+  $('tIcon').style.background = 'var(--tr-hover)';
+  $('tIcon').style.borderColor = 'var(--brand-1)';
+  $('tIcon').style.color = 'var(--brand-text)';
   $('tTitle').innerText = title;
-  $('tTitle').style.color = '#a5b4fc';
+  $('tTitle').style.color = 'var(--brand-text)';
   $('tDesc').innerText = desc;
 
   const oldBtn = el.querySelector('.t-undo');
@@ -2316,8 +2582,8 @@ function handleRetInput() {
   drop.innerHTML = matches.slice(0, 8).map((d, idx) => {
     const sh = d.shift === 'Ночная' ? '🌙' : (d.shift === 'Дневная' ? '☀' : '');
     return `<div class="drop-item ${idx === 0 ? 'selected' : ''}" data-sn="${esc(d.serial)}">
-      <div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span> <span style="color:var(--text-secondary); font-size:11px; margin-left:6px;">(${esc(d.model)})</span></div>
-      <span style="font-size:11.5px; color:#e2e8f0; font-weight:600;">${sh} ${esc(d.holder || '—')}</span>
+      <div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span> <span style="color:var(--text-sub); font-size:11px; margin-left:6px;">(${esc(d.model)})</span></div>
+      <span style="font-size:11.5px; font-weight:600;">${sh} ${esc(d.holder || '—')}</span>
     </div>`;
   }).join('');
   drop.classList.add('show');
@@ -2377,8 +2643,8 @@ async function quickReturn() {
     const sh = d.shift === 'Ночная' ? '🌙' : (d.shift === 'Дневная' ? '☀' : '');
     return `<div class="drop-item" data-sn="${esc(d.serial)}" style="padding:10px 14px;">
       <div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span>
-      <span style="color:#cbd5e1; margin-left:8px;">${sh} ${esc(d.holder)}</span></div>
-      <span class="mono" style="font-size:11px; color:${ov ? 'var(--neon-rose)' : '#a5b4fc'};">${fmtHoursShort(hoursSince(d.issued_at))}</span>
+      <span style="color:var(--text-sub); margin-left:8px;">${sh} ${esc(d.holder)}</span></div>
+      <span class="mono" style="font-size:11px; color:${ov ? 'var(--rose-text)' : 'var(--brand-text)'};">${fmtHoursShort(hoursSince(d.issued_at))}</span>
     </div>`;
   }).join('');
   openModal('pickModal');
@@ -2448,8 +2714,8 @@ async function doReturn(sn) {
     resetRetDropdown();
     if (state.filter === 'day' || state.filter === 'night') {
       state.filter = 'all';
-      document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
-      const allCard = document.querySelector('.hud-stat-card[data-filter="all"]');
+      document.querySelectorAll('.kpi-card').forEach(x => x.classList.remove('active'));
+      const allCard = document.querySelector('.kpi-card[data-filter="all"]');
       if (allCard) allCard.classList.add('active');
     }
   } catch(e) {
@@ -2486,7 +2752,7 @@ function openDebtModal() {
 
   const wrap = $('debtModalList');
   if (!list.length) {
-    wrap.innerHTML = '<div class="debt-empty-modal">🎉 Нет активных долгов (&gt;14ч)</div>';
+    wrap.innerHTML = '<div class="debt-empty-modal">🎉 Нет активных просрочек (&gt;14ч)</div>';
     openModal('debtModal');
     return;
   }
@@ -2521,8 +2787,8 @@ function openDebtModal() {
 
 function showAllDebtsInTable() {
   closeModal('debtModal');
-  document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
-  const card = document.querySelector('.hud-stat-card[data-filter="overdue"]');
+  document.querySelectorAll('.kpi-card').forEach(x => x.classList.remove('active'));
+  const card = document.querySelector('.kpi-card[data-filter="overdue"]');
   if (card) card.classList.add('active');
   state.filter = 'overdue';
   $('searchTable').value = '';
@@ -2542,8 +2808,8 @@ function filterByHolder(holder) {
   $('searchTable').value = holder;
   updateSearchWrap();
   state.filter = 'all';
-  document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
-  const allCard = document.querySelector('.hud-stat-card[data-filter="all"]');
+  document.querySelectorAll('.kpi-card').forEach(x => x.classList.remove('active'));
+  const allCard = document.querySelector('.kpi-card[data-filter="all"]');
   if (allCard) allCard.classList.add('active');
   renderTable();
   $('searchTable').focus();
@@ -2571,12 +2837,16 @@ function renderTable() {
       if (d.shift === 'Ночная') nightCount++; else dayCount++;
     } else free++;
   });
-  $('mTotal').innerText = state.devices.length;
+  const total = state.devices.length;
+  $('mTotal').innerText = total;
   $('mFree').innerText = free;
   $('mIssued').innerText = issued;
   $('mOverdue').innerText = overdue;
   $('mDay').innerText = dayCount;
   $('mNight').innerText = nightCount;
+
+  $('mFreePct').innerText = total ? Math.round((free / total) * 100) + '%' : '0%';
+  $('mIssuedPct').innerText = total ? Math.round((issued / total) * 100) + '%' : '0%';
 
   const statsEl = $('regStats');
   if (statsEl) {
@@ -2585,10 +2855,10 @@ function renderTable() {
       const max = Math.max(...issuedTimes);
       const avgCls = timeClass(avg);
       const maxCls = timeClass(max);
-      const colors = { fresh: '#34d399', mid: '#fbbf24', late: '#fb923c', over: '#f43f5e' };
-      statsEl.innerHTML = `Σ <span style="color:${colors[avgCls] || '#fff'};">${fmtHoursShort(avg)}</span> · ↑ <span style="color:${colors[maxCls] || '#fff'};">${fmtHoursShort(max)}</span>`;
+      const colors = { fresh: 'var(--emerald-text)', mid: 'var(--amber-text)', late: '#f97316', over: 'var(--rose-text)' };
+      statsEl.innerHTML = `Среднее: <b style="color:${colors[avgCls]};">${fmtHoursShort(avg)}</b> · Макс: <b style="color:${colors[maxCls]};">${fmtHoursShort(max)}</b>`;
     } else {
-      statsEl.innerHTML = 'Σ <span style="color:var(--text-muted);">—</span> · ↑ <span style="color:var(--text-muted);">—</span>';
+      statsEl.innerHTML = 'Среднее: <span style="color:var(--text-muted);">—</span> · Макс: <span style="color:var(--text-muted);">—</span>';
     }
   }
 
@@ -2618,7 +2888,7 @@ function renderTable() {
   });
 
   if (!filtered.length) {
-    $('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:45px; color:var(--text-muted); font-size:13px;">Ничего не найдено</td></tr>';
+    $('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:45px; color:var(--text-muted); font-size:13px;">Оборудование по заданному фильтру не найдено</td></tr>';
     return;
   }
   $('tbody').innerHTML = filtered.map(d => renderRow(d, d.status === 'issued')).join('');
@@ -2631,7 +2901,7 @@ function renderRow(d, busy) {
 
   let badge = '';
   if (busy && over) badge = '<span class="badge-chip chip-over">🚨 ДОЛГ (&gt;14ч)</span>';
-  else if (busy) badge = '<span class="badge-chip chip-busy">НА РУКАХ</span>';
+  else if (busy) badge = '<span class="badge-chip chip-busy">В РАБОТЕ</span>';
   else badge = '<span class="badge-chip chip-free">НА СКЛАДЕ</span>';
 
   let shiftChip = '';
@@ -2646,7 +2916,7 @@ function renderRow(d, busy) {
   else if (d.model === 'Планшет') modelCls = 'tab';
 
   const holderHtml = d.holder
-    ? `<span class="holder-pill mono">👤 ${esc(d.holder)}</span>`
+    ? `<span class="holder-pill mono"><span class="holder-avatar">${esc(getInitials(d.holder))}</span>${esc(d.holder)}</span>`
     : '<span style="color:var(--text-muted); font-weight:400;">—</span>';
 
   let action = busy
@@ -2712,7 +2982,7 @@ async function openAudit(sn) {
   $('audModel').innerText = dev.model || '—';
   $('audHolder').innerText = dev.holder || 'На складе';
   const badge = $('audStatusBadge');
-  if (dev.status === 'issued') { badge.className = 'badge-chip chip-busy'; badge.innerText = 'На руках'; }
+  if (dev.status === 'issued') { badge.className = 'badge-chip chip-busy'; badge.innerText = 'В работе'; }
   else { badge.className = 'badge-chip chip-free'; badge.innerText = 'На складе'; }
   $('audDuration').innerText = dev.status === 'issued' && dev.issued_at ? fmtHoursShort(hoursSince(dev.issued_at)) + ' (' + (dev.shift || '—') + ')' : '—';
 
@@ -2768,7 +3038,7 @@ async function openAudit(sn) {
     const isRet = h.action && h.action.startsWith('Возврат');
     const d = h.created_at || h.at;
     const t = d ? new Date(d).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
-    const actColor = isRet ? 'var(--neon-emerald)' : '#a5b4fc';
+    const actColor = isRet ? 'var(--emerald-text)' : 'var(--brand-text)';
     return `<div class="timeline-item ${isRet ? 'return' : ''}">
       <div class="timeline-dot"></div>
       <div class="timeline-time">${t}</div>
@@ -2851,30 +3121,30 @@ function showDiag() {
   Promise.all([countReq, renderQueuePreview()]).then(([n, preview]) => {
     const lastBk = localStorage.getItem('sklad_last_backup_date') || '—';
     const autoSwapTxt = state.autoSwap ? 'ВКЛ (без окна)' : 'выкл (с окном)';
-    const autoSwapColor = state.autoSwap ? 'var(--neon-emerald)' : 'var(--text-muted)';
+    const autoSwapColor = state.autoSwap ? 'var(--emerald-text)' : 'var(--text-muted)';
     const dbOk = state.dbReady ? '✅ OK' : '❌ не готова';
-    const dbColor = state.dbReady ? 'var(--neon-emerald)' : 'var(--neon-rose)';
-    const syncTxt = state.syncing ? '<span style="color:var(--neon-amber);">● идёт</span>' : '<span style="color:var(--neon-emerald);">○ idle</span>';
-    const backoff = state.syncBackoff > 0 ? `<span style="color:var(--neon-amber);">${state.syncBackoff}× (backoff)</span>` : '<span style="color:var(--text-muted);">0</span>';
+    const dbColor = state.dbReady ? 'var(--emerald-text)' : 'var(--rose-text)';
+    const syncTxt = state.syncing ? '<span style="color:var(--amber-text);">● идёт</span>' : '<span style="color:var(--emerald-text);">○ idle</span>';
+    const backoff = state.syncBackoff > 0 ? `<span style="color:var(--amber-text);">${state.syncBackoff}× (backoff)</span>` : '<span style="color:var(--text-muted);">0</span>';
 
     $('diagContent').innerHTML = `
-      <div>ВЕРСИЯ: <span style="color:#a5b4fc;">v8.45 Pro Slate</span></div>
+      <div>ВЕРСИЯ: <span style="color:var(--brand-text);">v8.80 Executive (${THEME_NAMES[state.theme]})</span></div>
       <div>БД: <span style="color:${dbColor};">${dbOk}</span> &nbsp; SYNC: ${syncTxt}</div>
-      <div>ЛОКАЛЬНО: <span style="color:#a5b4fc;">${state.devices.length}</span> шт.</div>
-      <div>SUPABASE: <span style="color:#fff;">${SUPABASE_URL.replace('https://','').split('.')[0]}...</span></div>
-      <div>ОЧЕРЕДЬ ПАКЕТОВ: <span style="color:#a5b4fc;">${n}</span></div>
+      <div>ЛОКАЛЬНО: <span style="color:var(--brand-text);">${state.devices.length}</span> шт.</div>
+      <div>SUPABASE: <span style="color:var(--text-main);">${SUPABASE_URL.replace('https://','').split('.')[0]}...</span></div>
+      <div>ОЧЕРЕДЬ ПАКЕТОВ: <span style="color:var(--brand-text);">${n}</span></div>
       <div>BACKOFF: ${backoff}</div>
-      <div>ПОРОГ ДОЛГА: <span style="color:var(--neon-rose);">${OVERDUE_H}ч</span></div>
-      <div>СМЕНА: <span style="color:#fff;">${state.issueShift}</span> (${state.issueShiftAuto ? 'авто' : 'вручную'})</div>
+      <div>ПОРОГ ДОЛГА: <span style="color:var(--rose-text);">${OVERDUE_H}ч</span></div>
+      <div>СМЕНА: <span style="color:var(--text-main);">${state.issueShift}</span> (${state.issueShiftAuto ? 'авто' : 'вручную'})</div>
       <div>АВТО-ЗАМЕНА: <span style="color:${autoSwapColor};">${autoSwapTxt}</span> <button class="btn-hud" style="padding:2px 8px; font-size:10px; margin-left:8px; min-width:auto;" onclick="toggleAutoSwap()">${state.autoSwap ? 'Отключить' : 'Включить'}</button></div>
-      <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--neon-emerald);">${lastBk}</span></div>
-      <div>ПОСЛЕДНЯЯ ОШИБКА: <span style="color:var(--neon-rose);">${esc(state.lastError)}</span></div>
+      <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--emerald-text);">${lastBk}</span></div>
+      <div>ПОСЛЕДНЯЯ ОШИБКА: <span style="color:var(--rose-text);">${esc(state.lastError)}</span></div>
       ${n ? `
-        <div style="margin-top:12px; border-top:1px solid rgba(255,255,255,0.08); padding-top:8px;">
-          <div style="font-size:11px; font-weight:800; color:var(--neon-amber); margin-bottom:6px;">⚠ ОЧЕРЕДЬ (первые 30):</div>
-          <div style="max-height:220px; overflow-y:auto; background:rgba(0,0,0,0.35); border-radius:6px; padding:6px 10px;">${preview}</div>
+        <div style="margin-top:12px; border-top:1px solid var(--card-border); padding-top:8px;">
+          <div style="font-size:11px; font-weight:800; color:var(--amber-text); margin-bottom:6px;">⚠ ОЧЕРЕДЬ (первые 30):</div>
+          <div style="max-height:220px; overflow-y:auto; background:var(--input-bg); border-radius:6px; padding:6px 10px;">${preview}</div>
           <div style="margin-top:8px;">
-            <button class="btn-hud" style="border-color:rgba(244,63,94,0.4); color:var(--neon-rose); font-size:10px; min-width:auto;" onclick="clearStuckQueue()">🗑 Очистить очередь (данные не тронем)</button>
+            <button class="btn-hud" style="border-color:rgba(244,63,94,0.4); color:var(--rose-text); font-size:10px; min-width:auto;" onclick="clearStuckQueue()">🗑 Очистить очередь (данные не тронем)</button>
           </div>
         </div>
       ` : ''}
@@ -2963,6 +3233,10 @@ function showToast(title, desc, kind = 'ok') {
    ДЕЛЕГИРОВАНИЕ СОБЫТИЙ
    ============================================================ */
 function setupDelegation() {
+  document.querySelectorAll('[data-set-theme]').forEach(btn => {
+    btn.addEventListener('click', () => applyTheme(btn.dataset.setTheme, true));
+  });
+
   $('tbody').addEventListener('click', e => {
     const target = e.target.closest('[data-action]');
     if (!target) return;
@@ -3059,7 +3333,7 @@ $('searchClearBtn').addEventListener('click', () => {
 
 $('delSearch').addEventListener('input', debounce(renderDeleteList, 100));
 
-document.querySelectorAll('.hud-stat-card').forEach(s => {
+document.querySelectorAll('.kpi-card').forEach(s => {
   s.addEventListener('click', () => {
     const f = s.dataset.filter;
     if (f === 'overdue') {
@@ -3070,7 +3344,7 @@ document.querySelectorAll('.hud-stat-card').forEach(s => {
       $('searchTable').value = '';
       updateSearchWrap();
     }
-    document.querySelectorAll('.hud-stat-card').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.kpi-card').forEach(x => x.classList.remove('active'));
     s.classList.add('active');
     state.filter = f;
     renderTable();
@@ -3102,6 +3376,11 @@ document.addEventListener('keydown', e => {
       undoLast();
       return;
     }
+  }
+  if (e.altKey && e.key.toLowerCase() === 't') {
+    e.preventDefault();
+    cycleTheme();
+    return;
   }
   if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'd') { e.preventDefault(); openDeleteModal(); return; }
   if ($('delModal').classList.contains('show') && e.key === 'Escape') { e.preventDefault(); closeModal('delModal'); return; }
@@ -3148,6 +3427,7 @@ window.addEventListener('DOMContentLoaded', () => {
     state.issueShift = computeSmartShift('');
     state.issueShiftAuto = true;
   }
+  applyTheme(state.theme, false);
   updateShiftPill();
   setupDelegation();
   $('issSn').focus();
