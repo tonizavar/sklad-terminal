@@ -3,242 +3,211 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#090a0c" id="metaThemeColor">
-<title>ORBITAL WMS v10.0 • Учёт Оборудования</title>
+<meta name="theme-color" content="#07080b" id="metaThemeColor">
+<title>ORBITAL QUANTUM v11.0 • Учёт Оборудования</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Outfit:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* ============================================================
-   5 ТЕХНО-ИНДУСТРИАЛЬНЫХ ТЕМ (ORBITAL WMS v10.0)
+   8 ДИЗАЙНЕРСКИХ ТЕМ (ORBITAL QUANTUM v11.0)
    ============================================================ */
 :root, [data-theme="volt"] {
-  --bg-app: #08090c;
-  --bg-Sidebar: #0d0f14;
-  --bg-canvas: #060709;
-  --surface-1: #12151c;
-  --surface-2: #181c26;
-  --surface-hover: #1f2432;
+  --bg-app: #07080b;
+  --bg-sidebar: rgba(12, 14, 20, 0.92);
+  --bg-canvas: #050608;
+  --bg-mesh:
+    radial-gradient(at 0% 0%, rgba(212, 255, 0, 0.11) 0px, transparent 45%),
+    radial-gradient(at 100% 0%, rgba(0, 229, 153, 0.09) 0px, transparent 50%),
+    radial-gradient(at 60% 100%, rgba(56, 189, 248, 0.07) 0px, transparent 55%);
+  --surface-1: rgba(17, 20, 28, 0.82);
+  --surface-2: rgba(24, 28, 39, 0.92);
+  --surface-hover: rgba(32, 38, 52, 0.95);
   --border-dim: rgba(255, 255, 255, 0.07);
-  --border-mid: rgba(255, 255, 255, 0.14);
-  --border-focus: #d4ff00;
-
+  --border-mid: rgba(255, 255, 255, 0.15);
   --brand: #d4ff00;
+  --brand-2: #00e599;
   --brand-fg: #050608;
-  --brand-soft: rgba(212, 255, 0, 0.12);
-  --brand-glow: rgba(212, 255, 0, 0.28);
+  --brand-soft: rgba(212, 255, 0, 0.13);
+  --brand-glow: rgba(212, 255, 0, 0.32);
   --brand-text: #d4ff00;
-
-  --ok: #00e599;
-  --ok-soft: rgba(0, 229, 153, 0.12);
-  --ok-text: #34f5b5;
-
-  --info: #38bdf8;
-  --info-soft: rgba(56, 189, 248, 0.12);
-  --info-text: #7dd3fc;
-
-  --warn: #f59e0b;
-  --warn-soft: rgba(245, 158, 11, 0.13);
-  --warn-text: #fbbf24;
-
-  --danger: #ff3366;
-  --danger-soft: rgba(255, 51, 102, 0.14);
-  --danger-text: #ff668c;
-
-  --night: #a855f7;
-  --night-soft: rgba(168, 85, 247, 0.14);
-  --night-text: #c084fc;
-
-  --text-1: #f8fafc;
-  --text-2: #94a3b8;
-  --text-3: #475569;
-  --sn-dim: #64748b;
-  --sn-bright: #ffffff;
-  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.75);
+  --ok: #00e599; --ok-soft: rgba(0, 229, 153, 0.13); --ok-text: #34f5b5;
+  --info: #38bdf8; --info-soft: rgba(56, 189, 248, 0.13); --info-text: #7dd3fc;
+  --warn: #f59e0b; --warn-soft: rgba(245, 158, 11, 0.14); --warn-text: #fbbf24;
+  --danger: #ff2a5f; --danger-soft: rgba(255, 42, 95, 0.15); --danger-text: #ff6b8b;
+  --night: #a855f7; --night-soft: rgba(168, 85, 247, 0.14); --night-text: #c084fc;
+  --text-1: #f8fafc; --text-2: #94a3b8; --text-3: #475569;
+  --sn-dim: #64748b; --sn-bright: #ffffff;
+  --shadow-lg: 0 22px 55px rgba(0, 0, 0, 0.8);
 }
 
 [data-theme="berry"] {
-  --bg-app: #090511;
-  --bg-Sidebar: #10091d;
-  --bg-canvas: #06030b;
-  --surface-1: #160e26;
-  --surface-2: #1f1435;
-  --surface-hover: #291b45;
+  --bg-app: #08040f;
+  --bg-sidebar: rgba(15, 9, 28, 0.92);
+  --bg-canvas: #05020a;
+  --bg-mesh:
+    radial-gradient(at 0% 0%, rgba(217, 70, 239, 0.18) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 55%);
+  --surface-1: rgba(21, 13, 38, 0.82);
+  --surface-2: rgba(30, 19, 54, 0.92);
+  --surface-hover: rgba(41, 26, 71, 0.95);
   --border-dim: rgba(255, 255, 255, 0.08);
-  --border-mid: rgba(232, 121, 249, 0.22);
-  --border-focus: #e879f9;
-
-  --brand: #d946ef;
-  --brand-fg: #ffffff;
-  --brand-soft: rgba(217, 70, 239, 0.15);
-  --brand-glow: rgba(217, 70, 239, 0.35);
-  --brand-text: #f0abfc;
-
-  --ok: #10b981;
-  --ok-soft: rgba(16, 185, 129, 0.13);
-  --ok-text: #34d399;
-
-  --info: #818cf8;
-  --info-soft: rgba(129, 140, 248, 0.15);
-  --info-text: #a5b4fc;
-
-  --warn: #f59e0b;
-  --warn-soft: rgba(245, 158, 11, 0.14);
-  --warn-text: #fbbf24;
-
-  --danger: #f43f5e;
-  --danger-soft: rgba(244, 63, 94, 0.16);
-  --danger-text: #fb7185;
-
-  --night: #c084fc;
-  --night-soft: rgba(192, 132, 252, 0.15);
-  --night-text: #d8b4fe;
-
-  --text-1: #faf5ff;
-  --text-2: #a1a1aa;
-  --text-3: #52525b;
-  --sn-dim: #71717a;
-  --sn-bright: #ffffff;
+  --border-mid: rgba(232, 121, 249, 0.24);
+  --brand: #d946ef; --brand-2: #8b5cf6; --brand-fg: #ffffff;
+  --brand-soft: rgba(217, 70, 239, 0.15); --brand-glow: rgba(217, 70, 239, 0.38); --brand-text: #f0abfc;
+  --ok: #10b981; --ok-soft: rgba(16, 185, 129, 0.13); --ok-text: #34d399;
+  --info: #818cf8; --info-soft: rgba(129, 140, 248, 0.15); --info-text: #a5b4fc;
+  --warn: #f59e0b; --warn-soft: rgba(245, 158, 11, 0.14); --warn-text: #fbbf24;
+  --danger: #f43f5e; --danger-soft: rgba(244, 63, 94, 0.16); --danger-text: #fb7185;
+  --night: #c084fc; --night-soft: rgba(192, 132, 252, 0.15); --night-text: #d8b4fe;
+  --text-1: #faf5ff; --text-2: #a1a1aa; --text-3: #52525b;
+  --sn-dim: #71717a; --sn-bright: #ffffff;
 }
 
-[data-theme="swiss"] {
-  --bg-app: #e6e4dd;
-  --bg-Sidebar: #f4f3ef;
-  --bg-canvas: #eceae4;
+[data-theme="abyss"] {
+  --bg-app: #020813;
+  --bg-sidebar: rgba(5, 15, 32, 0.92);
+  --bg-canvas: #01050c;
+  --bg-mesh:
+    radial-gradient(at 0% 0%, rgba(0, 242, 254, 0.16) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.14) 0px, transparent 55%);
+  --surface-1: rgba(8, 22, 44, 0.84);
+  --surface-2: rgba(12, 31, 61, 0.92);
+  --surface-hover: rgba(17, 42, 82, 0.95);
+  --border-dim: rgba(0, 242, 254, 0.11);
+  --border-mid: rgba(0, 242, 254, 0.28);
+  --brand: #00f2fe; --brand-2: #0284c7; --brand-fg: #010812;
+  --brand-soft: rgba(0, 242, 254, 0.14); --brand-glow: rgba(0, 242, 254, 0.35); --brand-text: #67e8f9;
+  --ok: #10b981; --ok-soft: rgba(16, 185, 129, 0.14); --ok-text: #34d399;
+  --info: #38bdf8; --info-soft: rgba(56, 189, 248, 0.15); --info-text: #7dd3fc;
+  --warn: #f59e0b; --warn-soft: rgba(245, 158, 11, 0.14); --warn-text: #fbbf24;
+  --danger: #f43f5e; --danger-soft: rgba(244, 63, 94, 0.16); --danger-text: #fb7185;
+  --night: #a855f7; --night-soft: rgba(168, 85, 247, 0.14); --night-text: #c084fc;
+  --text-1: #ecfeff; --text-2: #94a3b8; --text-3: #475569;
+  --sn-dim: #38bdf8; --sn-bright: #ffffff;
+}
+
+[data-theme="ops"] {
+  --bg-app: #080406;
+  --bg-sidebar: rgba(16, 8, 11, 0.94);
+  --bg-canvas: #050203;
+  --bg-mesh:
+    radial-gradient(at 0% 0%, rgba(255, 20, 75, 0.17) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.08) 0px, transparent 50%);
+  --surface-1: rgba(24, 11, 16, 0.86);
+  --surface-2: rgba(34, 15, 22, 0.94);
+  --surface-hover: rgba(46, 20, 30, 0.96);
+  --border-dim: rgba(255, 42, 95, 0.14);
+  --border-mid: rgba(255, 42, 95, 0.32);
+  --brand: #ff1e56; --brand-2: #e11d48; --brand-fg: #ffffff;
+  --brand-soft: rgba(255, 30, 86, 0.16); --brand-glow: rgba(255, 30, 86, 0.38); --brand-text: #ff6b8b;
+  --ok: #00e599; --ok-soft: rgba(0, 229, 153, 0.13); --ok-text: #34f5b5;
+  --info: #f43f5e; --info-soft: rgba(244, 63, 94, 0.15); --info-text: #fda4af;
+  --warn: #f59e0b; --warn-soft: rgba(245, 158, 11, 0.14); --warn-text: #fbbf24;
+  --danger: #ff003c; --danger-soft: rgba(255, 0, 60, 0.2); --danger-text: #ff4d79;
+  --night: #c084fc; --night-soft: rgba(192, 132, 252, 0.14); --night-text: #d8b4fe;
+  --text-1: #fff1f2; --text-2: #a1a1aa; --text-3: #52525b;
+  --sn-dim: #9f1239; --sn-bright: #ffffff;
+}
+
+[data-theme="synth"] {
+  --bg-app: #0d041a;
+  --bg-sidebar: rgba(20, 7, 38, 0.92);
+  --bg-canvas: #080211;
+  --bg-mesh:
+    radial-gradient(at 10% 0%, rgba(255, 0, 128, 0.2) 0px, transparent 50%),
+    radial-gradient(at 90% 100%, rgba(0, 242, 254, 0.18) 0px, transparent 50%);
+  --surface-1: rgba(28, 11, 51, 0.82);
+  --surface-2: rgba(39, 15, 71, 0.92);
+  --surface-hover: rgba(52, 20, 94, 0.96);
+  --border-dim: rgba(255, 0, 128, 0.15);
+  --border-mid: rgba(0, 242, 254, 0.35);
+  --brand: #ff007f; --brand-2: #00f2fe; --brand-fg: #ffffff;
+  --brand-soft: rgba(255, 0, 127, 0.16); --brand-glow: rgba(255, 0, 127, 0.4); --brand-text: #ff66b2;
+  --ok: #00f2fe; --ok-soft: rgba(0, 242, 254, 0.14); --ok-text: #67e8f9;
+  --info: #38bdf8; --info-soft: rgba(56, 189, 248, 0.15); --info-text: #7dd3fc;
+  --warn: #facc15; --warn-soft: rgba(250, 204, 21, 0.15); --warn-text: #fde047;
+  --danger: #ff2a5f; --danger-soft: rgba(255, 42, 95, 0.18); --danger-text: #ff80a0;
+  --night: #c084fc; --night-soft: rgba(192, 132, 252, 0.15); --night-text: #e9d5ff;
+  --text-1: #fdf4ff; --text-2: #c4b5fd; --text-3: #6d28d9;
+  --sn-dim: #a855f7; --sn-bright: #ffffff;
+}
+
+[data-theme="matrix"] {
+  --bg-app: #030906;
+  --bg-sidebar: rgba(6, 16, 11, 0.94);
+  --bg-canvas: #020604;
+  --bg-mesh:
+    radial-gradient(at 20% 0%, rgba(16, 185, 129, 0.16) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, rgba(5, 150, 105, 0.1) 0px, transparent 50%);
+  --surface-1: rgba(9, 24, 17, 0.86);
+  --surface-2: rgba(13, 34, 24, 0.94);
+  --surface-hover: rgba(18, 46, 33, 0.96);
+  --border-dim: rgba(16, 185, 129, 0.14);
+  --border-mid: rgba(16, 185, 129, 0.32);
+  --brand: #10b981; --brand-2: #059669; --brand-fg: #02120a;
+  --brand-soft: rgba(16, 185, 129, 0.16); --brand-glow: rgba(16, 185, 129, 0.35); --brand-text: #34d399;
+  --ok: #22c55e; --ok-soft: rgba(34, 197, 94, 0.15); --ok-text: #4ade80;
+  --info: #14b8a6; --info-soft: rgba(20, 184, 166, 0.15); --info-text: #5eead4;
+  --warn: #eab308; --warn-soft: rgba(234, 179, 8, 0.15); --warn-text: #fde047;
+  --danger: #f43f5e; --danger-soft: rgba(244, 63, 94, 0.16); --danger-text: #fb7185;
+  --night: #a855f7; --night-soft: rgba(168, 85, 247, 0.14); --night-text: #c084fc;
+  --text-1: #ecfdf5; --text-2: #6ee7b7; --text-3: #065f46;
+  --sn-dim: #059669; --sn-bright: #ffffff;
+}
+
+[data-theme="gold"] {
+  --bg-app: #09090b;
+  --bg-sidebar: rgba(16, 15, 18, 0.94);
+  --bg-canvas: #050507;
+  --bg-mesh:
+    radial-gradient(at 10% 0%, rgba(245, 158, 11, 0.15) 0px, transparent 50%),
+    radial-gradient(at 90% 100%, rgba(217, 119, 6, 0.08) 0px, transparent 50%);
+  --surface-1: rgba(22, 21, 25, 0.86);
+  --surface-2: rgba(30, 28, 34, 0.94);
+  --surface-hover: rgba(40, 37, 45, 0.96);
+  --border-dim: rgba(245, 158, 11, 0.12);
+  --border-mid: rgba(245, 158, 11, 0.3);
+  --brand: #f59e0b; --brand-2: #d97706; --brand-fg: #090601;
+  --brand-soft: rgba(245, 158, 11, 0.15); --brand-glow: rgba(245, 158, 11, 0.32); --brand-text: #fcd34d;
+  --ok: #10b981; --ok-soft: rgba(16, 185, 129, 0.13); --ok-text: #34d399;
+  --info: #fbbf24; --info-soft: rgba(251, 191, 36, 0.14); --info-text: #fde68a;
+  --warn: #f97316; --warn-soft: rgba(249, 115, 22, 0.14); --warn-text: #fdba74;
+  --danger: #f43f5e; --danger-soft: rgba(244, 63, 94, 0.16); --danger-text: #fb7185;
+  --night: #c084fc; --night-soft: rgba(192, 132, 252, 0.14); --night-text: #d8b4fe;
+  --text-1: #fafafa; --text-2: #a1a1aa; --text-3: #52525b;
+  --sn-dim: #71717a; --sn-bright: #ffffff;
+}
+
+[data-theme="white"] {
+  --bg-app: #eef2f6;
+  --bg-sidebar: rgba(255, 255, 255, 0.95);
+  --bg-canvas: #f8fafc;
+  --bg-mesh:
+    radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
   --surface-1: #ffffff;
-  --surface-2: #f8f7f4;
-  --surface-hover: #f0eee9;
-  --border-dim: rgba(15, 23, 42, 0.09);
+  --surface-2: #f1f5f9;
+  --surface-hover: #e2e8f0;
+  --border-dim: rgba(15, 23, 42, 0.08);
   --border-mid: rgba(15, 23, 42, 0.18);
-  --border-focus: #ff4f00;
-
-  --brand: #ff4f00;
-  --brand-fg: #ffffff;
-  --brand-soft: rgba(255, 79, 0, 0.11);
-  --brand-glow: rgba(255, 79, 0, 0.25);
-  --brand-text: #d94000;
-
-  --ok: #059669;
-  --ok-soft: rgba(5, 150, 105, 0.11);
-  --ok-text: #047857;
-
-  --info: #2563eb;
-  --info-soft: rgba(37, 99, 235, 0.1);
-  --info-text: #1d4ed8;
-
-  --warn: #d97706;
-  --warn-soft: rgba(217, 119, 6, 0.12);
-  --warn-text: #b45309;
-
-  --danger: #e11d48;
-  --danger-soft: rgba(225, 29, 72, 0.11);
-  --danger-text: #be123c;
-
-  --night: #7c3aed;
-  --night-soft: rgba(124, 58, 237, 0.11);
-  --night-text: #6d28d9;
-
-  --text-1: #111315;
-  --text-2: #525866;
-  --text-3: #8a909e;
-  --sn-dim: #717885;
-  --sn-bright: #090a0b;
+  --brand: #4f46e5; --brand-2: #2563eb; --brand-fg: #ffffff;
+  --brand-soft: rgba(79, 70, 229, 0.1); --brand-glow: rgba(79, 70, 229, 0.22); --brand-text: #4338ca;
+  --ok: #059669; --ok-soft: rgba(5, 150, 105, 0.11); --ok-text: #047857;
+  --info: #2563eb; --info-soft: rgba(37, 99, 235, 0.1); --info-text: #1d4ed8;
+  --warn: #d97706; --warn-soft: rgba(217, 119, 6, 0.12); --warn-text: #b45309;
+  --danger: #e11d48; --danger-soft: rgba(225, 29, 72, 0.11); --danger-text: #be123c;
+  --night: #7c3aed; --night-soft: rgba(124, 58, 237, 0.11); --night-text: #6d28d9;
+  --text-1: #0f172a; --text-2: #475569; --text-3: #94a3b8;
+  --sn-dim: #64748b; --sn-bright: #0f172a;
   --shadow-lg: 0 20px 45px rgba(15, 23, 42, 0.12);
 }
 
-[data-theme="nordic"] {
-  --bg-app: #070b12;
-  --bg-Sidebar: #0c121e;
-  --bg-canvas: #05080e;
-  --surface-1: #111a2b;
-  --surface-2: #172338;
-  --surface-hover: #1e2d47;
-  --border-dim: rgba(148, 163, 184, 0.1);
-  --border-mid: rgba(56, 189, 248, 0.24);
-  --border-focus: #38bdf8;
-
-  --brand: #38bdf8;
-  --brand-fg: #041019;
-  --brand-soft: rgba(56, 189, 248, 0.14);
-  --brand-glow: rgba(56, 189, 248, 0.3);
-  --brand-text: #7dd3fc;
-
-  --ok: #10b981;
-  --ok-soft: rgba(16, 185, 129, 0.13);
-  --ok-text: #34d399;
-
-  --info: #6366f1;
-  --info-soft: rgba(99, 102, 241, 0.15);
-  --info-text: #a5b4fc;
-
-  --warn: #f59e0b;
-  --warn-soft: rgba(245, 158, 11, 0.13);
-  --warn-text: #fbbf24;
-
-  --danger: #f43f5e;
-  --danger-soft: rgba(244, 63, 94, 0.15);
-  --danger-text: #fb7185;
-
-  --night: #a855f7;
-  --night-soft: rgba(168, 85, 247, 0.14);
-  --night-text: #c084fc;
-
-  --text-1: #f1f5f9;
-  --text-2: #94a3b8;
-  --text-3: #475569;
-  --sn-dim: #64748b;
-  --sn-bright: #ffffff;
-}
-
-[data-theme="amber"] {
-  --bg-app: #0c0906;
-  --bg-Sidebar: #14100b;
-  --bg-canvas: #080604;
-  --surface-1: #1c1610;
-  --surface-2: #261e16;
-  --surface-hover: #30261c;
-  --border-dim: rgba(245, 158, 11, 0.12);
-  --border-mid: rgba(245, 158, 11, 0.28);
-  --border-focus: #fbbf24;
-
-  --brand: #f59e0b;
-  --brand-fg: #0c0802;
-  --brand-soft: rgba(245, 158, 11, 0.15);
-  --brand-glow: rgba(245, 158, 11, 0.32);
-  --brand-text: #fcd34d;
-
-  --ok: #10b981;
-  --ok-soft: rgba(16, 185, 129, 0.13);
-  --ok-text: #34d399;
-
-  --info: #fb923c;
-  --info-soft: rgba(251, 146, 60, 0.15);
-  --info-text: #fdba74;
-
-  --warn: #eab308;
-  --warn-soft: rgba(234, 179, 8, 0.14);
-  --warn-text: #fde047;
-
-  --danger: #f43f5e;
-  --danger-soft: rgba(244, 63, 94, 0.16);
-  --danger-text: #fb7185;
-
-  --night: #c084fc;
-  --night-soft: rgba(192, 132, 252, 0.14);
-  --night-text: #d8b4fe;
-
-  --text-1: #fef3c7;
-  --text-2: #a8a29e;
-  --text-3: #57534e;
-  --sn-dim: #78716c;
-  --sn-bright: #ffffff;
-}
-
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-html, body { height: 100%; background: var(--bg-app); color: var(--text-1); overflow-x: hidden; transition: background 0.25s, color 0.2s; }
+html, body { height: 100%; background-color: var(--bg-app); background-image: var(--bg-mesh); color: var(--text-1); overflow-x: hidden; transition: background-color 0.3s, color 0.2s; }
 .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum"; }
-.display-font { font-family: 'Space Grotesk', sans-serif; }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -246,111 +215,123 @@ html, body { height: 100%; background: var(--bg-app); color: var(--text-1); over
 ::-webkit-scrollbar-thumb:hover { background: var(--brand); }
 
 /* ============================================================
+   AMBIENT EDGE FLASH & MOUSE SPOTLIGHT
+   ============================================================ */
+#edgeFlash {
+  position: fixed; inset: 0; pointer-events: none; z-index: 99990;
+  opacity: 0; transition: opacity 0.45s ease;
+}
+#edgeFlash.flash-ok { opacity: 1; box-shadow: inset 0 0 75px rgba(0, 229, 153, 0.45); }
+#edgeFlash.flash-iss { opacity: 1; box-shadow: inset 0 0 75px var(--brand-glow); }
+#edgeFlash.flash-err { opacity: 1; box-shadow: inset 0 0 90px rgba(255, 42, 95, 0.6); }
+
+/* Интерактивный прожектор под курсором мыши */
+.spotlight-card { position: relative; overflow: hidden; }
+.spotlight-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(380px circle at var(--mx, -500px) var(--my, -500px), rgba(255,255,255,0.065), transparent 40%);
+  pointer-events: none; z-index: 1;
+}
+
+/* ============================================================
    BOOT OVERLAY
    ============================================================ */
 .boot-overlay { position: fixed; inset: 0; background: var(--bg-app); z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; transition: opacity 0.4s ease; }
 .boot-overlay.hide { opacity: 0; pointer-events: none; }
-.boot-spinner { width: 48px; height: 48px; border: 3px solid var(--border-dim); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.75s linear infinite; box-shadow: 0 0 25px var(--brand-glow); }
+.boot-spinner { width: 52px; height: 52px; border: 3px solid var(--border-dim); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.7s linear infinite; box-shadow: 0 0 30px var(--brand-glow); }
 @keyframes spin { to { transform: rotate(360deg); } }
-.boot-logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 24px; letter-spacing: 0.22em; color: var(--text-1); }
+.boot-logo { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 26px; letter-spacing: 0.24em; color: var(--text-1); }
 .boot-text { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-2); }
 
 /* ============================================================
-   SPLIT-SCREEN WORKSTATION LAYOUT
+   WORKSTATION LAYOUT (С РЕЖИМОМ СТЕНДА / ПРЕЗЕНТАЦИИ)
    ============================================================ */
 .workstation {
   display: grid;
-  grid-template-columns: 390px 1fr;
+  grid-template-columns: 395px 1fr;
   height: 100dvh;
   width: 100vw;
   overflow: hidden;
+  transition: grid-template-columns 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
+.workstation.wallboard-mode { grid-template-columns: 0px 1fr; }
+.workstation.wallboard-mode .control-tower { opacity: 0; pointer-events: none; padding: 0; border: none; }
+
 @media (max-width: 1080px) {
   html, body { height: auto; overflow-y: auto; }
-  .workstation { grid-template-columns: 1fr; height: auto; overflow: visible; }
+  .workstation { grid-template-columns: 1fr !important; height: auto; overflow: visible; }
 }
 
 /* ============================================================
    ЛЕВАЯ КОМАНДНАЯ БАШНЯ (CONTROL TOWER)
    ============================================================ */
 .control-tower {
-  background: var(--bg-Sidebar);
+  background: var(--bg-sidebar);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
   border-right: 1px solid var(--border-dim);
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 11px;
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: visible;
-  z-index: 40;
+  padding: 13px 16px;
+  display: flex; flex-direction: column; gap: 10px;
+  height: 100%; overflow-y: auto; overflow-x: visible; z-index: 40;
+  transition: opacity 0.25s ease;
 }
 
-.tower-brand {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  padding-bottom: 10px; border-bottom: 1px solid var(--border-dim);
-}
+.tower-brand { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 9px; border-bottom: 1px solid var(--border-dim); }
 .brand-left { display: flex; align-items: center; gap: 11px; }
 .brand-cube {
-  width: 38px; height: 38px; border-radius: 10px;
-  background: var(--brand); color: var(--brand-fg);
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px;
+  width: 40px; height: 40px; border-radius: 11px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  color: var(--brand-fg); font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 16px;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 20px var(--brand-glow);
-  cursor: pointer; user-select: none; transition: transform 0.18s;
+  box-shadow: 0 4px 20px var(--brand-glow);
+  cursor: pointer; user-select: none; transition: transform 0.2s;
 }
-.brand-cube:hover { transform: scale(1.06); }
-.brand-meta h1 { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 0.02em; display: flex; align-items: center; gap: 7px; }
-.v-tag { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 2px 6px; border-radius: 4px; background: var(--brand-soft); color: var(--brand-text); border: 1px solid var(--border-mid); }
+.brand-cube:hover { transform: scale(1.07) rotate(-4deg); }
+.brand-meta h1 { font-family: 'Outfit', sans-serif; font-size: 16.5px; font-weight: 800; letter-spacing: 0.02em; display: flex; align-items: center; gap: 7px; }
+.v-tag { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 2px 6px; border-radius: 5px; background: var(--brand-soft); color: var(--brand-text); border: 1px solid var(--border-mid); }
 .brand-meta p { font-size: 10.5px; color: var(--text-2); margin-top: 1px; }
 
-/* Статус-бар смены и синхронизации в башне */
-.tower-status-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
-.shift-reactor {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 7px 11px; border-radius: 10px; cursor: pointer; user-select: none;
-  border: 1px solid var(--border-dim); background: var(--surface-1);
-  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
-  transition: all 0.15s;
+/* Реактор смены с прогресс-баром 12ч */
+.shift-card {
+  background: var(--surface-1); border: 1px solid var(--border-dim);
+  border-radius: 12px; padding: 8px 12px; cursor: pointer; user-select: none;
+  display: flex; flex-direction: column; gap: 6px; transition: border-color 0.2s;
 }
-.shift-reactor.day { border-color: rgba(245, 158, 11, 0.35); color: var(--warn-text); background: var(--warn-soft); }
-.shift-reactor.night { border-color: rgba(168, 85, 247, 0.35); color: var(--night-text); background: var(--night-soft); }
-.shift-reactor.manual { box-shadow: 0 0 12px var(--brand-glow); }
-.shift-reactor .badge-auto { font-size: 9px; padding: 2px 5px; border-radius: 4px; background: rgba(128,128,128,0.2); color: var(--text-1); }
-.shift-reactor .badge-manual { font-size: 9px; padding: 2px 5px; border-radius: 4px; background: var(--brand); color: var(--brand-fg); font-weight: 800; }
+.shift-card:hover { border-color: var(--border-mid); }
+.shift-card.day { border-left: 3px solid var(--warn); }
+.shift-card.night { border-left: 3px solid var(--night); }
+.shift-top { display: flex; justify-content: space-between; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; }
+.shift-progress-track { height: 4px; width: 100%; background: var(--bg-canvas); border-radius: 99px; overflow: hidden; }
+.shift-progress-fill { height: 100%; background: linear-gradient(90deg, var(--brand), var(--brand-2)); transition: width 0.5s ease; }
+.badge-auto { font-size: 9px; padding: 2px 5px; border-radius: 4px; background: rgba(128,128,128,0.2); color: var(--text-1); }
+.badge-manual { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: var(--brand); color: var(--brand-fg); font-weight: 800; }
 
-.pill-badge {
-  display: inline-flex; align-items: center; gap: 7px;
-  font-size: 11px; font-weight: 700; padding: 7px 12px;
-  border-radius: 10px; cursor: pointer; user-select: none;
-}
+.pill-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 700; padding: 6px 11px; border-radius: 10px; cursor: pointer; user-select: none; }
 .pill-online { background: var(--ok-soft); border: 1px solid rgba(0, 229, 153, 0.35); color: var(--ok-text); }
-.pill-offline { background: var(--danger-soft); border: 1px solid rgba(255, 51, 102, 0.4); color: var(--danger-text); }
+.pill-offline { background: var(--danger-soft); border: 1px solid rgba(255, 42, 95, 0.4); color: var(--danger-text); }
 .pill-busy { background: var(--warn-soft); border: 1px solid rgba(245, 158, 11, 0.4); color: var(--warn-text); }
 .dot-ping { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
 .pill-busy .dot-ping { animation: pulse 1.2s infinite; }
 @keyframes pulse { 50% { opacity: 0.25; } }
 
-/* ТЕРМИНАЛЬНЫЕ МОДУЛИ ВЫДАЧИ И ПРИЁМА */
+/* МОДУЛИ ВЫДАЧИ И ПРИЁМА */
 .op-module {
-  position: relative;
-  background: var(--surface-1);
-  border: 1px solid var(--border-dim);
-  border-radius: 14px;
-  padding: 13px 14px;
-  display: flex; flex-direction: column;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  position: relative; background: var(--surface-1);
+  border: 1px solid var(--border-dim); border-radius: 14px;
+  padding: 12px 14px; display: flex; flex-direction: column;
+  transition: border-color 0.22s, box-shadow 0.22s, transform 0.18s;
+  overflow: visible;
 }
-.op-module.issue-mod { border-left: 3px solid var(--brand); }
-.op-module.return-mod { border-left: 3px solid var(--ok); }
-.op-module.issue-mod:focus-within { border-color: var(--brand); box-shadow: 0 8px 28px -8px var(--brand-glow); }
-.op-module.return-mod:focus-within { border-color: var(--ok); box-shadow: 0 8px 28px -8px rgba(0, 229, 153, 0.25); }
+.op-module.issue-mod { border-top: 2.5px solid var(--brand); }
+.op-module.return-mod { border-top: 2.5px solid var(--ok); }
+.op-module.issue-mod:focus-within { border-color: var(--brand); box-shadow: 0 10px 30px -10px var(--brand-glow); }
+.op-module.return-mod:focus-within { border-color: var(--ok); box-shadow: 0 10px 30px -10px rgba(0, 229, 153, 0.28); }
 
-.op-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; }
+.op-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .op-title { font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 7px; }
-.op-tag { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-dim); }
+.op-tag { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 5px; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-dim); }
 
-.hud-group { position: relative; margin-bottom: 8px; }
+.hud-group { position: relative; margin-bottom: 8px; z-index: 5; }
 .hud-label { display: block; font-size: 9.5px; font-weight: 800; color: var(--text-2); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
 .hud-input {
   width: 100%; background: var(--bg-canvas); border: 1px solid var(--border-mid);
@@ -358,37 +339,34 @@ html, body { height: 100%; background: var(--bg-app); color: var(--text-1); over
   font-size: 13.5px; font-weight: 600; outline: none; transition: all 0.18s;
 }
 .hud-input::placeholder { color: var(--text-3); font-weight: 500; }
-.hud-input:focus { border-color: var(--brand); box-shadow: 0 0 0 2px var(--brand-soft); }
-.return-mod .hud-input:focus { border-color: var(--ok); box-shadow: 0 0 0 2px var(--ok-soft); }
-.hud-input.err { border-color: var(--danger) !important; box-shadow: 0 0 0 2px var(--danger-soft) !important; }
-.hud-input.warn-busy { border-color: var(--warn) !important; box-shadow: 0 0 0 2px var(--warn-soft) !important; }
+.hud-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+.return-mod .hud-input:focus { border-color: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); }
+.hud-input.err { border-color: var(--danger) !important; box-shadow: 0 0 0 3px var(--danger-soft) !important; }
+.hud-input.warn-busy { border-color: var(--warn) !important; box-shadow: 0 0 0 3px var(--warn-soft) !important; }
 
-/* Живой радар занятости под полем серийника */
 .sn-live-banner {
   display: none; align-items: center; justify-content: space-between; gap: 8px;
   margin-top: 6px; padding: 7px 10px; border-radius: 8px; font-size: 11px; line-height: 1.3;
+  animation: slideDown 0.18s ease-out;
 }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 .sn-live-banner.show { display: flex; }
 .sn-live-banner.busy { background: var(--danger-soft); border: 1px solid var(--danger); color: var(--danger-text); }
 .sn-live-banner.free { background: var(--ok-soft); border: 1px solid var(--ok); color: var(--ok-text); }
 .sn-live-banner.new-sn { background: var(--brand-soft); border: 1px solid var(--brand); color: var(--brand-text); }
-.banner-btn-act {
-  padding: 4px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 800;
-  cursor: pointer; border: 1px solid var(--ok); background: var(--ok); color: #04120c; white-space: nowrap;
-}
+.banner-btn-act { padding: 4px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 800; cursor: pointer; border: 1px solid var(--ok); background: var(--ok); color: #04120c; white-space: nowrap; }
 
 .btn-submit {
   width: 100%; padding: 10.5px; border-radius: 9px; font-size: 11.5px; font-weight: 800;
   text-transform: uppercase; letter-spacing: 0.06em; border: none; cursor: pointer;
-  transition: all 0.18s; position: relative;
+  transition: all 0.18s; position: relative; z-index: 2;
 }
 .btn-submit.busy { opacity: 0.65; pointer-events: none; }
-.btn-issue { background: var(--brand); color: var(--brand-fg); box-shadow: 0 4px 16px var(--brand-glow); }
+.btn-issue { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: var(--brand-fg); box-shadow: 0 4px 16px var(--brand-glow); }
 .btn-issue:hover { filter: brightness(1.08); transform: translateY(-1px); }
-.btn-return-action { background: var(--ok); color: #04120c; box-shadow: 0 4px 16px rgba(0, 229, 153, 0.28); }
+.btn-return-action { background: linear-gradient(135deg, var(--ok), #059669); color: #04120c; box-shadow: 0 4px 16px rgba(0, 229, 153, 0.28); }
 .btn-return-action:hover { filter: brightness(1.08); transform: translateY(-1px); }
 
-/* Выпадающие подсказки */
 .drop-box {
   position: absolute; top: calc(100% + 4px); left: 0; right: 0;
   background: var(--surface-2); border: 1px solid var(--brand);
@@ -396,78 +374,57 @@ html, body { height: 100%; background: var(--bg-app); color: var(--text-1); over
   z-index: 9999; box-shadow: var(--shadow-lg); display: none;
 }
 .drop-box.show { display: block; }
-.drop-item {
-  padding: 8px 12px; border-bottom: 1px solid var(--border-dim);
-  display: flex; justify-content: space-between; align-items: center;
-  cursor: pointer; font-size: 12px; color: var(--text-1); gap: 8px;
-}
+.drop-item { padding: 8px 12px; border-bottom: 1px solid var(--border-dim); display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 12px; color: var(--text-1); gap: 8px; }
 .drop-item:last-child { border-bottom: none; }
 .drop-item:hover, .drop-item.selected { background: var(--brand-soft); }
 
-/* Нижний блок утилит и тем в левой башне */
-.tower-footer { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border-dim); }
+/* Футер башни и палитра из 8 тем */
+.tower-footer { margin-top: auto; display: flex; flex-direction: column; gap: 7px; padding-top: 8px; border-top: 1px solid var(--border-dim); }
 .tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
 .btn-hud {
   background: var(--surface-1); border: 1px solid var(--border-dim);
-  color: var(--text-1); padding: 7px 10px; border-radius: 8px;
+  color: var(--text-1); padding: 6.5px 10px; border-radius: 8px;
   font-size: 11px; font-weight: 700; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center; gap: 5px;
   transition: all 0.15s; position: relative;
 }
-.btn-hud:hover { border-color: var(--brand); background: var(--surface-hover); }
-.btn-debt { border-color: rgba(255, 51, 102, 0.4); color: var(--danger-text); }
+.btn-hud:hover { border-color: var(--brand); background: var(--surface-hover); transform: translateY(-1px); }
+.btn-hud.active-voice { border-color: var(--ok); color: var(--ok-text); background: var(--ok-soft); }
+.btn-debt { border-color: rgba(255, 42, 95, 0.4); color: var(--danger-text); }
 .btn-debt.has-debts { background: var(--danger-soft); animation: debtPulse 1.8s infinite; }
-@keyframes debtPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,51,102,0.45); } 50% { box-shadow: 0 0 0 6px rgba(255,51,102,0); } }
-.debt-badge {
-  padding: 1px 6px; border-radius: 99px; background: var(--danger); color: #fff;
-  font-size: 10px; font-weight: 800; font-family: 'JetBrains Mono', monospace; display: none;
-}
+@keyframes debtPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,42,95,0.45); } 50% { box-shadow: 0 0 0 6px rgba(255,42,95,0); } }
+.debt-badge { padding: 1px 6px; border-radius: 99px; background: var(--danger); color: #fff; font-size: 10px; font-weight: 800; font-family: 'JetBrains Mono', monospace; display: none; }
 .debt-badge.show { display: inline-block; }
 
-.theme-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: var(--bg-canvas); padding: 3px; border-radius: 9px; border: 1px solid var(--border-dim); }
-.t-btn {
-  border: none; background: transparent; color: var(--text-2);
-  font-size: 10px; font-weight: 700; padding: 5px 2px; border-radius: 6px;
-  cursor: pointer; text-align: center; transition: all 0.15s;
-}
-.t-btn:hover { color: var(--text-1); }
-.t-btn.active { background: var(--brand); color: var(--brand-fg); font-weight: 800; }
+.theme-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--bg-canvas); padding: 3.5px; border-radius: 9px; border: 1px solid var(--border-dim); }
+.t-btn { border: none; background: transparent; color: var(--text-2); font-size: 10px; font-weight: 700; padding: 4.5px 2px; border-radius: 6px; cursor: pointer; text-align: center; transition: all 0.15s; white-space: nowrap; }
+.t-btn:hover { color: var(--text-1); background: rgba(255,255,255,0.04); }
+.t-btn.active { background: var(--brand); color: var(--brand-fg); font-weight: 800; box-shadow: 0 2px 8px var(--brand-glow); }
 
 /* ============================================================
-   ПРАВЫЙ ХОЛСТ ДАННЫХ (MAIN WORKSPACE CANVAS)
+   ПРАВЫЙ ПАНОРАМНЫЙ ХОЛСТ (MAIN WORKSPACE CANVAS)
    ============================================================ */
 .main-canvas {
-  background: var(--bg-canvas);
-  padding: 14px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 11px;
-  height: 100%;
-  overflow: hidden;
+  background: transparent;
+  padding: 13px 18px;
+  display: flex; flex-direction: column; gap: 10px;
+  height: 100%; overflow: hidden;
 }
 
-/* BENTO-ПАНЕЛЬ ТЕЛЕМЕТРИИ И KPI */
 .bento-telemetry {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 12px;
-  background: var(--surface-1);
-  border: 1px solid var(--border-dim);
-  border-radius: 14px;
-  padding: 10px 14px;
-  align-items: center;
+  display: grid; grid-template-columns: auto 1fr; gap: 12px;
+  background: var(--surface-1); backdrop-filter: blur(20px);
+  border: 1px solid var(--border-dim); border-radius: 14px;
+  padding: 9px 14px; align-items: center;
 }
 @media (max-width: 1280px) { .bento-telemetry { grid-template-columns: 1fr; } }
 
-.donut-box {
-  display: flex; align-items: center; gap: 12px;
-  padding-right: 14px; border-right: 1px solid var(--border-dim);
-}
-.donut-svg { width: 54px; height: 54px; transform: rotate(-90deg); }
+.donut-box { display: flex; align-items: center; gap: 12px; padding-right: 14px; border-right: 1px solid var(--border-dim); }
+.donut-svg { width: 52px; height: 52px; transform: rotate(-90deg); }
 .donut-bg { fill: none; stroke: var(--surface-2); stroke-width: 5; }
-.donut-fg { fill: none; stroke: var(--ok); stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
+.donut-fg { fill: none; stroke: var(--ok); stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.55s ease; }
 .donut-meta .d-title { font-size: 9.5px; font-weight: 800; text-transform: uppercase; color: var(--text-2); letter-spacing: 0.05em; }
-.donut-meta .d-val { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-1); line-height: 1.1; }
+.donut-meta .d-val { font-family: 'Outfit', sans-serif; font-size: 21px; font-weight: 800; color: var(--text-1); line-height: 1.1; }
 .donut-meta .d-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-2); }
 
 .kpi-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
@@ -475,37 +432,28 @@ html, body { height: 100%; background: var(--bg-app); color: var(--text-1); over
 @media (max-width: 550px) { .kpi-strip { grid-template-columns: repeat(2, 1fr); } }
 
 .kpi-card {
-  background: var(--bg-canvas);
-  border: 1px solid var(--border-dim);
-  border-radius: 10px;
-  padding: 8px 11px;
-  cursor: pointer;
-  transition: all 0.18s;
-  display: flex; flex-direction: column; justify-content: space-between;
+  background: var(--bg-canvas); border: 1px solid var(--border-dim);
+  border-radius: 11px; padding: 8px 11px; cursor: pointer;
+  transition: all 0.18s; display: flex; flex-direction: column; justify-content: space-between;
 }
-.kpi-card:hover { border-color: var(--border-mid); background: var(--surface-2); transform: translateY(-1px); }
+.kpi-card:hover { border-color: var(--border-mid); background: var(--surface-2); transform: translateY(-2px); }
 .kpi-card.active {
   border-color: var(--kpi-c, var(--brand));
   background: var(--surface-2);
-  box-shadow: 0 3px 0 0 var(--kpi-c, var(--brand)) inset;
+  box-shadow: 0 3px 0 0 var(--kpi-c, var(--brand)) inset, 0 8px 20px -8px var(--brand-glow);
 }
 .kpi-top { display: flex; justify-content: space-between; align-items: center; font-size: 9.5px; font-weight: 800; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; }
 .kpi-num-row { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; }
-.kpi-num { font-family: 'Space Grotesk', sans-serif; font-size: 21px; font-weight: 700; line-height: 1; }
+.kpi-num { font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 800; line-height: 1; }
 .kpi-pct { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-3); }
 
-/* Алерт новых должников */
-.debt-alert-bar {
-  display: none; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 9px 14px; background: var(--danger-soft); border: 1px solid var(--danger);
-  border-radius: 12px;
-}
+.debt-alert-bar { display: none; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 14px; background: var(--danger-soft); border: 1px solid var(--danger); border-radius: 12px; }
 .debt-alert-bar.show { display: flex; }
 .debt-alert-body { flex: 1; min-width: 0; font-size: 12px; }
 .debt-alert-body b { color: var(--danger-text); margin-right: 6px; }
 .debt-alert-body p { display: inline; color: var(--text-2); }
 
-/* ПАНЕЛЬ ИНСТРУМЕНТОВ РЕЕСТРА (TOOLBAR) */
+/* ТУЛБАР ХОЛСТА */
 .canvas-toolbar {
   display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
   background: var(--surface-1); border: 1px solid var(--border-dim);
@@ -513,30 +461,24 @@ html, body { height: 100%; background: var(--bg-app); color: var(--text-1); over
 }
 .toolbar-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .view-toggle { display: inline-flex; background: var(--bg-canvas); padding: 2.5px; border-radius: 8px; border: 1px solid var(--border-dim); }
-.v-mode-btn {
-  border: none; background: transparent; color: var(--text-2);
-  font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 6px;
-  cursor: pointer; transition: all 0.15s;
-}
+.v-mode-btn { border: none; background: transparent; color: var(--text-2); font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+.v-mode-btn:hover { color: var(--text-1); }
 .v-mode-btn.active { background: var(--brand); color: var(--brand-fg); font-weight: 800; }
 
 .mf-group { display: inline-flex; gap: 4px; flex-wrap: wrap; }
-.mf-pill {
-  border: 1px solid var(--border-dim); background: var(--bg-canvas); color: var(--text-2);
-  font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 7px; cursor: pointer; transition: all 0.15s;
-}
+.mf-pill { border: 1px solid var(--border-dim); background: var(--bg-canvas); color: var(--text-2); font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 7px; cursor: pointer; transition: all 0.15s; }
 .mf-pill:hover { color: var(--text-1); }
 .mf-pill.active { border-color: var(--brand); color: var(--brand-text); background: var(--brand-soft); }
 
-.toolbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.toolbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .reg-stats { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-2); }
 .search-wrap { position: relative; display: inline-flex; align-items: center; }
 .search-clear-btn { position: absolute; right: 8px; background: transparent; border: none; color: var(--text-2); font-size: 13px; cursor: pointer; display: none; }
 .search-wrap.has-val .search-clear-btn { display: block; }
 
-/* ОБЛАСТЬ ДАННЫХ (ТАБЛИЦА + МАТРИЦА СЛОТОВ) */
+/* ОБЛАСТЬ ОТОБРАЖЕНИЯ (ТАБЛИЦА / МАТРИЦА / ДАШБОРД БОССА) */
 .viewport-box {
-  flex: 1; min-height: 300px; overflow-y: auto;
+  flex: 1; min-height: 280px; overflow-y: auto;
   background: var(--surface-1); border: 1px solid var(--border-dim);
   border-radius: 14px; position: relative;
 }
@@ -556,42 +498,51 @@ tbody tr:hover td:first-child { box-shadow: 3px 0 0 0 var(--brand) inset; }
 tbody tr.row-overdue { background: var(--danger-soft); }
 tbody tr.row-overdue td:first-child { box-shadow: 3px 0 0 0 var(--danger) inset; }
 tbody tr.row-just-overdue { animation: justOverdue 2.4s ease-out 3; }
-@keyframes justOverdue { 0% { background: rgba(255,51,102,0.5); } 100% { background: var(--danger-soft); } }
+@keyframes justOverdue { 0% { background: rgba(255,42,95,0.5); } 100% { background: var(--danger-soft); } }
 tbody tr.just-returned { animation: glow-green 2.2s ease-out; }
 @keyframes glow-green { 0% { background: rgba(0,229,153,0.4); } 100% { background: transparent; } }
 tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
 @keyframes glow-blue { 0% { background: var(--brand-soft); } 100% { background: transparent; } }
 
-/* РЕЖИМ 2: МАТРИЦА СЛОТОВ (СТОЙКА ТСД) */
-.matrix-grid {
-  display: none;
-  grid-template-columns: repeat(auto-fill, minmax(142px, 1fr));
-  gap: 8px; padding: 12px;
-}
+/* РЕЖИМ 2: МАТРИЦА СЛОТОВ */
+.matrix-grid { display: none; grid-template-columns: repeat(auto-fill, minmax(144px, 1fr)); gap: 9px; padding: 13px; }
 .matrix-grid.show { display: grid; }
 .slot-card {
   background: var(--bg-canvas); border: 1px solid var(--border-dim);
-  border-radius: 10px; padding: 9px 10px; cursor: pointer;
+  border-radius: 11px; padding: 9px 11px; cursor: pointer;
   display: flex; flex-direction: column; justify-content: space-between;
-  min-height: 82px; position: relative; overflow: hidden; transition: all 0.15s;
+  min-height: 84px; position: relative; overflow: hidden;
+  transition: transform 0.16s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.16s, box-shadow 0.16s;
 }
-.slot-card:hover { transform: translateY(-2px); border-color: var(--brand); }
+.slot-card:hover { transform: translateY(-3px) scale(1.015); border-color: var(--brand); box-shadow: 0 8px 24px -6px rgba(0,0,0,0.6); }
 .slot-card.s-free { border-left: 3px solid var(--ok); }
 .slot-card.s-busy { border-left: 3px solid var(--info); }
 .slot-card.s-over { border-color: var(--danger); background: var(--danger-soft); border-left: 3px solid var(--danger); }
 .slot-top { display: flex; justify-content: space-between; align-items: center; font-size: 9.5px; font-weight: 700; color: var(--text-2); }
-.slot-tail { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; color: var(--sn-bright); letter-spacing: -0.02em; margin: 2px 0; }
+.slot-tail { font-family: 'JetBrains Mono', monospace; font-size: 21px; font-weight: 800; color: var(--sn-bright); letter-spacing: -0.02em; margin: 2px 0; }
 .slot-prefix { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--sn-dim); display: block; }
 .slot-foot { display: flex; justify-content: space-between; align-items: center; font-size: 10.5px; font-family: 'JetBrains Mono', monospace; margin-top: 3px; }
 .slot-holder { font-weight: 700; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85px; }
 
-/* Элементы строк таблицы */
-.sn-link {
-  cursor: pointer; display: inline-flex; align-items: baseline;
-  padding: 3px 8px; border-radius: 6px;
+/* РЕЖИМ 3: ДАШБОРД БОССА (EXECUTIVE ANALYTICS VIEW) */
+.exec-view { display: none; grid-template-columns: repeat(12, 1fr); gap: 12px; padding: 14px; }
+.exec-view.show { display: grid; }
+.exec-panel {
+  grid-column: span 6;
   background: var(--bg-canvas); border: 1px solid var(--border-dim);
-  transition: all 0.15s;
+  border-radius: 13px; padding: 15px 18px;
+  display: flex; flex-direction: column; gap: 12px;
 }
+@media (max-width: 1100px) { .exec-panel { grid-column: span 12; } }
+.exec-panel h4 { font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-2); display: flex; justify-content: space-between; align-items: center; }
+.bar-row { display: flex; flex-direction: column; gap: 5px; }
+.bar-meta { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; }
+.bar-track { height: 9px; width: 100%; background: var(--surface-1); border-radius: 99px; overflow: hidden; border: 1px solid var(--border-dim); }
+.bar-fill-exec { height: 100%; border-radius: 99px; transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+.sla-big { font-family: 'Outfit', sans-serif; font-size: 44px; font-weight: 900; line-height: 1; color: var(--ok-text); }
+
+/* Элементы таблицы */
+.sn-link { cursor: pointer; display: inline-flex; align-items: baseline; padding: 3px 8px; border-radius: 6px; background: var(--bg-canvas); border: 1px solid var(--border-dim); transition: all 0.15s; }
 .sn-prefix { color: var(--sn-dim); font-size: 11.5px; }
 .sn-tail { color: var(--sn-bright); font-weight: 800; font-size: 13.5px; }
 .sn-link:hover { border-color: var(--brand); transform: translateX(2px); }
@@ -651,7 +602,7 @@ tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
 
 .audit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: none; z-index: 9998; opacity: 0; transition: opacity 0.25s; }
 .audit-overlay.show { display: block; opacity: 1; }
-.audit-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 430px; max-width: 92vw; background: var(--bg-Sidebar); border-left: 1px solid var(--border-mid); box-shadow: var(--shadow-lg); z-index: 9999; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1); padding: 20px; }
+.audit-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 430px; max-width: 92vw; background: var(--bg-sidebar); border-left: 1px solid var(--border-mid); box-shadow: var(--shadow-lg); z-index: 9999; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1); padding: 20px; }
 .audit-drawer.open { transform: translateX(0); }
 .audit-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px; border-bottom: 1px solid var(--border-dim); margin-bottom: 12px; }
 .audit-header h3 { font-size: 18px; font-weight: 800; color: var(--brand-text); }
@@ -668,7 +619,7 @@ tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 14px; }
 .modal-overlay.show { display: flex; }
-.modal-card { background: var(--bg-Sidebar); color: var(--text-1); border: 1px solid var(--border-mid); border-radius: 15px; width: 100%; max-width: 480px; padding: 20px; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; }
+.modal-card { background: var(--bg-sidebar); color: var(--text-1); border: 1px solid var(--border-mid); border-radius: 15px; width: 100%; max-width: 480px; padding: 20px; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; }
 .swap-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin: 12px 0; }
 .swap-card { background: var(--surface-1); border: 1px solid var(--border-dim); border-radius: 10px; padding: 11px; text-align: center; }
 .swap-card.old .sn { color: var(--danger-text); font-weight: 800; font-family: 'JetBrains Mono', monospace; }
@@ -676,7 +627,7 @@ tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
 .swap-inherit-note { display: flex; align-items: center; gap: 8px; background: var(--brand-soft); border: 1px solid var(--border-mid); border-radius: 8px; padding: 8px 11px; font-size: 11.5px; color: var(--brand-text); }
 
 .debt-modal-list { display: flex; flex-direction: column; gap: 6px; max-height: 38vh; overflow-y: auto; }
-.debt-modal-item { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 10px 13px; background: var(--danger-soft); border: 1px solid rgba(255,51,102,0.3); border-radius: 9px; cursor: pointer; }
+.debt-modal-item { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 10px 13px; background: var(--danger-soft); border: 1px solid rgba(255,42,95,0.3); border-radius: 9px; cursor: pointer; }
 .debt-modal-item .dname { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .debt-modal-item .dmeta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-2); display: flex; gap: 8px; }
 .debt-modal-item .dcnt { color: var(--danger-text); font-weight: 800; }
@@ -696,27 +647,29 @@ tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
   .workstation { display: block !important; height: auto !important; }
   .main-canvas, .viewport-box { overflow: visible !important; height: auto !important; border: none !important; background: #fff !important; color: #000 !important; }
   table { border: 1px solid #000 !important; color: #000 !important; }
-  th, td { border: 1px solid #888 !important; color: #000 !important; }
+  th, td { border: 1px solid #888 !important; color: #000 !important; padding: 6px !important; }
 }
 </style>
 </head>
 <body>
 
+<div id="edgeFlash"></div>
+
 <div class="boot-overlay" id="bootOverlay">
-  <div class="boot-logo">ORBITAL WMS</div>
+  <div class="boot-logo">ORBITAL QUANTUM</div>
   <div class="boot-spinner"></div>
-  <div class="boot-text" id="bootText">Инициализация рабочей станции…</div>
+  <div class="boot-text" id="bootText">Калибровка телеметрии склада…</div>
 </div>
 
-<div class="workstation">
+<div class="workstation" id="workstation">
   <!-- ================= ЛЕВАЯ КОМАНДНАЯ БАШНЯ ================= -->
   <aside class="control-tower">
     <div class="tower-brand">
       <div class="brand-left">
         <div id="brandTag" class="brand-cube" title="Тройной клик — сервисное удаление ТСД">WB</div>
         <div class="brand-meta">
-          <h1>ORBITAL <span class="v-tag">v10.0</span></h1>
-          <p>Диспетчерский пульт учёта ТСД</p>
+          <h1>QUANTUM <span class="v-tag">v11.0</span></h1>
+          <p>Диспетчерский центр ТСД</p>
         </div>
       </div>
       <div id="syncStatus" class="pill-badge pill-online" onclick="showDiag()" title="Статус облака Supabase">
@@ -725,16 +678,20 @@ tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
       </div>
     </div>
 
-    <div class="tower-status-row">
-      <div id="shiftPill" class="shift-reactor day" onclick="toggleShift()" title="Клик — переключить смену День/Ночь">
+    <!-- Реактор смены с живым прогресс-баром 12ч -->
+    <div id="shiftPill" class="shift-card day spotlight-card" onclick="toggleShift()" title="Клик — переключить смену День/Ночь вручную">
+      <div class="shift-top">
         <span><span id="shiftIcon">☀</span> СМЕНА: <b id="shiftLabel">ДЕНЬ</b></span>
-        <span class="t" id="shiftTime">--:--</span>
+        <span id="shiftTime">--:--:--</span>
         <span id="shiftBadge" class="badge-auto" onclick="resetShiftToAuto(event)">AUTO</span>
+      </div>
+      <div class="shift-progress-track" title="Прогресс текущей 12-часовой смены">
+        <div class="shift-progress-fill" id="shiftProgressBar" style="width:50%"></div>
       </div>
     </div>
 
     <!-- МОДУЛЬ 01: ВЫДАЧА -->
-    <div class="op-module issue-mod">
+    <div class="op-module issue-mod spotlight-card">
       <div class="op-head">
         <span class="op-title" style="color:var(--brand-text);">📤 01 // ВЫДАЧА</span>
         <span id="modelHint" class="op-tag">F1 • Скан ➔ ID</span>
@@ -756,7 +713,7 @@ tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
     </div>
 
     <!-- МОДУЛЬ 02: ПРИЁМ -->
-    <div class="op-module return-mod">
+    <div class="op-module return-mod spotlight-card">
       <div class="op-head">
         <span class="op-title" style="color:var(--ok-text);">📥 02 // ПРИЁМ НА СКЛАД</span>
         <span class="op-tag">F2 • Мгновенно</span>
@@ -769,23 +726,27 @@ tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
       <button type="button" class="btn-submit btn-return-action" id="retBtn">ПРИНЯТЬ НА СКЛАД (ENTER)</button>
     </div>
 
-    <!-- НИЖНИЙ ДОК УТИЛИТ И ТЕМ -->
+    <!-- НИЖНИЙ ДОК УТИЛИТ И 8 ТЕМ -->
     <div class="tower-footer">
       <div class="tools-grid">
         <button class="btn-hud btn-debt" id="debtBtn" onclick="openDebtModal()">
           🚨 Должники <span class="debt-badge" id="debtBadge">0</span>
         </button>
-        <button class="btn-hud" onclick="copyTelegramSummary()" title="Скопировать сводку смены в буфер">📋 Сводка в чат</button>
-        <button class="btn-hud" onclick="openBackupModal()">💾 Бэкапы</button>
-        <button class="btn-hud" onclick="exportExcel()" title="Ctrl+E">📊 Отчёт Excel</button>
-        <button class="btn-hud" style="grid-column: span 2;" onclick="openModal('impModal')" title="Ctrl+I">📥 Массовый импорт серийников</button>
+        <button class="btn-hud" id="voiceBtn" onclick="toggleVoice()" title="Голосовая озвучка операций">🔇 Озвучка</button>
+        <button class="btn-hud" onclick="copyTelegramSummary()" title="Скопировать сводку смены в буфер">📋 Сводка</button>
+        <button class="btn-hud" onclick="openBackupModal()">💾 Бэкап</button>
+        <button class="btn-hud" onclick="exportExcel()" title="Ctrl+E">📊 Excel</button>
+        <button class="btn-hud" onclick="openModal('impModal')" title="Ctrl+I">📥 Импорт</button>
       </div>
       <div class="theme-bar" title="Переключение темы оформления (Alt+T)">
         <button type="button" class="t-btn active" data-set-theme="volt">⚡ Volt</button>
         <button type="button" class="t-btn" data-set-theme="berry">🔮 WB</button>
-        <button type="button" class="t-btn" data-set-theme="swiss">🤍 Swiss</button>
-        <button type="button" class="t-btn" data-set-theme="nordic">🌊 Nord</button>
-        <button type="button" class="t-btn" data-set-theme="amber">🔥 Amber</button>
+        <button type="button" class="t-btn" data-set-theme="abyss">🌌 Abyss</button>
+        <button type="button" class="t-btn" data-set-theme="ops">🩸 Ops</button>
+        <button type="button" class="t-btn" data-set-theme="synth">🌅 Synth</button>
+        <button type="button" class="t-btn" data-set-theme="matrix">🌲 Matrix</button>
+        <button type="button" class="t-btn" data-set-theme="gold">✨ Gold</button>
+        <button type="button" class="t-btn" data-set-theme="white">🤍 White</button>
       </div>
     </div>
   </aside>
@@ -811,34 +772,34 @@ tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
           <circle id="donutFreeSeg" class="donut-fg" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="0"></circle>
         </svg>
         <div class="donut-meta">
-          <div class="d-title">Готовность склада</div>
+          <div class="d-title">Резерв склада</div>
           <div class="d-val" id="mFreePct">100%</div>
           <div class="d-sub">В работе: <b id="mIssuedPct">0%</b></div>
         </div>
       </div>
 
       <div class="kpi-strip">
-        <div class="kpi-card active" data-filter="all" style="--kpi-c:var(--brand);">
+        <div class="kpi-card spotlight-card active" data-filter="all" style="--kpi-c:var(--brand);">
           <div class="kpi-top"><span>ВЕСЬ ПАРК</span><span>📦</span></div>
           <div class="kpi-num-row"><span id="mTotal" class="kpi-num">0</span><span class="kpi-pct">шт.</span></div>
         </div>
-        <div class="kpi-card" data-filter="free" style="--kpi-c:var(--ok);">
+        <div class="kpi-card spotlight-card" data-filter="free" style="--kpi-c:var(--ok);">
           <div class="kpi-top"><span style="color:var(--ok-text);">НА СКЛАДЕ</span><span>🟢</span></div>
           <div class="kpi-num-row"><span id="mFree" class="kpi-num" style="color:var(--ok-text);">0</span><span class="kpi-pct">своб.</span></div>
         </div>
-        <div class="kpi-card" data-filter="issued" style="--kpi-c:var(--info);">
+        <div class="kpi-card spotlight-card" data-filter="issued" style="--kpi-c:var(--info);">
           <div class="kpi-top"><span style="color:var(--info-text);">НА РУКАХ</span><span>⚡</span></div>
           <div class="kpi-num-row"><span id="mIssued" class="kpi-num" style="color:var(--info-text);">0</span><span class="kpi-pct">актив.</span></div>
         </div>
-        <div class="kpi-card" data-filter="overdue" style="--kpi-c:var(--danger);">
+        <div class="kpi-card spotlight-card" data-filter="overdue" style="--kpi-c:var(--danger);">
           <div class="kpi-top"><span style="color:var(--danger-text);">ДОЛГИ &gt;14Ч</span><span>🚨</span></div>
           <div class="kpi-num-row"><span id="mOverdue" class="kpi-num" style="color:var(--danger-text);">0</span><span class="kpi-pct">проср.</span></div>
         </div>
-        <div class="kpi-card" data-filter="day" style="--kpi-c:var(--warn);">
+        <div class="kpi-card spotlight-card" data-filter="day" style="--kpi-c:var(--warn);">
           <div class="kpi-top"><span style="color:var(--warn-text);">ДЕНЬ</span><span>☀️</span></div>
           <div class="kpi-num-row"><span id="mDay" class="kpi-num" style="color:var(--warn-text);">0</span><span class="kpi-pct">смена</span></div>
         </div>
-        <div class="kpi-card" data-filter="night" style="--kpi-c:var(--night);">
+        <div class="kpi-card spotlight-card" data-filter="night" style="--kpi-c:var(--night);">
           <div class="kpi-top"><span style="color:var(--night-text);">НОЧЬ</span><span>🌙</span></div>
           <div class="kpi-num-row"><span id="mNight" class="kpi-num" style="color:var(--night-text);">0</span><span class="kpi-pct">смена</span></div>
         </div>
@@ -848,12 +809,14 @@ tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
     <!-- ТУЛБАР УПРАВЛЕНИЯ РЕЕСТРОМ -->
     <div class="canvas-toolbar">
       <div class="toolbar-left">
-        <div class="view-toggle" title="Переключить вид (Alt+V)">
-          <button type="button" class="v-mode-btn active" id="btnViewTable" onclick="setViewMode('table')">☰ Таблица</button>
-          <button type="button" class="v-mode-btn" id="btnViewMatrix" onclick="setViewMode('matrix')">🎛 Матрица слотов</button>
+        <button type="button" class="btn-hud" id="wallboardBtn" onclick="toggleWallboard()" title="Скрыть/показать левый пульт для презентации (Alt+W)">📺 Полный экран</button>
+        <div class="view-toggle" title="Переключить режим (Alt+V)">
+          <button type="button" class="v-mode-btn active" id="btnViewTable" onclick="setViewMode('table')">☰ Реестр</button>
+          <button type="button" class="v-mode-btn" id="btnViewMatrix" onclick="setViewMode('matrix')">🎛 Матрица</button>
+          <button type="button" class="v-mode-btn" id="btnViewExec" onclick="setViewMode('exec')">📊 Аналитика</button>
         </div>
         <div class="mf-group" id="modelFilterBar">
-          <button type="button" class="mf-pill active" data-mfilter="all">Все модели</button>
+          <button type="button" class="mf-pill active" data-mfilter="all">Все</button>
           <button type="button" class="mf-pill" data-mfilter="Zebra">Zebra</button>
           <button type="button" class="mf-pill" data-mfilter="Point Mobile">Point Mobile</button>
           <button type="button" class="mf-pill" data-mfilter="Планшет">Планшеты</button>
@@ -862,13 +825,13 @@ tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
       <div class="toolbar-right">
         <div class="reg-stats" id="regStats">Среднее: — · Макс: —</div>
         <div class="search-wrap" id="searchWrap">
-          <input id="searchTable" class="hud-input mono" style="width:230px;padding:6px 26px 6px 11px;font-size:12px;" placeholder="Поиск SN / ФИО (Ctrl+K)..." spellcheck="false">
+          <input id="searchTable" class="hud-input mono" style="width:225px;padding:6px 26px 6px 11px;font-size:12px;" placeholder="Поиск SN / ФИО (Ctrl+K)..." spellcheck="false">
           <button class="search-clear-btn" id="searchClearBtn" title="Очистить">✕</button>
         </div>
       </div>
     </div>
 
-    <!-- ГЛАВНЫЙ ЭКРАН ДАННЫХ -->
+    <!-- ГЛАВНЫЙ ЭКРАН ДАННЫХ (3 РЕЖИМА) -->
     <div class="viewport-box">
       <table id="tableView">
         <thead><tr>
@@ -883,11 +846,13 @@ tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
       </table>
 
       <div id="matrixView" class="matrix-grid"></div>
+
+      <div id="execView" class="exec-view"></div>
     </div>
 
     <div class="canvas-footer">
-      <span id="logStatus">[SYSTEM] Рабочая станция активна</span>
-      <span>Горячие клавиши: <b>F1</b> Выдача · <b>F2</b> Приём · <b>Ctrl+K</b> Поиск · <b>Ctrl+Z</b> Отмена · <b>Alt+V</b> Вид · <b>Alt+T</b> Тема</span>
+      <span id="logStatus">[SYSTEM] Квантовая станция активна</span>
+      <span>Горячие клавиши: <b>F1</b> Выдача · <b>F2</b> Приём · <b>Ctrl+Z</b> Отмена · <b>Alt+V</b> Режим · <b>Alt+W</b> ТВ-Экран · <b>Alt+T</b> Тема</span>
     </div>
   </main>
 </div>
@@ -1025,8 +990,9 @@ const BACKUP_KEEP = 7;
 const BACKUP_MIN_INTERVAL = 6*60*60*1000;
 const RECENT_LOCAL_TTL = 60*1000;
 const AUTO_SWAP_KEY = 'sklad_auto_swap_v2';
-const THEME_STORAGE_KEY = 'sklad_orbital_theme';
-const VIEW_MODE_KEY = 'sklad_orbital_view';
+const THEME_STORAGE_KEY = 'sklad_quantum_theme';
+const VIEW_MODE_KEY = 'sklad_quantum_view';
+const VOICE_STORAGE_KEY = 'sklad_quantum_voice';
 const DRAFT_KEY = 'sklad_draft_iss';
 const DRAFT_TTL_MS = 5*60*1000;
 const SN_REGEX = /^[A-Z0-9\-_.]{2,60}$/;
@@ -1042,15 +1008,28 @@ const SYNC_TIMEOUT_MS = 45000;
 const SYNC_BASE_INTERVAL = 20000;
 const SYNC_MAX_INTERVAL = 300000;
 const SYNC_JITTER = 0.25;
-const THEMES = ['volt','berry','swiss','nordic','amber'];
-const THEME_NAMES = { volt:'⚡ Volt (Industrial Cyber)', berry:'🔮 WB (Berry Pro)', swiss:'🤍 Swiss (Daylight Paper)', nordic:'🌊 Nordic (Arctic Slate)', amber:'🔥 Amber (Phosphor)' };
-const THEME_META_COLORS = { volt:'#08090c', berry:'#090511', swiss:'#e6e4dd', nordic:'#070b12', amber:'#0c0906' };
+const THEMES = ['volt','berry','abyss','ops','synth','matrix','gold','white'];
+const THEME_NAMES = {
+  volt:'⚡ Volt (Industrial Cyber)',
+  berry:'🔮 WB (Berry Pro)',
+  abyss:'🌌 Abyss (Deep Ocean)',
+  ops:'🩸 Ops (Tactical Crimson)',
+  synth:'🌅 Synth (Outrun Neon)',
+  matrix:'🌲 Matrix (Phosphor)',
+  gold:'✨ Gold (Imperial Obsidian)',
+  white:'🤍 White (Daylight Glass)'
+};
+const THEME_META_COLORS = {
+  volt:'#07080b', berry:'#08040f', abyss:'#020813', ops:'#080406',
+  synth:'#0d041a', matrix:'#030906', gold:'#09090b', white:'#eef2f6'
+};
 const DEBUG = false;
 function dbg(...args) { if (DEBUG) console.log('[DBG]', ...args); }
 
 const state = {
   devices: [], filter: 'all', modelFilter: 'all',
   viewMode: 'table', sortField: 'default', sortAsc: true,
+  wallboard: false, voiceEnabled: false,
   theme: 'volt',
   issueShift: 'Дневная', issueShiftAuto: true, workerShifts: {},
   syncing: false, dbReady: false, lastError: '—',
@@ -1067,1743 +1046,8 @@ const state = {
 
 try { const v = localStorage.getItem(AUTO_SWAP_KEY); state.autoSwap = v === null ? true : v === 'true'; } catch(e) {}
 try { const st = localStorage.getItem(THEME_STORAGE_KEY); if (st && THEMES.includes(st)) state.theme = st; } catch(e) {}
-try { const vm = localStorage.getItem(VIEW_MODE_KEY); if (vm === 'matrix' || vm === 'table') state.viewMode = vm; } catch(e) {}
+try { const vm = localStorage.getItem(VIEW_MODE_KEY); if (['table','matrix','exec'].includes(vm)) state.viewMode = vm; } catch(e) {}
+try { state.voiceEnabled = localStorage.getItem(VOICE_STORAGE_KEY) === 'true'; } catch(e) {}
 try { state.workerShifts = JSON.parse(localStorage.getItem('sklad_worker_shifts') || '{}'); } catch(e) {}
 try { state.debtorsRegistry = JSON.parse(localStorage.getItem(DEBT_REGISTRY_KEY) || '{}'); } catch(e) {}
-try { state.debtorsRecorded = JSON.parse(localStorage.getItem(DEBT_RECORDED_KEY) || '{}'); } catch(e) {}
-try { state.alertedDebtors = JSON.parse(localStorage.getItem(ALERTED_DEBTORS_KEY) || '{}'); } catch(e) {}
-try { state.debtAlertDismissedUntil = parseInt(localStorage.getItem(DEBT_ALERT_DISMISSED_KEY) || '0', 10) || 0; } catch(e) {}
-
-const recentLocal = new Map();
-const $ = id => document.getElementById(id);
-const nowIso = () => new Date().toISOString();
-
-function applyTheme(themeName, notify = false) {
-  const t = THEMES.includes(themeName) ? themeName : 'volt';
-  state.theme = t;
-  document.documentElement.setAttribute('data-theme', t);
-  const meta = $('metaThemeColor'); if (meta) meta.setAttribute('content', THEME_META_COLORS[t] || '#08090c');
-  document.querySelectorAll('[data-set-theme]').forEach(btn => btn.classList.toggle('active', btn.dataset.setTheme === t));
-  try { localStorage.setItem(THEME_STORAGE_KEY, t); } catch(e) {}
-  if (notify) showToast('ТЕМА ИНТЕРФЕЙСА', THEME_NAMES[t]);
-}
-function cycleTheme() { const i = THEMES.indexOf(state.theme); applyTheme(THEMES[(i+1) % THEMES.length], true); }
-applyTheme(state.theme, false);
-
-function setViewMode(mode) {
-  state.viewMode = mode === 'matrix' ? 'matrix' : 'table';
-  try { localStorage.setItem(VIEW_MODE_KEY, state.viewMode); } catch(e) {}
-  applyViewModeUI();
-  renderTable();
-}
-function applyViewModeUI() {
-  const isM = state.viewMode === 'matrix';
-  $('btnViewTable')?.classList.toggle('active', !isM);
-  $('btnViewMatrix')?.classList.toggle('active', isM);
-  if ($('tableView')) $('tableView').style.display = isM ? 'none' : 'table';
-  $('matrixView')?.classList.toggle('show', isM);
-}
-
-function copyTelegramSummary() {
-  let free = 0, issued = 0, overdue = 0, dayCount = 0, nightCount = 0;
-  const debts = [];
-  state.devices.forEach(d => {
-    if (d.status === 'issued') {
-      issued++;
-      const h = hoursSince(d.issued_at);
-      if (h >= OVERDUE_H) { overdue++; debts.push({ sn: d.serial, holder: d.holder, h }); }
-      if (d.shift === 'Ночная') nightCount++; else dayCount++;
-    } else free++;
-  });
-  const dt = new Date().toLocaleString('ru-RU', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
-  const lines = [
-    `📊 СВОДКА ТСД (${dt} • ${state.issueShift})`,
-    `📦 Всего в базе: ${state.devices.length} шт.`,
-    `🟢 Свободно на складе: ${free} шт.`,
-    `⚡ В работе: ${issued} шт. (☀️ День: ${dayCount} | 🌙 Ночь: ${nightCount})`,
-    `🚨 Просрочка (>14ч): ${overdue} шт.`
-  ];
-  debts.sort((a,b) => b.h - a.h).slice(0, 15).forEach(x => {
-    lines.push(`  • ${x.sn} — ${x.holder} (${fmtHoursShort(x.h)})`);
-  });
-  navigator.clipboard?.writeText(lines.join('\n')).then(
-    () => showToast('📋 СВОДКА СКОПИРОВАНА', 'Отчёт готов к отправке в чат'),
-    () => showToast('ОШИБКА', 'Не удалось скопировать', 'err')
-  );
-}
-
-function esc(s) { return String(s !== null && s !== undefined ? s : '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
-function withTimeout(promise, ms, label) {
-  let timer;
-  const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`⏱ Таймаут: ${label} (${ms}мс)`)), ms); });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
-}
-function pluralN(n, one, few, many) { const m10 = n%10, m100 = n%100; if (m10===1 && m100!==11) return one; if (m10>=2 && m10<=4 && (m100<10 || m100>=20)) return few; return many; }
-const RU = {'й':'q','ц':'w','у':'e','к':'r','е':'t','н':'y','г':'u','ш':'i','щ':'o','з':'p','х':'[','ъ':']','ф':'a','ы':'s','в':'d','а':'f','п':'g','р':'h','о':'j','л':'k','д':'l','ж':';','э':'\'','я':'z','ч':'x','с':'c','м':'v','и':'b','т':'n','ь':'m','б':',','ю':'.','ё':'`'};
-function fixLayout(s) { return String(s?s:'').split('').map(ch => { const lo = ch.toLowerCase(); return RU[lo]!==undefined ? RU[lo] : ch; }).join('').toUpperCase().replace(/\s+/g,''); }
-function hasCyr(s) { return /[а-яёА-ЯЁ]/.test(String(s||'')); }
-function detectModel(sn) { const s = String(sn?sn:'').toUpperCase(); if (s.startsWith('S')) return 'Zebra'; if (s.includes('TAB') || s.includes('ПЛАНШЕТ')) return 'Планшет'; return 'Point Mobile'; }
-function formatSnSplit(sn) { const s = String(sn||''); if (s.length<=4) return `<span class="sn-tail">${esc(s)}</span>`; return `<span class="sn-prefix">${esc(s.slice(0,-4))}</span><span class="sn-tail">${esc(s.slice(-4))}</span>`; }
-function getInitials(h) { const s = String(h||'').trim(); if (!s) return '•'; const l = s.match(/[А-ЯЁA-Z]/gi); if (l && l.length>=2) return (l[0]+l[1]).toUpperCase(); return s.slice(-2).toUpperCase(); }
-function hoursSince(iso) { if (!iso) return 0; const t = Date.parse(iso); if (isNaN(t)) return 0; return (Date.now()-t)/3600000; }
-function parseTime(v) { if (!v) return 0; const t = Date.parse(v); return isNaN(t)?0:t; }
-function fmtHoursShort(h) { if (!isFinite(h)||h<0) return '—'; const m = Math.round(h*60), H = Math.floor(m/60), M = m%60; if (H===0) return M+'м'; if (M===0) return H+'ч'; return H+'ч '+M+'м'; }
-function timeClass(h) { if (!isFinite(h)) return 'fresh'; if (h>=OVERDUE_H) return 'over'; if (h>=8) return 'late'; if (h>=4) return 'mid'; return 'fresh'; }
-function timeBarWidth(h) { if (!isFinite(h)||h<0) return 3; return Math.max(3, Math.min(100, (h/OVERDUE_H)*100)); }
-function isInheritedTime(d) { if (!d || d.status!=='issued' || !d.issued_at || !d.last_move) return false; const t1 = Date.parse(d.last_move), t2 = Date.parse(d.issued_at); if (isNaN(t1)||isNaN(t2)) return false; return Math.abs(t1-t2)>60*1000; }
-function logMsg(msg) { const t = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}); const el = $('logStatus'); if (el) el.textContent = `[${t}] ${msg}`; }
-
-function hideBoot() { const el = $('bootOverlay'); if (!el) return; el.classList.add('hide'); setTimeout(()=>{try{el.remove();}catch(e){}},500); }
-function bootText(txt) { const el = $('bootText'); if (el) el.textContent = txt; }
-function refreshScrollLock() { const anyModal = document.querySelector('.modal-overlay.show'); const drawer = $('auditDrawer') && $('auditDrawer').classList.contains('open'); document.body.classList.toggle('no-scroll', !!(anyModal || drawer)); }
-
-function setUndo(label, cb, ttl = 7000) {
-  state.undoAction = { label, callback: cb, ttl };
-  clearTimeout(state.undoTimer);
-  state.undoTimer = setTimeout(() => { state.undoAction = null; const el = $('toast'); const b = el?.querySelector('.t-undo'); if (b) b.remove(); }, ttl);
-}
-function clearUndo() { state.undoAction = null; clearTimeout(state.undoTimer); state.undoTimer = null; const el = $('toast'); if (!el) return; const b = el.querySelector('.t-undo'); if (b) b.remove(); }
-async function undoLast() { if (state.undoAction && state.undoAction.callback) { const cb = state.undoAction.callback; clearUndo(); await cb(); return true; } return false; }
-
-function showUndoToast(title, desc, undoLabel, undoCallback, kind = 'ok') {
-  clearUndo();
-  const el = $('toast');
-  $('tTitle').innerText = title; $('tDesc').innerText = desc || '';
-  $('tIcon').innerText = kind==='swap' ? '🔁' : '✓';
-  $('tIcon').style.background=''; $('tIcon').style.borderColor=''; $('tIcon').style.color=''; $('tTitle').style.color='';
-  const oldBtn = el.querySelector('.t-undo'); if (oldBtn) oldBtn.remove();
-  if (undoCallback) { const btn = document.createElement('button'); btn.className = 't-undo'; btn.innerText = undoLabel || '↩ Отменить (Ctrl+Z)'; btn.onclick = () => undoLast(); el.appendChild(btn); setUndo(undoLabel, undoCallback, 7000); }
-  el.className = kind==='warn' ? 'warn' : ''; el.classList.add('show');
-  clearTimeout(state.toastTimer);
-  state.toastTimer = setTimeout(() => { el.classList.remove('show'); setTimeout(()=>{const b = el.querySelector('.t-undo'); if (b) b.remove();},400); }, 7000);
-}
-
-function computeSmartShift(worker) {
-  const now = new Date(); const hm = now.getHours()*60+now.getMinutes(); const w = String(worker||'').trim().toUpperCase();
-  if (w) { const ex = state.devices.find(d => d.status==='issued' && d.holder && d.holder.toUpperCase()===w && d.shift && d.shift!=='—'); if (ex) return ex.shift; if (state.workerShifts[w]) return state.workerShifts[w]; }
-  if (hm>=5*60 && hm<6*60) return 'Дневная';
-  if (hm>=17*60 && hm<19*60) return 'Ночная';
-  return (hm>=6*60 && hm<18*60) ? 'Дневная' : 'Ночная';
-}
-function updateShiftPill() {
-  const pill = $('shiftPill'); const isDay = state.issueShift==='Дневная';
-  pill.className = 'shift-reactor ' + (isDay?'day':'night') + (state.issueShiftAuto?'':' manual');
-  $('shiftIcon').innerText = isDay?'☀':'🌙';
-  $('shiftLabel').innerText = isDay?'ДЕНЬ':'НОЧЬ';
-  const badge = $('shiftBadge');
-  if (state.issueShiftAuto) { badge.className='badge-auto'; badge.innerText='AUTO'; } else { badge.className='badge-manual'; badge.innerText='MANUAL ↻'; }
-  const now = new Date();
-  $('shiftTime').innerText = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-}
-function saveShiftPref() { try { localStorage.setItem('sklad_shift_pref', JSON.stringify({auto: state.issueShiftAuto, shift: state.issueShift})); } catch(e) {} }
-function toggleShift() {
-  if (state.issueShiftAuto) { state.issueShift = state.issueShift==='Дневная'?'Ночная':'Дневная'; state.issueShiftAuto = false; saveShiftPref(); updateShiftPill(); showToast('РУЧНОЙ РЕЖИМ', `Смена зафиксирована: ${state.issueShift}`, 'warn'); }
-  else { state.issueShiftAuto = true; state.issueShift = computeSmartShift($('issWorker').value.trim()); saveShiftPref(); updateShiftPill(); showToast('АВТОРЕЖИМ', 'Смена снова определяется по времени', 'warn'); }
-}
-function resetShiftToAuto(e) {
-  if (e) e.stopPropagation();
-  if (state.issueShiftAuto) { showToast('УЖЕ АВТО', 'Смена определяется по времени', 'warn'); return; }
-  state.issueShiftAuto = true; state.issueShift = computeSmartShift($('issWorker').value.trim());
-  saveShiftPref(); updateShiftPill(); showToast('АВТОРЕЖИМ', 'Смена снова определяется по времени', 'warn');
-}
-function refreshSmartShift() { if (!state.issueShiftAuto) { updateShiftPill(); return; } const w = $('issWorker').value.trim(); const s = computeSmartShift(w); if (s !== state.issueShift) state.issueShift = s; updateShiftPill(); }
-function rememberWorkerShift(worker, shift) {
-  if (!worker) return;
-  const key = String(worker).trim().toUpperCase(); state.workerShifts[key] = shift;
-  const keys = Object.keys(state.workerShifts); if (keys.length>500) delete state.workerShifts[keys[0]];
-  try { localStorage.setItem('sklad_worker_shifts', JSON.stringify(state.workerShifts)); } catch(e) {}
-}
-async function toggleDeviceShift(sn) {
-  const dev = state.devices.find(d => d.serial===sn);
-  if (!dev || dev.status!=='issued') { showToast('НЕЛЬЗЯ', 'Сканер не выдан — смена недоступна', 'warn'); return; }
-  const oldShift = dev.shift; const newShift = oldShift==='Ночная'?'Дневная':'Ночная';
-  const ts = nowIso(); const updated = {...dev, shift: newShift, last_move: ts};
-  const idx = state.devices.findIndex(d => d.serial===sn); const snapshot = {...dev};
-  if (idx>=0) state.devices[idx] = updated; renderTable();
-  try {
-    await saveDevice(updated, `Смена вручную: ${oldShift||'—'} → ${newShift}`, dev.holder);
-    rememberWorkerShift(dev.holder, newShift); beep('issue');
-    showToast('СМЕНА ИЗМЕНЕНА', `${sn}: ${oldShift||'—'} → ${newShift} (${dev.holder})`);
-    logMsg(`🔀 СМЕНА: ${sn} · ${oldShift||'—'} → ${newShift} · ${dev.holder}`);
-    if (state.auditSn === sn) openAudit(sn);
-  } catch(e) { if (idx>=0) state.devices[idx] = snapshot; renderTable(); beep('err'); showToast('ОШИБКА', e.message||'Не удалось сохранить', 'err'); }
-}
-
-let audioCtx = null;
-function beep(type) {
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
-    osc.connect(g); g.connect(audioCtx.destination);
-    const t = audioCtx.currentTime;
-    if (type==='return') { osc.frequency.setValueAtTime(600,t); osc.frequency.exponentialRampToValueAtTime(1200, t+0.15); g.gain.setValueAtTime(0.18,t); g.gain.linearRampToValueAtTime(0.01,t+0.18); osc.start(t); osc.stop(t+0.18); }
-    else if (type==='issue') { osc.frequency.setValueAtTime(850,t); g.gain.setValueAtTime(0.12,t); g.gain.linearRampToValueAtTime(0.01,t+0.12); osc.start(t); osc.stop(t+0.12); }
-    else if (type==='swap') { osc.frequency.setValueAtTime(500,t); osc.frequency.linearRampToValueAtTime(1100,t+0.2); g.gain.setValueAtTime(0.15,t); g.gain.linearRampToValueAtTime(0.01,t+0.22); osc.start(t); osc.stop(t+0.22); }
-    else if (type==='debt') {
-      for (let i=0;i<3;i++) {
-        const o2 = audioCtx.createOscillator(), g2 = audioCtx.createGain();
-        o2.connect(g2); g2.connect(audioCtx.destination);
-        o2.type = 'square';
-        o2.frequency.setValueAtTime(880, t + i*0.15);
-        g2.gain.setValueAtTime(0.14, t + i*0.15);
-        g2.gain.linearRampToValueAtTime(0.001, t + i*0.15 + 0.12);
-        o2.start(t + i*0.15); o2.stop(t + i*0.15 + 0.12);
-      }
-    }
-    else { osc.frequency.setValueAtTime(200,t); g.gain.setValueAtTime(0.15,t); g.gain.linearRampToValueAtTime(0.01,t+0.28); osc.start(t); osc.stop(t+0.28); }
-  } catch(e) {}
-  if (navigator.vibrate) navigator.vibrate(type==='err' ? [60,40,60] : (type==='debt' ? [100,50,100,50,100] : 40));
-}
-
-let cloud = null;
-try { cloud = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } }); } catch(e) {}
-let db = null;
-const DB_REQ = indexedDB.open("SkladDB", 3);
-DB_REQ.onupgradeneeded = e => {
-  const d = e.target.result;
-  if (!d.objectStoreNames.contains("devices")) d.createObjectStore("devices", { keyPath: "serial" });
-  if (!d.objectStoreNames.contains("queue")) d.createObjectStore("queue", { autoIncrement: true });
-  if (!d.objectStoreNames.contains("moves")) d.createObjectStore("moves", { autoIncrement: true });
-};
-DB_REQ.onblocked = () => showToast('БАЗА ЗАНЯТА', 'Закройте другие вкладки и нажмите F5', 'warn');
-DB_REQ.onsuccess = async e => {
-  db = e.target.result; state.dbReady = true;
-  bootText('Загрузка локальных данных…');
-  await loadLocal(); await rotateMovesIfNeeded();
-  hideBoot(); restoreDraft(); scheduleSync(500);
-  setTimeout(() => checkAutoBackup(), 5000);
-};
-DB_REQ.onerror = e => { state.dbReady = false; bootText('Ошибка базы данных'); dbg('DB error', e.target.error); showToast('ОШИБКА БАЗЫ', e.target.error?e.target.error.message:'?', 'err'); setTimeout(hideBoot, 1500); };
-
-function loadLocal() {
-  return new Promise(resolve => {
-    if (!db) return resolve();
-    try {
-      const tx = db.transaction("devices", "readonly");
-      const req = tx.objectStore("devices").getAll();
-      req.onsuccess = () => {
-        state.devices = req.result || [];
-        renderTable();
-        updateIssBanner(fixLayout($('issSn')?.value || ''));
-        setTimeout(() => { checkDebtors(); alertNewDebtors(); }, 100);
-        resolve();
-      };
-      req.onerror = () => { state.devices=[]; renderTable(); resolve(); };
-      tx.onabort = () => { state.devices=[]; renderTable(); resolve(); };
-    } catch(e) { state.devices=[]; renderTable(); resolve(); }
-  });
-}
-
-async function rotateMovesIfNeeded() {
-  try {
-    const count = await new Promise(r => { const t = db.transaction('moves','readonly'); const req = t.objectStore('moves').count(); req.onsuccess = () => r(req.result||0); req.onerror = () => r(0); t.onabort = () => r(0); });
-    if (count <= MOVES_ROTATE_THRESHOLD) return;
-    const toDelete = count - MOVES_ROTATE_KEEP; if (toDelete<=0) return;
-    await new Promise(r => {
-      const t = db.transaction('moves','readwrite'); const s = t.objectStore('moves'); let deleted = 0;
-      const req = s.openCursor();
-      req.onsuccess = e => { const cur = e.target.result; if (cur && deleted<toDelete) { cur.delete(); deleted++; cur.continue(); } };
-      t.oncomplete = () => r(); t.onerror = () => r(); t.onabort = () => r();
-    });
-    logMsg(`🧹 Ротация истории: удалено ${toDelete} старых записей`);
-  } catch(e) { dbg('rotateMoves error', e); }
-}
-
-function saveDevice(dev, actionName, workerName) {
-  return new Promise((resolve, reject) => {
-    if (!db || !state.dbReady) return reject(new Error('База данных не готова. Обновите страницу (F5).'));
-    if (!dev || !dev.serial) return reject(new Error('Не указан серийный номер'));
-    try {
-      const ts = nowIso();
-      const t = db.transaction(["devices","queue","moves"], "readwrite");
-      t.objectStore("devices").put(dev);
-      t.objectStore("queue").add({ type:'upsert', dev: dev, action: actionName, worker: workerName||'', ts });
-      t.objectStore("moves").add({ serial: dev.serial, action: actionName, worker: workerName||'', created_at: ts });
-      t.oncomplete = () => {
-        recentLocal.set(dev.serial, Date.now());
-        if (recentLocal.size>300) { const cutoff = Date.now()-RECENT_LOCAL_TTL; for (const [k,v] of recentLocal) if (v<cutoff) recentLocal.delete(k); }
-        loadLocal().then(() => { scheduleSync(150); resolve(); }).catch(() => { scheduleSync(150); resolve(); });
-      };
-      t.onerror = () => reject(t.error || new Error('Ошибка записи в базу'));
-      t.onabort = () => reject(t.error || new Error('Транзакция отменена'));
-    } catch(e) { reject(e); }
-  });
-}
-
-function readQueueWithKeys() {
-  return new Promise(resolve => {
-    if (!db) return resolve([]);
-    try {
-      const t = db.transaction('queue','readonly'); const s = t.objectStore('queue'); const out = [];
-      const req = s.openCursor();
-      req.onsuccess = e => { const cur = e.target.result; if (cur) { out.push({key: cur.primaryKey, value: cur.value}); cur.continue(); } else resolve(out); };
-      req.onerror = () => resolve([]); t.onabort = () => resolve([]); t.onerror = () => resolve([]);
-    } catch(e) { resolve([]); }
-  });
-}
-function deleteQueueKey(key) {
-  return new Promise(r => { if (!db) return r(); try { const t = db.transaction('queue','readwrite'); t.objectStore('queue').delete(key); t.oncomplete = r; t.onerror = r; t.onabort = r; } catch(e) { r(); } });
-}
-
-async function deleteSerial(sn) {
-  if (!sn) throw new Error('Пустой серийник');
-  if (!db) throw new Error('База не готова');
-  const { queueKeys, moveKeys } = await new Promise((resolve, reject) => {
-    const t = db.transaction(['queue','moves'],'readonly');
-    const qKeys = [], mKeys = [];
-    const qReq = t.objectStore('queue').openCursor();
-    qReq.onsuccess = e => { const cur = e.target.result; if (cur) { const v = cur.value; if (v && v.type!=='delete' && ((v.dev && v.dev.serial===sn) || (v.serial===sn && !v.dev))) qKeys.push(cur.primaryKey); cur.continue(); } };
-    const mReq = t.objectStore('moves').openCursor();
-    mReq.onsuccess = e => { const cur = e.target.result; if (cur) { if (cur.value && cur.value.serial===sn) mKeys.push(cur.primaryKey); cur.continue(); } };
-    t.oncomplete = () => resolve({queueKeys: qKeys, moveKeys: mKeys});
-    t.onerror = () => reject(t.error);
-    t.onabort = () => reject(t.error || new Error('Транзакция чтения отменена'));
-  });
-  await new Promise((resolve, reject) => {
-    const t = db.transaction(['devices','queue','moves'],'readwrite');
-    t.objectStore('devices').delete(sn);
-    const qs = t.objectStore('queue'); queueKeys.forEach(k => qs.delete(k));
-    const ms = t.objectStore('moves'); moveKeys.forEach(k => ms.delete(k));
-    qs.add({ type:'delete', serial: sn, ts: nowIso() });
-    t.oncomplete = resolve;
-    t.onerror = () => reject(t.error);
-    t.onabort = () => reject(t.error || new Error('Транзакция удаления отменена'));
-  });
-  recentLocal.delete(sn);
-  await loadLocal();
-  scheduleSync(150);
-  logMsg(`🗑 УДАЛЕНО: ${sn}`);
-}
-
-function saveDebtStorage() {
-  try {
-    localStorage.setItem(DEBT_REGISTRY_KEY, JSON.stringify(state.debtorsRegistry));
-    localStorage.setItem(DEBT_RECORDED_KEY, JSON.stringify(state.debtorsRecorded));
-    localStorage.setItem(ALERTED_DEBTORS_KEY, JSON.stringify(state.alertedDebtors));
-  } catch(e) {}
-}
-
-function checkDebtors() {
-  let changed = false;
-  state.devices.forEach(d => {
-    if (d.status!=='issued' || !d.holder || !d.issued_at) return;
-    if (hoursSince(d.issued_at) < OVERDUE_H) return;
-    const holderNorm = d.holder.trim().toUpperCase();
-    const key = `${holderNorm}|${d.serial}|${d.issued_at}`;
-    if (state.debtorsRecorded[key]) return;
-    state.debtorsRecorded[key] = nowIso();
-    if (!state.debtorsRegistry[holderNorm]) state.debtorsRegistry[holderNorm] = { name: d.holder.trim(), count: 0, lastDate: null, serials: [] };
-    const reg = state.debtorsRegistry[holderNorm];
-    reg.name = d.holder.trim(); reg.count++; reg.lastDate = nowIso();
-    if (!reg.serials.includes(d.serial)) reg.serials.push(d.serial);
-    changed = true;
-  });
-  if (changed) saveDebtStorage();
-}
-
-function alertNewDebtors() {
-  const fresh = [];
-  state.devices.forEach(d => {
-    if (d.status!=='issued' || !d.holder || !d.issued_at) return;
-    if (hoursSince(d.issued_at) < OVERDUE_H) return;
-    const alertKey = `${d.serial}|${d.issued_at}`;
-    if (state.alertedDebtors[alertKey]) return;
-    state.alertedDebtors[alertKey] = nowIso();
-    fresh.push(d);
-    state.justOverdueHighlights[d.serial] = Date.now();
-  });
-
-  if (!fresh.length) { updateDebtBadge(); return; }
-
-  saveDebtStorage();
-  beep('debt');
-
-  const byWorker = {};
-  fresh.forEach(d => {
-    const k = d.holder.trim().toUpperCase();
-    if (!byWorker[k]) byWorker[k] = { display: d.holder.trim(), list: [] };
-    byWorker[k].list.push(d);
-  });
-
-  const workerKeys = Object.keys(byWorker);
-  const firstEntry = byWorker[workerKeys[0]];
-  const firstCount = firstEntry.list.length;
-  if (workerKeys.length === 1) {
-    showToast('🚨 НОВЫЙ ДОЛЖНИК', `${firstEntry.display} — ${firstCount} ${pluralN(firstCount,'прибор','прибора','приборов')} >14ч`, 'err');
-  } else {
-    showToast('🚨 НОВЫЕ ДОЛЖНИКИ', `${workerKeys.length} чел. / ${fresh.length} ${pluralN(fresh.length,'прибор','прибора','приборов')} >14ч`, 'err');
-  }
-
-  const namesList = workerKeys.map(k => `${byWorker[k].display} (${byWorker[k].list.length})`).join(', ');
-  state.lastDebtAlertInfo = { namesList, total: fresh.length, workers: workerKeys.length, ts: Date.now() };
-  if (Date.now() > state.debtAlertDismissedUntil) {
-    showDebtAlertBar(state.lastDebtAlertInfo);
-  }
-
-  updateDebtBadge();
-  renderTable();
-  logMsg(`🚨 НОВЫЙ ДОЛГ: ${fresh.length} ТСД · ${namesList}`);
-
-  setTimeout(() => {
-    fresh.forEach(d => { delete state.justOverdueHighlights[d.serial]; });
-    renderTable();
-  }, NEW_OVERDUE_HIGHLIGHT_MS);
-
-  const keys = Object.keys(state.alertedDebtors);
-  if (keys.length > 2000) {
-    const sorted = keys.sort((a,b) => new Date(state.alertedDebtors[a]) - new Date(state.alertedDebtors[b]));
-    sorted.slice(0, keys.length - 1000).forEach(k => delete state.alertedDebtors[k]);
-    saveDebtStorage();
-  }
-}
-
-function showDebtAlertBar(info) {
-  const bar = $('debtAlertBar'); if (!bar) return;
-  $('debtAlertTitle').innerText = info.workers === 1 ? '🚨 Обнаружен должник!' : `🚨 Обнаружено должников: ${info.workers}`;
-  $('debtAlertText').innerText = `${info.namesList} · всего ${info.total} ${pluralN(info.total,'прибор','прибора','приборов')} >14ч`;
-  bar.classList.add('show');
-}
-
-function dismissDebtAlert() {
-  const bar = $('debtAlertBar');
-  if (bar) bar.classList.remove('show');
-  state.debtAlertDismissedUntil = Date.now() + 30*60*1000;
-  try { localStorage.setItem(DEBT_ALERT_DISMISSED_KEY, String(state.debtAlertDismissedUntil)); } catch(e) {}
-}
-
-function updateDebtBadge() {
-  const btn = $('debtBtn'); const badge = $('debtBadge');
-  if (!btn || !badge) return;
-  const activeCount = state.devices.filter(d => d.status==='issued' && hoursSince(d.issued_at) >= OVERDUE_H).length;
-  if (activeCount > 0) {
-    badge.innerText = activeCount > 99 ? '99+' : String(activeCount);
-    badge.classList.add('show');
-    btn.classList.add('has-debts');
-  } else {
-    badge.classList.remove('show');
-    btn.classList.remove('has-debts');
-    const bar = $('debtAlertBar'); if (bar) bar.classList.remove('show');
-  }
-}
-
-function clearDebtHistory() {
-  if (!confirm('Очистить ВСЮ историю нарушений?\n\nЭто не затронет текущие выдачи — только статистику должников.')) return;
-  state.debtorsRegistry = {}; state.debtorsRecorded = {}; state.alertedDebtors = {};
-  saveDebtStorage();
-  openDebtModal();
-  showToast('ИСТОРИЯ ОЧИЩЕНА', 'Реестр должников сброшен', 'warn');
-}
-
-function normalizeCloudDevice(row) {
-  if (!row) return null;
-  const sn = row.serial || row.sn || row.serial_number || row.id;
-  if (!sn) return null;
-  if (!/^[A-Za-z0-9\-_.]+$/.test(String(sn))) return null;
-  const rawHolder = String(row.holder || row.worker || '').trim();
-  let status = 'free';
-  const s = String(row.status || '').toLowerCase().trim();
-  if (s==='issued' || s==='на руках' || s==='выдан') status = 'issued';
-  else if (s==='free' || s==='на складе' || s==='свободен') status = 'free';
-  else status = rawHolder.length>0 ? 'issued' : 'free';
-  const cleanHolder = status==='issued' ? rawHolder : '';
-  const issuedAt = status==='issued' ? (row.issued_at || row.issue_date || null) : null;
-  const lastMove = row.last_move || null;
-  let shift = row.shift;
-  if (!shift || shift==='null' || shift==='') {
-    if (status==='issued' && issuedAt) { const h = new Date(issuedAt).getHours(); shift = (h>=6 && h<18) ? 'Дневная' : 'Ночная'; } else shift = '—';
-  }
-  return { serial: String(sn), model: row.model || detectModel(sn), status, holder: cleanHolder, issued_at: issuedAt, last_move: lastMove, shift };
-}
-
-async function syncNow() {
-  if (state.syncing) return false;
-  if (!cloud || !navigator.onLine) { setSync(false, 'Офлайн'); return false; }
-  if (!state.dbReady) { setSync(false, 'БД не готова'); return false; }
-  const token = ++state.syncToken; state.syncing = true;
-  setSync(true, 'Синхронизация...', true);
-  const alive = () => token === state.syncToken;
-  let anyFailure = false;
-  const watchdog = setTimeout(() => { if (!alive()) return; state.syncing = false; state.lastError = 'Таймаут синхронизации (watchdog)'; setSync(false, 'Таймаут sync'); }, SYNC_TIMEOUT_MS);
-  try {
-    const items = await readQueueWithKeys();
-    if (!alive()) { clearTimeout(watchdog); return false; }
-    const recentlySent = new Set(); let failCount = 0;
-    for (const item of items) {
-      if (!alive()) { clearTimeout(watchdog); return false; }
-      const it = item.value; const key = item.key;
-      if (!it) { await deleteQueueKey(key); continue; }
-      if (it.type==='delete') {
-        try {
-          const { error: delDevErr } = await withTimeout(cloud.from('devices').delete().eq('serial', it.serial), NET_TIMEOUT_MS, `del device ${it.serial}`);
-          if (delDevErr) { state.lastError = 'del: '+delDevErr.message; failCount++; continue; }
-          try { await withTimeout(cloud.from('movements').delete().eq('serial', it.serial), NET_TIMEOUT_MS, 'del movements'); } catch(e) { dbg('del movements failed', e); }
-          await deleteQueueKey(key);
-        } catch(e) { state.lastError = 'del: '+e.message; failCount++; }
-        continue;
-      }
-      if (!it.dev || !it.dev.serial) { await deleteQueueKey(key); continue; }
-      recentlySent.add(it.dev.serial);
-      const cleanDev = { serial: it.dev.serial, model: it.dev.model, status: it.dev.status, holder: it.dev.status==='free'?null:(it.dev.holder||null), shift: it.dev.status==='free'?null:(it.dev.shift||null), issued_at: it.dev.status==='free'?null:it.dev.issued_at, last_move: it.dev.last_move||it.ts };
-      try {
-        const { error: devErr } = await withTimeout(cloud.from('devices').upsert(cleanDev, {onConflict:'serial'}), NET_TIMEOUT_MS, `upsert ${cleanDev.serial}`);
-        if (devErr) { state.lastError = 'upsert: '+devErr.message; failCount++; continue; }
-      } catch(e) { state.lastError = 'upsert: '+e.message; failCount++; continue; }
-      const fullMove = { serial: it.dev.serial, action: it.action, worker: it.worker||(it.dev.holder||''), created_at: it.ts };
-      try { await withTimeout(cloud.from('movements').insert(fullMove), NET_TIMEOUT_MS, `move ${fullMove.serial}`); } catch(e) { dbg('movements insert failed', e); }
-      await deleteQueueKey(key);
-    }
-    if (!alive()) { clearTimeout(watchdog); return false; }
-    const allData = await pullAllDevices();
-    if (!alive()) { clearTimeout(watchdog); return false; }
-    if (allData === null) { setSync(false, 'Ошибка загрузки'); return false; }
-    const norm = allData.map(normalizeCloudDevice).filter(Boolean);
-    await applyPull(norm, recentlySent);
-    if (!alive()) { clearTimeout(watchdog); return false; }
-    setTimeout(() => { checkDebtors(); alertNewDebtors(); }, 100);
-    anyFailure = failCount>0;
-    state.lastError = anyFailure ? `отложено: ${failCount}` : '—';
-    setSync(true, anyFailure ? `Онлайн (${failCount} отложено)` : 'Онлайн');
-    return !anyFailure;
-  } catch(e) {
-    if (alive()) { state.lastError = e.message||'Ошибка сети'; setSync(false, 'Сбой сети'); }
-    return false;
-  } finally { clearTimeout(watchdog); if (alive()) state.syncing = false; }
-}
-
-async function pullAllDevices() {
-  const pageSize = 1000; let all = []; let from = 0;
-  try {
-    while (true) {
-      const { data, error } = await withTimeout(cloud.from('devices').select('*').range(from, from+pageSize-1), NET_TIMEOUT_MS, 'pull devices');
-      if (error) { state.lastError = error.message; return null; }
-      if (!data || !data.length) break;
-      all = all.concat(data);
-      if (data.length < pageSize) break;
-      from += pageSize;
-      if (from > 500000) break;
-    }
-    return all;
-  } catch(e) { state.lastError = e.message; return null; }
-}
-
-async function applyPull(data, protectedSerials) {
-  if (!data) return;
-  const queuedSerials = await new Promise(r => {
-    const t = db.transaction('queue','readonly'); const set = new Set();
-    const req = t.objectStore('queue').openCursor();
-    req.onsuccess = e => { const cur = e.target.result; if (cur) { const v = cur.value; if (v && v.dev && v.dev.serial) set.add(v.dev.serial); else if (v && v.serial) set.add(v.serial); cur.continue(); } else r(set); };
-    req.onerror = () => r(set); t.onabort = () => r(set); t.onerror = () => r(set);
-  });
-  const cloudSet = new Set(data.map(d => d.serial));
-  const now = Date.now();
-  const localMap = new Map();
-  await new Promise(r => {
-    try {
-      const t = db.transaction('devices','readonly'); const req = t.objectStore('devices').openCursor();
-      req.onsuccess = e => { const cur = e.target.result; if (cur) { localMap.set(cur.value.serial, cur.value); cur.continue(); } else r(); };
-      req.onerror = () => r(); t.onabort = () => r(); t.onerror = () => r();
-    } catch(e) { r(); }
-  });
-  return new Promise(resolve => {
-    let settled = false;
-    const done = () => { if (!settled) { settled = true; resolve(); } };
-    try {
-      const t = db.transaction("devices","readwrite"); const s = t.objectStore("devices");
-      const keysReq = s.getAllKeys();
-      keysReq.onsuccess = () => {
-        try {
-          const localKeys = keysReq.result || [];
-          localKeys.forEach(sn => {
-            if (cloudSet.has(sn)) return;
-            if (queuedSerials.has(sn)) return;
-            if (protectedSerials && protectedSerials.has(sn)) return;
-            const recent = recentLocal.get(sn);
-            if (recent && now-recent < RECENT_LOCAL_TTL) return;
-            s.delete(sn);
-          });
-          data.forEach(d => {
-            if (protectedSerials && protectedSerials.has(d.serial)) return;
-            if (queuedSerials.has(d.serial)) return;
-            const recent = recentLocal.get(d.serial);
-            if (recent && now-recent < RECENT_LOCAL_TTL) return;
-            const ex = localMap.get(d.serial);
-            if (ex && ex.last_move && d.last_move) { const t1 = Date.parse(ex.last_move), t2 = Date.parse(d.last_move); if (!isNaN(t1) && !isNaN(t2) && t1>t2) return; }
-            s.put(d);
-          });
-        } catch(e) { dbg('applyPull handler error', e); }
-      };
-      keysReq.onerror = () => {};
-      t.oncomplete = () => { loadLocal().then(done).catch(done); };
-      t.onerror = () => { done(); };
-      t.onabort = () => { done(); };
-    } catch(e) { done(); }
-  });
-}
-
-function setSync(ok, txt, busy = false) {
-  const p = $('syncStatus'); if (!p) return;
-  p.className = 'pill-badge ' + (busy?'pill-busy':(ok?'pill-online':'pill-offline'));
-  $('syncText').innerText = txt;
-}
-
-let syncScheduledTimer = null;
-function scheduleSync(delay) {
-  clearTimeout(syncScheduledTimer);
-  const d = typeof delay==='number' ? delay : SYNC_BASE_INTERVAL;
-  syncScheduledTimer = setTimeout(async () => {
-    const ok = await syncNow();
-    if (ok) { state.syncBackoff = 0; scheduleSync(SYNC_BASE_INTERVAL); }
-    else { const exp = Math.min(state.syncBackoff+1, 5); const base = Math.min(SYNC_BASE_INTERVAL*Math.pow(2,exp), SYNC_MAX_INTERVAL); const jitter = base*SYNC_JITTER*(Math.random()*2-1); state.syncBackoff = exp; scheduleSync(Math.max(SYNC_BASE_INTERVAL, base+jitter)); }
-  }, d);
-}
-async function forceSync() { closeModal('diagModal'); state.syncToken++; state.syncing = false; state.syncBackoff = 0; await syncNow(); scheduleSync(SYNC_BASE_INTERVAL); }
-
-async function clearStuckQueue() {
-  const items = await readQueueWithKeys();
-  if (!items.length) { showToast('ОЧЕРЕДЬ', 'Пусто', 'warn'); return; }
-  if (!confirm(`Удалить все пакеты из очереди синхронизации?\n\nНайдено: ${items.length}\n\nЛокальная база и облако НЕ пострадают.`)) return;
-  for (const item of items) await deleteQueueKey(item.key);
-  showToast('ОЧЕРЕДЬ ОЧИЩЕНА', `Удалено ${items.length} пакетов`, 'warn');
-  closeModal('diagModal'); setTimeout(() => scheduleSync(200), 200);
-}
-
-async function renderQueuePreview() {
-  const items = await readQueueWithKeys();
-  if (!items.length) return '<div style="color:var(--text-3);padding:6px 0;">Пусто</div>';
-  return items.slice(0,30).map(item => {
-    const it = item.value||{}; const type = it.type||'upsert';
-    const sn = (it.dev && it.dev.serial) || it.serial || '?';
-    const action = it.action||type;
-    const t = it.ts ? new Date(it.ts).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}) : '';
-    const color = type==='delete' ? 'var(--danger-text)' : 'var(--brand-text)';
-    return `<div style="font-size:11px;padding:3px 0;border-bottom:1px solid var(--border-dim);display:flex;gap:8px;"><span style="color:${color};font-weight:700;">${esc(type)}</span><span style="color:var(--text-1);font-family:'JetBrains Mono';flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(sn)}</span><span style="color:var(--text-3);font-size:10px;">${esc(action)}</span><span style="color:var(--text-3);font-size:10px;">${t}</span></div>`;
-  }).join('') + (items.length>30 ? `<div style="font-size:10px;color:var(--text-3);padding:4px 0;">… ещё ${items.length-30}</div>` : '');
-}
-
-async function hardReset() {
-  if (!confirm('Это очистит локальную базу, кэш и очередь.\n\nОблако Supabase не пострадает.\n\nПродолжить?')) return;
-  try {
-    localStorage.removeItem('vst_lastPull'); localStorage.removeItem('sklad_shift_pref');
-    localStorage.removeItem(AUTO_SWAP_KEY); localStorage.removeItem(DRAFT_KEY);
-    localStorage.removeItem('sklad_worker_shifts'); localStorage.removeItem(ALERTED_DEBTORS_KEY);
-    localStorage.removeItem(DEBT_REGISTRY_KEY); localStorage.removeItem(DEBT_RECORDED_KEY);
-    localStorage.removeItem(DEBT_ALERT_DISMISSED_KEY);
-    if (db) {
-      const stores = ['devices','queue','moves'];
-      const t = db.transaction(stores,'readwrite');
-      stores.forEach(s => t.objectStore(s).clear());
-      await new Promise(r => { t.oncomplete = r; t.onerror = r; t.onabort = r; });
-    }
-    state.devices = []; state.workerShifts = {}; state.debtorsRegistry = {}; state.debtorsRecorded = {}; state.alertedDebtors = {};
-    state.lastDropQuery = null; state.lastRetDropQuery = null;
-    recentLocal.clear(); renderTable();
-    showToast('СБРОШЕНО', 'Данные очищены. Синхронизация с облаком...', 'warn');
-    closeModal('diagModal');
-    scheduleSync(300);
-  } catch(e) { showToast('ОШИБКА', e.message, 'err'); }
-}
-
-async function checkAutoBackup() {
-  if (!cloud || !navigator.onLine) return;
-  if (!state.devices.length) return;
-  const lastDate = localStorage.getItem('sklad_last_backup_date');
-  const today = new Date().toISOString().slice(0,10);
-  if (lastDate === today) return;
-  const lastTime = parseInt(localStorage.getItem('sklad_last_backup_time')||'0', 10);
-  if (Date.now()-lastTime < BACKUP_MIN_INTERVAL) return;
-  await doBackup('auto');
-}
-
-async function doBackup(trigger) {
-  if (!cloud || !navigator.onLine) { if (trigger==='manual') showToast('БЭКАП', 'Нет соединения', 'warn'); return; }
-  if (!state.devices.length) { if (trigger==='manual') showToast('БЭКАП', 'Нет данных', 'warn'); return; }
-  try {
-    const backup = { version: 1, created_at: nowIso(), total: state.devices.length, devices: state.devices.map(d => ({serial:d.serial,model:d.model,status:d.status,holder:d.holder,shift:d.shift,issued_at:d.issued_at,last_move:d.last_move})) };
-    const date = new Date().toISOString().slice(0,10);
-    const time = new Date().toISOString().slice(11,16).replace(':','');
-    const filename = `backup-${date}-${time}.json`;
-    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
-    const { error } = await withTimeout(cloud.storage.from(BACKUP_BUCKET).upload(filename, blob, {upsert:true, contentType:'application/json'}), NET_TIMEOUT_MS, 'backup upload');
-    if (error) throw error;
-    localStorage.setItem('sklad_last_backup_date', date);
-    localStorage.setItem('sklad_last_backup_time', String(Date.now()));
-    logMsg(`💾 бэкап: ${filename} (${state.devices.length} ТСД)`);
-    if (trigger==='manual') { showToast('БЭКАП СОЗДАН', `${state.devices.length} ТСД → ${filename}`); renderBackupList(); }
-    await cleanupOldBackups();
-  } catch(e) {
-    const msg = e.message||'?'; state.lastError = 'backup: '+msg;
-    if (trigger==='manual') {
-      if (/bucket.*not.*found|does not exist/i.test(msg)) showToast('НЕТ БАКЕТА', 'Создайте bucket "sklad-backups"', 'err');
-      else if (/permission|policy|unauthorized/i.test(msg)) showToast('НЕТ ДОСТУПА', 'Проверьте RLS', 'err');
-      else showToast('ОШИБКА БЭКАПА', msg, 'err');
-    }
-  }
-}
-
-async function cleanupOldBackups() {
-  try {
-    const { data, error } = await withTimeout(cloud.storage.from(BACKUP_BUCKET).list('', {limit:100, sortBy:{column:'created_at',order:'desc'}}), NET_TIMEOUT_MS, 'backup list');
-    if (error || !data) return;
-    const backups = data.filter(f => f.name.startsWith('backup-') && f.name.endsWith('.json')).sort((a,b) => b.name.localeCompare(a.name));
-    if (backups.length <= BACKUP_KEEP) return;
-    for (const f of backups.slice(BACKUP_KEEP)) { try { await withTimeout(cloud.storage.from(BACKUP_BUCKET).remove([f.name]), NET_TIMEOUT_MS, 'backup remove'); } catch(e) { dbg('backup remove failed', e); } }
-  } catch(e) { dbg('cleanupOldBackups error', e); }
-}
-
-async function listBackups() {
-  if (!cloud) return [];
-  try {
-    const { data, error } = await withTimeout(cloud.storage.from(BACKUP_BUCKET).list('', {limit:100, sortBy:{column:'created_at',order:'desc'}}), NET_TIMEOUT_MS, 'backup list');
-    if (error || !data) return [];
-    return data.filter(f => f.name.startsWith('backup-') && f.name.endsWith('.json')).sort((a,b) => b.name.localeCompare(a.name));
-  } catch(e) { return []; }
-}
-
-async function renderBackupList() {
-  const wrap = $('backupList'); if (!wrap) return;
-  wrap.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-2);font-size:12px;">Загрузка...</div>';
-  const files = await listBackups();
-  if (!files.length) { wrap.innerHTML = '<div style="padding:30px 20px;text-align:center;color:var(--text-3);font-size:12px;">Бэкапов пока нет</div>'; return; }
-  wrap.innerHTML = files.map(f => {
-    const sizeKb = Math.max(1, Math.round((f.metadata?.size||1024)/1024));
-    const date = new Date(f.created_at||f.updated_at||Date.now());
-    const dateStr = date.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
-    return `<div class="backup-row"><div class="backup-info"><div class="backup-name">${esc(f.name)}</div><div class="backup-meta">${dateStr} · ${sizeKb} КБ</div></div><div style="display:flex;gap:6px;"><button class="backup-btn-restore" data-bk-action="restore" data-bk-file="${esc(f.name)}">📥 Восстановить</button><button class="backup-btn-delete" data-bk-action="delete" data-bk-file="${esc(f.name)}">🗑</button></div></div>`;
-  }).join('');
-}
-
-async function restoreFromBackup(filename) {
-  if (!cloud) return;
-  try {
-    const { data, error } = await withTimeout(cloud.storage.from(BACKUP_BUCKET).download(filename), NET_TIMEOUT_MS, 'backup download');
-    if (error) throw error;
-    const text = await data.text(); const backup = JSON.parse(text);
-    const devices = (backup.devices || []).map(normalizeCloudDevice).filter(Boolean);
-    if (!devices.length) throw new Error('Пустой бэкап');
-    const ok = confirm(`Восстановить из "${filename}"?\n\nТСД: ${devices.length}\n\n⚠️ Локальные и облачные данные будут приведены в соответствие с копией.`);
-    if (!ok) return;
-    showToast('ВОССТАНОВЛЕНИЕ', 'Загрузка данных в облако...', 'warn');
-    const cloudPayload = devices.map(d => ({
-      serial: d.serial, model: d.model, status: d.status,
-      holder: d.status==='free'?null:(d.holder||null),
-      shift: d.status==='free'?null:(d.shift||null),
-      issued_at: d.status==='free'?null:d.issued_at,
-      last_move: d.last_move||nowIso()
-    }));
-    const { error: cloudErr } = await withTimeout(cloud.from('devices').upsert(cloudPayload, {onConflict:'serial'}), NET_TIMEOUT_MS*2, 'restore cloud upsert');
-    if (cloudErr) throw new Error('Облако отклонило бэкап: '+cloudErr.message);
-
-    const backupSet = new Set(devices.map(d => d.serial));
-    const currentCloud = await pullAllDevices();
-    if (currentCloud && currentCloud.length) {
-      const toRemove = currentCloud.map(r => r.serial).filter(sn => sn && !backupSet.has(sn));
-      if (toRemove.length) {
-        await withTimeout(cloud.from('devices').delete().in('serial', toRemove), NET_TIMEOUT_MS, 'restore cleanup extra');
-      }
-    }
-
-    await new Promise((res, rej) => { const t = db.transaction(['devices','queue'],'readwrite'); t.objectStore('devices').clear(); t.objectStore('queue').clear(); t.oncomplete = res; t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); });
-    await new Promise((res, rej) => { const t = db.transaction('devices','readwrite'); const s = t.objectStore('devices'); devices.forEach(d => { if (d && d.serial) s.put(d); }); t.oncomplete = res; t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); });
-    await loadLocal(); closeModal('backupModal');
-    showToast('ВОССТАНОВЛЕНО', `${devices.length} ТСД успешно загружено`);
-  } catch(e) { showToast('ОШИБКА', e.message||'?', 'err'); }
-}
-
-async function deleteBackup(filename) {
-  if (!confirm(`Удалить бэкап "${filename}"?`)) return;
-  try { const { error } = await withTimeout(cloud.storage.from(BACKUP_BUCKET).remove([filename]), NET_TIMEOUT_MS, 'backup remove'); if (error) throw error; showToast('УДАЛЕНО', filename, 'warn'); renderBackupList(); }
-  catch(e) { showToast('ОШИБКА', e.message||'?', 'err'); }
-}
-
-function openBackupModal() { openModal('backupModal'); renderBackupList(); }
-
-function saveDraft() {
-  try {
-    const sn = $('issSn').value; const worker = $('issWorker').value;
-    if (!sn && !worker) { localStorage.removeItem(DRAFT_KEY); return; }
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({sn, worker, ts: Date.now()}));
-  } catch(e) {}
-}
-function restoreDraft() {
-  try {
-    const raw = localStorage.getItem(DRAFT_KEY); if (!raw) return;
-    const d = JSON.parse(raw);
-    if (!d || !d.ts || Date.now()-d.ts > DRAFT_TTL_MS) { localStorage.removeItem(DRAFT_KEY); return; }
-    if (d.sn) { $('issSn').value = d.sn; updateIssBanner(fixLayout(d.sn)); }
-    if (d.worker) $('issWorker').value = d.worker;
-    if (d.sn || d.worker) logMsg('↩ Восстановлен черновик выдачи');
-  } catch(e) {}
-}
-function clearDraft() { try { localStorage.removeItem(DRAFT_KEY); } catch(e) {} }
-
-function resetIssueDropdown() { const drop = $('issDrop'); drop.classList.remove('show'); drop.innerHTML = ''; state.lastDropQuery = null; }
-function resetRetDropdown() { const drop = $('retDrop'); drop.classList.remove('show'); drop.innerHTML = ''; state.lastRetDropQuery = null; }
-function resetWorkerDropdown() { const drop = $('workerDrop'); if (drop) { drop.classList.remove('show'); drop.innerHTML = ''; } }
-
-function updateIssBanner(fixedQuery) {
-  const banner = $('issSnBanner'); const inp = $('issSn'); if (!banner || !inp) return;
-  const q = String(fixedQuery||'').trim().toUpperCase();
-  if (q.length < 2) { banner.className = 'sn-live-banner'; banner.innerHTML = ''; inp.classList.remove('warn-busy'); $('modelHint').innerText = "F1 • Скан ➔ ID"; return; }
-  const exact = state.devices.find(d => d.serial.toUpperCase()===q);
-  const tailMatches = state.devices.filter(d => d.serial.toUpperCase().endsWith(q));
-  const target = exact || (tailMatches.length===1 ? tailMatches[0] : null);
-  if (target) {
-    if (target.status==='issued') {
-      const h = hoursSince(target.issued_at); const shIcon = target.shift==='Ночная'?'🌙':'☀';
-      inp.classList.add('warn-busy');
-      $('modelHint').innerText = `🔴 У: ${target.holder}`;
-      banner.className = 'sn-live-banner show busy';
-      const overdueMark = h >= OVERDUE_H ? ' <b>🚨 ДОЛГ</b>' : '';
-      banner.innerHTML = `<div><b>🔴 НА РУКАХ:</b> <span class="mono">${esc(target.serial)}</span> у <b>👤 ${esc(target.holder)}</b> (${shIcon} ${fmtHoursShort(h)})${overdueMark}</div><button type="button" class="banner-btn-act" data-banner-return="${esc(target.serial)}">📥 Принять</button>`;
-    } else {
-      inp.classList.remove('warn-busy');
-      $('modelHint').innerText = `🟢 Свободен (${target.model})`;
-      banner.className = 'sn-live-banner show free';
-      banner.innerHTML = `<div><b>🟢 НА СКЛАДЕ:</b> <span class="mono">${esc(target.serial)}</span> (${esc(target.model)}) — готов к выдаче</div>`;
-    }
-    return;
-  }
-  inp.classList.remove('warn-busy');
-  if (tailMatches.length > 1) {
-    const busyCount = tailMatches.filter(d => d.status==='issued').length;
-    $('modelHint').innerText = `Совпадений: ${tailMatches.length}`;
-    banner.className = 'sn-live-banner show new-sn';
-    banner.innerHTML = `<div>🔎 Найдено <b>${tailMatches.length}</b> ТСД с хвостом «${esc(q)}» (своб: ${tailMatches.length-busyCount}, занято: ${busyCount})</div>`;
-    return;
-  }
-  $('modelHint').innerText = `⚡ Новый (${detectModel(q)})`;
-  banner.className = 'sn-live-banner show new-sn';
-  banner.innerHTML = `<div>⚡ Новый ТСД: создастся как <b>${esc(q)}</b> (${esc(detectModel(q))})</div>`;
-}
-
-function handleIssSnInput() {
-  const el = $('issSn'); const raw = el.value; const fixed = fixLayout(raw);
-  if (fixed !== el.value) { if (hasCyr(raw)) logMsg(`🔧 layout: "${raw}" ➔ "${fixed}"`); el.value = fixed; }
-  updateIssBanner(fixed);
-  const drop = $('issDrop');
-  if (fixed.length < 2) { resetIssueDropdown(); return; }
-  const allMatches = state.devices.filter(d => { const s = d.serial.toUpperCase(); return s.endsWith(fixed) || s.includes(fixed); });
-  if (!allMatches.length) { resetIssueDropdown(); state.lastDropQuery = fixed; return; }
-  allMatches.sort((a,b) => {
-    const sa = a.serial.toUpperCase(), sb = b.serial.toUpperCase();
-    const aTail = sa.endsWith(fixed)?0:1; const bTail = sb.endsWith(fixed)?0:1;
-    if (aTail !== bTail) return aTail-bTail;
-    const aFree = a.status==='free'?0:1; const bFree = b.status==='free'?0:1;
-    if (aFree !== bFree) return aFree-bFree;
-    return sa.localeCompare(sb);
-  });
-  if (allMatches.length === 1 && allMatches[0].serial.toUpperCase()===fixed) { resetIssueDropdown(); state.lastDropQuery = fixed; return; }
-  drop.innerHTML = allMatches.slice(0,8).map((d,i) => {
-    const isBusy = d.status==='issued';
-    const rightBadge = isBusy ? `<span style="font-size:11px;color:var(--danger-text);font-weight:700;">🔴 У: ${esc(d.holder)} (${fmtHoursShort(hoursSince(d.issued_at))})</span>` : `<span style="font-size:10.5px;color:var(--ok-text);font-weight:700;">🟢 СКЛАД</span>`;
-    return `<div class="drop-item ${i===0?'selected':''}" data-sn="${esc(d.serial)}"><div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span><span style="color:var(--text-2);font-size:11px;margin-left:6px;">(${esc(d.model)})</span></div>${rightBadge}</div>`;
-  }).join('');
-  drop.classList.add('show');
-  state.lastDropQuery = fixed;
-}
-
-function showIssuePickModal(items) {
-  $('issPickList').innerHTML = items.map((it, idx) => {
-    const sn = it.dataset.sn; const dev = state.devices.find(d => d.serial===sn);
-    const isBusy = dev && dev.status==='issued';
-    const model = dev ? esc(dev.model) : '';
-    const status = isBusy ? `<span style="font-size:11px;color:var(--danger-text);font-weight:700;">🔴 НА РУКАХ: 👤 ${esc(dev.holder)} (${fmtHoursShort(hoursSince(dev.issued_at))})</span>` : `<span style="font-size:11px;color:var(--ok-text);font-weight:700;">🟢 НА СКЛАДЕ</span>`;
-    return `<div class="drop-item ${idx===0?'selected':''}" data-sn="${esc(sn)}" style="padding:11px 14px;"><div><span class="mono" style="font-weight:700;">${formatSnSplit(sn)}</span><span style="color:var(--text-2);font-size:11px;margin-left:6px;">(${model})</span></div>${status}</div>`;
-  }).join('');
-  resetIssueDropdown();
-  openModal('issPickModal');
-}
-
-function handleIssSnKeydown(e) {
-  const el = $('issSn'); const drop = $('issDrop');
-  if (e.key==='Enter') {
-    e.preventDefault();
-    handleIssSnInput();
-    const curVal = fixLayout(el.value);
-    const items = Array.from(drop.querySelectorAll('.drop-item'));
-    const dropIsFresh = state.lastDropQuery !== null && state.lastDropQuery === curVal;
-    const dropShown = drop.classList.contains('show');
-    if (dropIsFresh && dropShown && items.length>1) {
-      if (state.issDropNavigated) { const cur = items.findIndex(it => it.classList.contains('selected')); if (cur>=0 && items[cur]) el.value = items[cur].dataset.sn; }
-      else { showIssuePickModal(items); return; }
-    } else if (dropIsFresh && dropShown && items.length===1) {
-      el.value = items[0].dataset.sn;
-    }
-    resetIssueDropdown();
-    updateIssBanner(fixLayout(el.value));
-    $('issWorker').focus();
-    return;
-  }
-  const items = Array.from(drop.querySelectorAll('.drop-item'));
-  const cur = items.findIndex(it => it.classList.contains('selected'));
-  if (e.key==='ArrowDown' || e.key==='ArrowUp') {
-    if (!items.length) return;
-    e.preventDefault();
-    state.issDropNavigated = true;
-    if (cur>=0) items[cur].classList.remove('selected');
-    const next = e.key==='ArrowDown' ? (cur+1)%items.length : (cur-1+items.length)%items.length;
-    items[next].classList.add('selected');
-    items[next].scrollIntoView({block:'nearest'});
-    updateIssBanner(items[next].dataset.sn);
-    return;
-  }
-  if (e.key==='Escape') resetIssueDropdown();
-}
-
-function handleWorkerInput() {
-  const q = $('issWorker').value.trim().toUpperCase();
-  const drop = $('workerDrop');
-  if (q.length < 2) { resetWorkerDropdown(); return; }
-  const workerSet = new Set();
-  state.devices.forEach(d => { if (d.holder) workerSet.add(d.holder); });
-  if (state.workerShifts) Object.keys(state.workerShifts).forEach(w => workerSet.add(w));
-  const matches = Array.from(workerSet).filter(w => w.toUpperCase().includes(q) && w.toUpperCase()!==q).slice(0,5);
-  if (!matches.length) { resetWorkerDropdown(); return; }
-  drop.innerHTML = matches.map(w => `<div class="drop-item" data-worker="${esc(w)}"><span style="font-weight:700;">👤 ${esc(w)}</span><span style="font-size:10px;color:var(--text-3);">выбрать</span></div>`).join('');
-  drop.classList.add('show');
-}
-
-function handleIssWorkerKeydown(e) {
-  const drop = $('workerDrop');
-  const items = Array.from(drop.querySelectorAll('.drop-item'));
-  const cur = items.findIndex(it => it.classList.contains('selected'));
-  if (e.key==='Enter') {
-    e.preventDefault();
-    if (drop.classList.contains('show') && cur>=0 && items[cur]) { $('issWorker').value = items[cur].dataset.worker; resetWorkerDropdown(); }
-    submitIssue();
-    return;
-  }
-  if (e.key==='ArrowDown' || e.key==='ArrowUp') {
-    if (!items.length) return;
-    e.preventDefault();
-    if (cur>=0) items[cur].classList.remove('selected');
-    const next = cur<0 ? (e.key==='ArrowDown'?0:items.length-1) : (e.key==='ArrowDown'?(cur+1)%items.length:(cur-1+items.length)%items.length);
-    items[next].classList.add('selected');
-    items[next].scrollIntoView({block:'nearest'});
-    return;
-  }
-  if (e.key==='Escape') resetWorkerDropdown();
-}
-
-async function submitIssue() {
-  if (!state.dbReady) { showToast('БАЗА НЕ ГОТОВА', 'Подождите пару секунд', 'err'); return; }
-  const rawSn = $('issSn').value.trim();
-  const worker = $('issWorker').value.trim();
-  $('issSn').classList.remove('err'); $('issWorker').classList.remove('err');
-  if (!rawSn) { $('issSn').classList.add('err'); beep('err'); return; }
-  if (!worker) { $('issWorker').classList.add('err'); beep('err'); return; }
-  const cleanRaw = fixLayout(rawSn);
-  if (!SN_REGEX.test(cleanRaw)) { $('issSn').classList.add('err'); beep('err'); showToast('НЕВЕРНЫЙ SN', 'Только A-Z, 0-9, дефис, точка, _ (2-60)', 'err'); return; }
-  const btn = $('btnIssue'); btn.classList.add('busy');
-  try {
-    const existingWorkerDev = state.devices.find(d => d.status==='issued' && d.holder && d.holder.toUpperCase()===worker.toUpperCase());
-    const exactMatch = state.devices.find(d => d.serial.toUpperCase()===cleanRaw);
-    const allTailMatches = state.devices.filter(d => d.serial.toUpperCase().endsWith(cleanRaw));
-    let sn = cleanRaw;
-    if (!exactMatch) {
-      if (allTailMatches.length===1) sn = allTailMatches[0].serial;
-      else if (allTailMatches.length>1) { $('issSn').classList.add('err'); beep('err'); showToast('УТОЧНИТЕ СЕРИЙНИК', `Найдено ${allTailMatches.length} сканеров с хвостом «${cleanRaw}»`, 'warn'); return; }
-      else if (/^\d{2,5}$/.test(cleanRaw)) { if (!confirm(`Сканер с хвостом «${cleanRaw}» не найден в базе.\nСоздать новый прибор с серийником «${cleanRaw}»?`)) return; }
-    }
-    if (!SN_REGEX.test(sn)) { $('issSn').classList.add('err'); beep('err'); showToast('НЕВЕРНЫЙ SN', 'Серийник не прошёл проверку', 'err'); return; }
-    let shift = state.issueShift;
-    if (state.issueShiftAuto) shift = computeSmartShift(worker);
-    const dev = state.devices.find(d => d.serial===sn);
-    if (dev && dev.status==='issued') {
-      beep('err'); updateIssBanner(sn);
-      if (dev.holder && dev.holder.toUpperCase()===worker.toUpperCase()) {
-        showToastWithAction('УЖЕ ЗАКРЕПЛЁН', `${sn} уже числится за сотрудником ${dev.holder}`, '📥 Принять на склад', async () => { await doReturn(sn); $('issSn').value=''; $('issWorker').value=''; updateIssBanner(''); }, 'warn');
-      } else {
-        showToastWithAction(`ЗАНЯТ (У ${dev.holder})`, `${sn} числится за ${dev.holder} (${fmtHoursShort(hoursSince(dev.issued_at))})`, `🔄 Переоформить на ${worker}`, async () => { await performIssue(sn, worker, dev, shift); }, 'err');
-      }
-      return;
-    }
-    if (existingWorkerDev) {
-      const pending = { worker, oldSn: existingWorkerDev.serial, newSn: sn, isNew: !dev, shift, originalIssuedAt: existingWorkerDev.issued_at, originalShift: existingWorkerDev.shift };
-      if (state.autoSwap) { state.pendingSwap = pending; await confirmSwap(); return; }
-      state.pendingSwap = pending;
-      const hoursOnHands = existingWorkerDev.issued_at ? hoursSince(existingWorkerDev.issued_at) : 0;
-      $('swapWorker').innerText = worker; $('swapOldSn').innerText = existingWorkerDev.serial; $('swapOldModel').innerText = existingWorkerDev.model||'—';
-      $('swapNewSn').innerText = sn; $('swapNewModel').innerText = dev ? dev.model : detectModel(sn);
-      $('swapInheritTime').innerText = fmtHoursShort(hoursOnHands);
-      openModal('swapModal'); setTimeout(() => $('swapConfirm').focus(), 80);
-      return;
-    }
-    await performIssue(sn, worker, dev, shift);
-  } catch(e) { beep('err'); showToast('ОШИБКА ВЫДАЧИ', e.message||'Не удалось', 'err'); state.pendingSwap = null; }
-  finally { btn.classList.remove('busy'); }
-}
-
-async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
-  const isNew = !dev, ts = nowIso();
-  const issuedAt = inheritedIssuedAt || ts;
-  const updated = { serial: sn, model: dev ? dev.model : detectModel(sn), status: 'issued', holder: worker, issued_at: issuedAt, last_move: ts, shift };
-  const oldSnapshot = dev ? JSON.parse(JSON.stringify(dev)) : null;
-  const idx = state.devices.findIndex(d => d.serial===sn);
-  if (idx>=0) state.devices[idx] = updated; else state.devices.push(updated);
-  state.justIssued = sn; renderTable();
-  setTimeout(() => { state.justIssued = null; }, 2500);
-  const actionName = inheritedIssuedAt ? (isNew?'Создан и выдан (время перенесено)':'Выдан (время перенесено)') : (isNew?'Создан и выдан':'Выдан');
-  try {
-    await saveDevice(updated, actionName, worker);
-    rememberWorkerShift(worker, shift); beep('issue');
-    showUndoToast('ВЫДАНО', `${sn} ➔ ${worker} (${shift})`, '↩ Отменить выдачу (Ctrl+Z)', async () => {
-      try {
-        if (isNew) { await deleteSerial(sn); } else { await saveDevice({...oldSnapshot, last_move: nowIso()}, 'Отмена выдачи', worker); }
-        beep('return'); showToast('ВЫДАЧА ОТМЕНЕНА', `${sn} возвращён в прежний статус`);
-        logMsg(`↩ ОТМЕНА ВЫДАЧИ: ${sn}`);
-      } catch(e) { showToast('ОШИБКА ОТМЕНЫ', e.message||'?', 'err'); }
-    }, 'ok');
-    logMsg(`ВЫДАНО: ${sn} ➔ ${worker} (${shift})`);
-    clearDraft();
-  } catch(e) {
-    if (isNew) { state.devices = state.devices.filter(d => d.serial!==sn); } else if (idx>=0) { state.devices[idx] = dev; }
-    renderTable(); throw e;
-  }
-  $('issSn').value=''; $('issWorker').value='';
-  resetIssueDropdown(); resetWorkerDropdown(); updateIssBanner('');
-  state.issDropNavigated = false;
-  if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
-  updateShiftPill(); $('issSn').focus();
-}
-
-async function confirmSwap() {
-  const p = state.pendingSwap; if (!p) return;
-  closeModal('swapModal');
-  try {
-    const oldDev = state.devices.find(d => d.serial===p.oldSn);
-    const newDev = state.devices.find(d => d.serial===p.newSn);
-    const ts = nowIso();
-    const inheritedIssuedAt = p.originalIssuedAt || ts;
-    const snapshot = { oldDevSnapshot: oldDev?JSON.parse(JSON.stringify(oldDev)):null, newDevSnapshot: newDev?JSON.parse(JSON.stringify(newDev)):null, worker: p.worker, newSn: p.newSn, oldSn: p.oldSn, isNew: p.isNew };
-    if (oldDev) { const oIdx = state.devices.findIndex(d => d.serial===p.oldSn); if (oIdx>=0) state.devices[oIdx] = {...oldDev, status:'free', holder:'', shift:'—', issued_at:null, last_move: ts}; }
-    const nIdx = state.devices.findIndex(d => d.serial===p.newSn);
-    const newRecord = { serial: p.newSn, model: newDev?newDev.model:detectModel(p.newSn), status:'issued', holder: p.worker, issued_at: inheritedIssuedAt, last_move: ts, shift: p.shift };
-    if (nIdx>=0) state.devices[nIdx] = newRecord; else state.devices.push(newRecord);
-    renderTable();
-    if (oldDev) { await saveDevice({...oldDev, status:'free', holder:'', shift:'—', issued_at:null, last_move: ts}, 'Возврат (замена)', p.worker); }
-    await saveDevice(newRecord, p.isNew?'Создан и выдан (замена, время сохранено)':'Выдача (замена, время сохранено)', p.worker);
-    rememberWorkerShift(p.worker, p.shift); beep('swap');
-    const hoursOnHands = hoursSince(inheritedIssuedAt);
-    showUndoToast(`ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn}`, `${p.worker} · время ${fmtHoursShort(hoursOnHands)} сохранено`, '↩ Отменить (Ctrl+Z)', async () => {
-      const t = nowIso();
-      try {
-        if (!snapshot.newDevSnapshot) { await deleteSerial(snapshot.newSn); } else { await saveDevice({...snapshot.newDevSnapshot, last_move: t}, 'Отмена замены (новый)', snapshot.worker); }
-        if (snapshot.oldDevSnapshot) { await saveDevice({...snapshot.oldDevSnapshot, last_move: t}, 'Отмена замены (старый)', snapshot.worker); }
-        beep('return'); showToast('ОТМЕНЕНО', 'Замена откачена');
-        logMsg(`↩ ОТМЕНА ЗАМЕНЫ: ${snapshot.oldSn} ➔ ${snapshot.newSn}`);
-      } catch(e) { showToast('ОШИБКА ОТМЕНЫ', e.message||'?', 'err'); }
-    }, 'swap');
-    logMsg(`🔄 ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn} у ${p.worker} · время ${fmtHoursShort(hoursOnHands)}`);
-    state.pendingSwap = null;
-    $('issSn').value=''; $('issWorker').value='';
-    resetIssueDropdown(); resetWorkerDropdown(); updateIssBanner('');
-    clearDraft(); state.issDropNavigated = false;
-    if (state.issueShiftAuto) state.issueShift = computeSmartShift('');
-    updateShiftPill(); $('issSn').focus();
-  } catch(e) { beep('err'); showToast('ОШИБКА ЗАМЕНЫ', e.message||'?', 'err'); state.pendingSwap = null; await loadLocal(); }
-}
-
-function showToastWithAction(title, desc, actionLabel, actionCallback, kind = 'warn') {
-  clearUndo();
-  const el = $('toast');
-  $('tTitle').innerText = title; $('tDesc').innerText = desc || '';
-  $('tIcon').innerText = kind==='err' ? '✕' : '!';
-  $('tIcon').style.background=''; $('tIcon').style.borderColor=''; $('tIcon').style.color=''; $('tTitle').style.color='';
-  const oldBtn = el.querySelector('.t-undo'); if (oldBtn) oldBtn.remove();
-  const actBtn = document.createElement('button');
-  actBtn.className = 't-undo'; actBtn.innerText = actionLabel;
-  actBtn.onclick = () => { el.classList.remove('show'); actionCallback(); };
-  el.appendChild(actBtn);
-  el.className = kind; el.classList.add('show');
-  clearTimeout(state.toastTimer);
-  state.toastTimer = setTimeout(() => { el.classList.remove('show'); setTimeout(() => { const b = el.querySelector('.t-undo'); if (b) b.remove(); }, 400); }, 5500);
-}
-
-function handleRetInput() {
-  const el = $('retQuery'); const raw = el.value;
-  const hasDigits = /[0-9]/.test(raw); const hasCyrHere = hasCyr(raw);
-  if (hasCyrHere && hasDigits) { const fixed = fixLayout(raw); if (fixed !== raw) el.value = fixed; }
-  const q = el.value.trim(); const drop = $('retDrop');
-  if (q.length < 1) { drop.classList.remove('show'); drop.innerHTML=''; state.lastRetDropQuery = null; return; }
-  const busy = state.devices.filter(d => d.status==='issued');
-  const qu = q.toUpperCase(); const qNoSpace = qu.replace(/\s+/g,''); const qFixed = hasCyr(raw)?qu:fixLayout(q);
-  const matches = busy.filter(d => {
-    const h = (d.holder||'').toUpperCase(); const s = (d.serial||'').toUpperCase();
-    if (h && (h===qu || h===qNoSpace || h===qFixed)) return true;
-    if (h && (h.startsWith(qu) || h.includes(qu))) return true;
-    if (s===qu || s===qFixed) return true;
-    if (s.endsWith(qFixed) || s.endsWith(qNoSpace)) return true;
-    if (s.includes(qFixed)) return true;
-    return false;
-  });
-  if (!matches.length) { drop.classList.remove('show'); drop.innerHTML=''; state.lastRetDropQuery = qFixed; return; }
-  drop.innerHTML = matches.slice(0,8).map((d,idx) => {
-    const sh = d.shift==='Ночная'?'🌙':(d.shift==='Дневная'?'☀':'');
-    const ov = hoursSince(d.issued_at) >= OVERDUE_H;
-    return `<div class="drop-item ${idx===0?'selected':''}" data-sn="${esc(d.serial)}"><div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span><span style="color:var(--text-2);font-size:11px;margin-left:6px;">(${esc(d.model)})</span></div><span style="font-size:11.5px;font-weight:600;color:${ov?'var(--danger-text)':'inherit'};">${ov?'🚨 ':''}${sh} ${esc(d.holder||'—')}</span></div>`;
-  }).join('');
-  drop.classList.add('show');
-  state.lastRetDropQuery = qFixed;
-}
-
-function handleRetKeydown(e) {
-  const drop = $('retDrop');
-  if (e.key==='Enter') {
-    e.preventDefault();
-    handleRetInput();
-    const items = Array.from(drop.querySelectorAll('.drop-item'));
-    const cur = items.findIndex(it => it.classList.contains('selected'));
-    if (drop.classList.contains('show') && cur>=0 && items[cur]) { $('retQuery').value = items[cur].dataset.sn; }
-    resetRetDropdown(); quickReturn();
-    return;
-  }
-  const items = Array.from(drop.querySelectorAll('.drop-item'));
-  const cur = items.findIndex(it => it.classList.contains('selected'));
-  if (e.key==='ArrowDown' || e.key==='ArrowUp') {
-    if (!items.length) return;
-    e.preventDefault();
-    if (cur>=0) items[cur].classList.remove('selected');
-    const next = e.key==='ArrowDown'?(cur+1)%items.length:(cur-1+items.length)%items.length;
-    items[next].classList.add('selected');
-    items[next].scrollIntoView({block:'nearest'});
-    return;
-  }
-  if (e.key==='Escape') resetRetDropdown();
-}
-
-async function quickReturn() {
-  if (!state.dbReady) { showToast('БАЗА НЕ ГОТОВА', '', 'err'); return; }
-  const raw = $('retQuery').value.trim(); if (!raw) return;
-  resetRetDropdown();
-  const qu = raw.toUpperCase(); const qNoSpace = qu.replace(/\s+/g,''); const qFixed = hasCyr(raw)?qu:fixLayout(raw);
-  const busy = state.devices.filter(d => d.status==='issued');
-  if (!busy.length) { beep('err'); showToast('НЕЧЕГО ПРИНИМАТЬ', 'Все ТСД на складе', 'warn'); return; }
-  const exactHolders = busy.filter(d => { const h = (d.holder||'').toUpperCase(); return h===qu || h===qNoSpace || h===qFixed; });
-  const exactSerial = busy.filter(d => { const s = (d.serial||'').toUpperCase(); return s===qu || s===qFixed; });
-  const partialHolders = busy.filter(d => { const h = (d.holder||'').toUpperCase(); return h && (h.includes(qu) || h.includes(qNoSpace) || h.replace(/\s+/g,'').includes(qNoSpace)); });
-  const tailSerial = busy.filter(d => { const s = (d.serial||'').toUpperCase(); return s.endsWith(qFixed) || s.endsWith(qNoSpace) || s.includes(qFixed); });
-  const candidates = exactHolders.length ? exactHolders : (exactSerial.length ? exactSerial : (partialHolders.length ? partialHolders : tailSerial));
-  if (!candidates.length) { beep('err'); showToast('НЕ НАЙДЕНО', `«${raw}» нет среди выданных`, 'err'); $('retQuery').classList.add('err'); setTimeout(() => $('retQuery').classList.remove('err'), 1200); return; }
-  if (candidates.length===1) { await doReturn(candidates[0].serial); return; }
-  $('pickList').innerHTML = candidates.map((d, idx) => {
-    const ov = hoursSince(d.issued_at) >= OVERDUE_H;
-    const sh = d.shift==='Ночная'?'🌙':(d.shift==='Дневная'?'☀':'');
-    return `<div class="drop-item ${idx===0?'selected':''}" data-sn="${esc(d.serial)}" style="padding:10px 14px;"><div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span><span style="color:var(--text-2);margin-left:8px;">${sh} ${esc(d.holder)}</span></div><span class="mono" style="font-size:11px;color:${ov?'var(--danger-text)':'var(--brand-text)'};">${ov?'🚨 ':''}${fmtHoursShort(hoursSince(d.issued_at))}</span></div>`;
-  }).join('');
-  openModal('pickModal');
-}
-
-async function doReturn(sn) {
-  const dev = state.devices.find(d => d.serial===sn);
-  if (!dev) { showToast('ОШИБКА', 'Устройство не найдено', 'err'); return; }
-  const holder = dev.holder, ts = nowIso();
-  const snapshot = JSON.parse(JSON.stringify(dev));
-  const btn = $('retBtn'); btn.classList.add('busy');
-  try {
-    const updated = {...dev, status:'free', holder:'', shift:'—', issued_at:null, last_move: ts};
-    const idx = state.devices.findIndex(d => d.serial===sn);
-    if (idx>=0) state.devices[idx] = updated;
-    state.justReturned = sn; renderTable();
-    updateIssBanner(fixLayout($('issSn').value));
-    setTimeout(() => { state.justReturned = null; }, 2500);
-    await saveDevice(updated, 'Возврат', holder);
-    beep('return');
-    setTimeout(() => updateDebtBadge(), 200);
-    showUndoToast(`ПРИБОР ${sn} ПРИНЯТ`, `Сотрудник: ${holder}`, '↩ Отменить приём (Ctrl+Z)', async () => {
-      try {
-        const t2 = nowIso();
-        await saveDevice({...snapshot, last_move: t2}, 'Отмена приёма (восстановление)', holder);
-        beep('issue'); showToast('ВОЗВРАТ ОТМЕНЁН', `${sn} снова у ${holder}`);
-        logMsg(`↩ ОТМЕНА ПРИЁМА: ${sn} → ${holder}`);
-      } catch(e) { showToast('ОШИБКА ОТМЕНЫ', e.message||'?', 'err'); }
-    }, 'ok');
-    logMsg(`ПРИНЯТО: ${sn} от ${holder}`);
-    $('retQuery').value=''; resetRetDropdown();
-  } catch(e) {
-    const idx = state.devices.findIndex(d => d.serial===sn);
-    if (idx>=0) state.devices[idx] = snapshot;
-    renderTable(); beep('err'); showToast('ОШИБКА ПРИЁМА', e.message||'?', 'err');
-  } finally { btn.classList.remove('busy'); }
-}
-
-function buildDebtList() {
-  const byHolder = {};
-  state.devices.forEach(d => {
-    if (d.status!=='issued' || !d.holder) return;
-    const h = hoursSince(d.issued_at);
-    if (h < OVERDUE_H) return;
-    const normKey = d.holder.trim().toUpperCase();
-    if (!byHolder[normKey]) byHolder[normKey] = { holder: d.holder.trim(), count: 0, maxH: 0 };
-    byHolder[normKey].count++;
-    if (h > byHolder[normKey].maxH) byHolder[normKey].maxH = h;
-  });
-  return Object.values(byHolder).sort((a,b) => b.maxH-a.maxH);
-}
-
-function openDebtModal() {
-  checkDebtors();
-  const list = buildDebtList();
-  $('debtModalCount').innerText = list.length;
-  const wrap = $('debtModalList');
-  if (!list.length) { wrap.innerHTML = '<div class="debt-empty-modal" style="padding:20px;">🎉 Нет активных просрочек (&gt;14ч)</div>'; }
-  else {
-    wrap.innerHTML = list.map(g => {
-      const holder = g.holder;
-      const idMatch = holder.match(/\b(\d{4,})\b/);
-      let namePart = holder, idPart = '';
-      if (idMatch) { idPart = idMatch[1]; namePart = holder.replace(idPart,'').replace(/\s+/g,' ').trim(); }
-      if (!namePart) { namePart = holder; idPart = ''; }
-      const word = pluralN(g.count,'прибор','прибора','приборов');
-      return `<div class="debt-modal-item" data-holder="${esc(holder)}"><div class="dname"><span>${esc(namePart)}</span>${idPart?`<span class="id">${esc(idPart)}</span>`:''}</div><div class="dtime">${fmtHoursShort(g.maxH)}</div><div class="dmeta"><span class="dcnt">${g.count}×</span><span>${word}</span></div></div>`;
-    }).join('');
-  }
-  const histWrap = $('debtHistoryList');
-  const history = Object.values(state.debtorsRegistry).sort((a,b) => b.count-a.count);
-  if (!history.length) { histWrap.innerHTML = '<div class="debt-empty-modal" style="padding:20px;">📜 История пуста — ещё никто не «просрочил»</div>'; }
-  else {
-    histWrap.innerHTML = history.map(r => {
-      const lastStr = r.lastDate ? new Date(r.lastDate).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit'}) : '—';
-      return `<div class="debt-modal-item" style="background:var(--warn-soft);border-color:rgba(245,158,11,.3);" data-holder="${esc(r.name)}" title="История: ${r.count} просрочек"><div class="dname"><span>👤 ${esc(r.name)}</span></div><div class="dtime" style="color:var(--warn-text);">${r.count}×</div><div class="dmeta"><span style="color:var(--warn-text);">${r.serials.length} ТСД</span><span style="font-size:10px;">${lastStr}</span></div></div>`;
-    }).join('');
-  }
-  openModal('debtModal');
-}
-
-function showAllDebtsInTable() {
-  closeModal('debtModal');
-  document.querySelectorAll('.kpi-card').forEach(x => x.classList.remove('active'));
-  const card = document.querySelector('.kpi-card[data-filter="overdue"]');
-  if (card) card.classList.add('active');
-  state.filter = 'overdue'; $('searchTable').value=''; updateSearchWrap(); renderTable();
-}
-
-function filterByHolder(holder) {
-  $('searchTable').value = holder; updateSearchWrap();
-  state.filter = 'all';
-  document.querySelectorAll('.kpi-card').forEach(x => x.classList.remove('active'));
-  const allCard = document.querySelector('.kpi-card[data-filter="all"]'); if (allCard) allCard.classList.add('active');
-  renderTable(); $('searchTable').focus();
-  try { $('searchTable').select(); } catch(_){}
-}
-
-function updateSearchWrap() { const w = $('searchWrap'); if (w) w.classList.toggle('has-val', !!$('searchTable').value); }
-
-function renderTable() {
-  const q = ($('searchTable').value||'').trim().toUpperCase();
-  let free = 0, issued = 0, overdue = 0, dayCount = 0, nightCount = 0;
-  const issuedTimes = [];
-  state.devices.forEach(d => {
-    if (d.status==='issued') { issued++; const h = hoursSince(d.issued_at); issuedTimes.push(h); if (h>=OVERDUE_H) overdue++; if (d.shift==='Ночная') nightCount++; else dayCount++; }
-    else free++;
-  });
-  const total = state.devices.length;
-  $('mTotal').innerText = total; $('mFree').innerText = free; $('mIssued').innerText = issued;
-  $('mOverdue').innerText = overdue; $('mDay').innerText = dayCount; $('mNight').innerText = nightCount;
-  const freePct = total ? Math.round((free/total)*100) : 0;
-  const issPct = total ? Math.round((issued/total)*100) : 0;
-  $('mFreePct').innerText = freePct + '%';
-  $('mIssuedPct').innerText = issPct + '%';
-
-  const donut = $('donutFreeSeg');
-  if (donut) {
-    const c = 94.2;
-    donut.style.strokeDashoffset = String(c - (c * freePct) / 100);
-  }
-
-  const statsEl = $('regStats');
-  if (statsEl) {
-    if (issuedTimes.length) {
-      const avg = issuedTimes.reduce((a,b) => a+b, 0)/issuedTimes.length;
-      const max = Math.max(...issuedTimes);
-      const avgCls = timeClass(avg), maxCls = timeClass(max);
-      const colors = { fresh:'var(--ok-text)', mid:'var(--warn-text)', late:'#fb923c', over:'var(--danger-text)' };
-      statsEl.innerHTML = `Среднее: <b style="color:${colors[avgCls]};">${fmtHoursShort(avg)}</b> · Макс: <b style="color:${colors[maxCls]};">${fmtHoursShort(max)}</b>`;
-    } else { statsEl.innerHTML = 'Среднее: <span style="color:var(--text-3);">—</span> · Макс: <span style="color:var(--text-3);">—</span>'; }
-  }
-  updateDebtBadge();
-  const filtered = state.devices.filter(d => {
-    if (state.filter==='free' && d.status!=='free') return false;
-    if (state.filter==='issued' && d.status!=='issued') return false;
-    if (state.filter==='overdue') { if (d.status!=='issued' || hoursSince(d.issued_at)<OVERDUE_H) return false; }
-    if (state.filter==='day') { if (d.status!=='issued' || d.shift==='Ночная') return false; }
-    if (state.filter==='night') { if (d.status!=='issued' || d.shift!=='Ночная') return false; }
-    if (state.modelFilter !== 'all' && d.model !== state.modelFilter) return false;
-    if (q) { const hay = (d.serial+' '+(d.holder?d.holder:'')+' '+(d.model||'')).toUpperCase(); if (!hay.includes(q)) return false; }
-    return true;
-  });
-  filtered.sort((a,b) => {
-    if (state.sortField === 'serial') return (state.sortAsc ? 1 : -1) * String(a.serial).localeCompare(String(b.serial));
-    if (state.sortField === 'model') return (state.sortAsc ? 1 : -1) * String(a.model||'').localeCompare(String(b.model||''));
-    if (state.sortField === 'holder') return (state.sortAsc ? 1 : -1) * String(a.holder||'').localeCompare(String(b.holder||''));
-    if (state.sortField === 'time') {
-      const ha = a.status === 'issued' ? hoursSince(a.issued_at) : -1;
-      const hb = b.status === 'issued' ? hoursSince(b.issued_at) : -1;
-      return (state.sortAsc ? 1 : -1) * (ha - hb);
-    }
-    const aIssued = a.status==='issued'?0:1; const bIssued = b.status==='issued'?0:1;
-    if (aIssued !== bIssued) return aIssued-bIssued;
-    const aTime = parseTime(a.last_move)||parseTime(a.issued_at); const bTime = parseTime(b.last_move)||parseTime(b.issued_at);
-    if (aTime !== bTime) return bTime-aTime;
-    return String(a.serial).localeCompare(String(b.serial));
-  });
-
-  if (state.viewMode === 'matrix') {
-    renderMatrix(filtered);
-    return;
-  }
-
-  if (!filtered.length) { $('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:45px;color:var(--text-3);font-size:13px;">Оборудование по заданному фильтру не найдено</td></tr>'; return; }
-  $('tbody').innerHTML = filtered.map(d => renderRow(d, d.status==='issued')).join('');
-}
-
-function renderMatrix(list) {
-  const wrap = $('matrixView');
-  if (!wrap) return;
-  if (!list.length) {
-    wrap.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:45px;color:var(--text-3);">Нет оборудования по выбранному фильтру</div>';
-    return;
-  }
-  wrap.innerHTML = list.map(d => {
-    const busy = d.status === 'issued';
-    const h = busy ? hoursSince(d.issued_at) : 0;
-    const over = busy && h >= OVERDUE_H;
-    const s = String(d.serial || '');
-    const pref = s.length > 4 ? s.slice(0, -4) : '';
-    const tail = s.length > 4 ? s.slice(-4) : s;
-    const cls = busy ? (over ? 's-over' : 's-busy') : 's-free';
-    const sh = busy ? (d.shift === 'Ночная' ? '🌙' : '☀') : '🟢';
-    return `<div class="slot-card ${cls}" data-slot-sn="${esc(d.serial)}" data-slot-busy="${busy?'1':'0'}" title="${busy ? 'Клик — принять на склад · ПКМ — история' : 'Клик — выбрать для выдачи · ПКМ — история'}">
-      <div class="slot-top"><span>${esc(d.model)}</span><span>${sh}</span></div>
-      <div>
-        <span class="slot-prefix">${esc(pref || ' ')}</span>
-        <div class="slot-tail">${esc(tail)}</div>
-      </div>
-      <div class="slot-foot">
-        <span class="slot-holder">${busy ? esc(d.holder) : 'СВОБОДЕН'}</span>
-        <span style="color:${over?'var(--danger-text)':'var(--text-2)'};font-weight:700;">${busy ? fmtHoursShort(h) : ''}</span>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderRow(d, busy) {
-  const h = busy ? hoursSince(d.issued_at) : 0;
-  const over = busy && h >= OVERDUE_H;
-  const inherited = busy && isInheritedTime(d);
-  const justOverdue = state.justOverdueHighlights[d.serial] && (Date.now()-state.justOverdueHighlights[d.serial] < NEW_OVERDUE_HIGHLIGHT_MS);
-  let badge = '';
-  if (busy && over) badge = '<span class="badge-chip chip-over">🚨 ДОЛГ (&gt;14ч)</span>';
-  else if (busy) badge = '<span class="badge-chip chip-busy">В РАБОТЕ</span>';
-  else badge = '<span class="badge-chip chip-free">НА СКЛАДЕ</span>';
-  let shiftChip = '';
-  if (busy && d.shift==='Дневная') shiftChip = ` <span class="badge-chip chip-day" style="cursor:pointer;" data-action="toggle-shift" data-sn="${esc(d.serial)}" title="Клик — переключить на НОЧЬ">☀ День ⇄</span>`;
-  else if (busy && d.shift==='Ночная') shiftChip = ` <span class="badge-chip chip-night" style="cursor:pointer;" data-action="toggle-shift" data-sn="${esc(d.serial)}" title="Клик — переключить на ДЕНЬ">🌙 Ночь ⇄</span>`;
-  let modelCls = 'pm'; if (d.model==='Zebra') modelCls='zebra'; else if (d.model==='Планшет') modelCls='tab';
-  const holderHtml = d.holder ? `<span class="holder-pill mono" data-action="filter-holder" data-holder="${esc(d.holder)}" title="Клик — фильтр по сотруднику"><span class="holder-avatar">${esc(getInitials(d.holder))}</span>${esc(d.holder)}</span>` : '<span style="color:var(--text-3);font-weight:400;">—</span>';
-  const action = busy ? `<button class="btn-row-return" data-action="return" data-sn="${esc(d.serial)}">Принять</button>` : `<button class="btn-row-issue" data-action="issue" data-sn="${esc(d.serial)}">Выдать</button>`;
-  let timeHtml = '', timeTitle = '';
-  if (busy) {
-    const cls = timeClass(h); const barW = timeBarWidth(h);
-    const issuedStr = d.issued_at ? new Date(d.issued_at).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',','') : '—';
-    timeTitle = 'Выдан: '+issuedStr;
-    const inheritMark = inherited ? '<span class="inherit-mark" title="Время перенесено с предыдущего сканера">🔁</span>' : '';
-    timeHtml = `<div class="time-inline"><span class="val ${cls}">${fmtHoursShort(h)}</span><span class="bar"><span class="bar-fill ${cls}" style="width:${barW}%"></span></span>${inheritMark}</div>`;
-  } else {
-    const lastMoveStr = d.last_move ? new Date(d.last_move).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).replace(',','') : '—';
-    timeTitle = 'Принят: '+lastMoveStr;
-    timeHtml = `<div class="time-inline"><span class="val empty">—</span><span class="bar"><span class="bar-fill zero" style="width:100%"></span></span></div>`;
-  }
-  let rowClass = '';
-  if (over) rowClass = 'row-overdue';
-  if (justOverdue) rowClass += ' row-just-overdue';
-  if (state.justIssued === d.serial) rowClass += ' just-issued';
-  if (state.justReturned === d.serial) rowClass += ' just-returned';
-  return `<tr class="${rowClass}"><td><span class="mono sn-link" data-action="audit" data-sn="${esc(d.serial)}">${formatSnSplit(d.serial)}</span></td><td><span class="model-pill ${modelCls}">${esc(d.model)}</span></td><td>${badge}${shiftChip}</td><td>${holderHtml}</td><td style="text-align:right;" title="${timeTitle}">${timeHtml}</td><td style="text-align:right;" class="row-action-cell">${action}</td></tr>`;
-}
-
-function quickReturnFromRow(sn) { $('retQuery').value = sn; quickReturn(); }
-function pickForIssue(sn) { $('issSn').value = sn; $('issSn').classList.remove('err'); updateIssBanner(sn); $('issWorker').focus(); }
-
-async function openAudit(sn) {
-  const dev = state.devices.find(d => d.serial===sn); if (!dev) return;
-  state.auditSn = sn;
-  $('audSn').innerText = dev.serial; $('audModel').innerText = dev.model||'—'; $('audHolder').innerText = dev.holder||'На складе';
-  const badge = $('audStatusBadge');
-  if (dev.status==='issued') { badge.className='badge-chip chip-busy'; badge.innerText='В работе'; } else { badge.className='badge-chip chip-free'; badge.innerText='На складе'; }
-  $('audDuration').innerText = dev.status==='issued' && dev.issued_at ? fmtHoursShort(hoursSince(dev.issued_at))+' ('+(dev.shift||'—')+')' : '—';
-  const shiftBtn = $('audShiftBtn');
-  if (shiftBtn) { if (dev.status==='issued') { shiftBtn.style.display='inline-flex'; shiftBtn.innerText = dev.shift==='Ночная'?'🔀 На ДЕНЬ':'🔀 На НОЧЬ'; shiftBtn.onclick = () => toggleDeviceShift(sn); } else { shiftBtn.style.display='none'; } }
-  $('auditOverlay').classList.add('show'); $('auditDrawer').classList.add('open'); refreshScrollLock();
-
-  const localMoves = await new Promise(r => { if (!db) return r([]); try { const t = db.transaction('moves','readonly'); const req = t.objectStore('moves').getAll(); req.onsuccess = () => r(req.result||[]); req.onerror = () => r([]); t.onabort = () => r([]); } catch(e) { r([]); } });
-  const filteredLocal = localMoves.filter(m => m.serial===sn);
-
-  let cloudMoves = [];
-  if (cloud && navigator.onLine) {
-    try {
-      const { data } = await withTimeout(cloud.from('movements').select('*').eq('serial', sn).order('created_at',{ascending:false}).limit(25), NET_TIMEOUT_MS, 'audit query');
-      if (state.auditSn !== sn) return;
-      if (data) cloudMoves = data;
-    } catch(e) { dbg('audit query failed', e); }
-  }
-  if (state.auditSn !== sn) return;
-
-  const combined = [...cloudMoves, ...filteredLocal];
-  const seen = new Set();
-  const moves = combined.filter(m => {
-    const ts = parseTime(m.created_at || m.at);
-    const sig = `${m.action||''}|${m.worker||''}|${Math.floor(ts/2000)}`;
-    if (seen.has(sig)) return false;
-    seen.add(sig);
-    return true;
-  }).sort((a,b) => parseTime(b.created_at||b.at) - parseTime(a.created_at||a.at)).slice(0, 30);
-
-  const tl = $('audTimeline');
-  if (!moves.length) { tl.innerHTML = '<div style="color:var(--text-3);font-size:12px;text-align:center;padding:15px;">Записей пока нет.</div>'; return; }
-  tl.innerHTML = moves.map(h => {
-    const isRet = h.action && h.action.startsWith('Возврат');
-    const d = h.created_at || h.at;
-    const t = d ? new Date(d).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
-    const actColor = isRet ? 'var(--ok-text)' : 'var(--brand-text)';
-    return `<div class="timeline-item ${isRet?'return':''}"><div class="timeline-dot"></div><div class="timeline-time">${t}</div><div class="timeline-action" style="color:${actColor};">${esc(h.action)}</div><div class="timeline-actor">👤 ${esc(h.worker||'—')}</div></div>`;
-  }).join('');
-}
-
-function closeAuditDrawer() { state.auditSn = null; $('auditDrawer').classList.remove('open'); $('auditOverlay').classList.remove('show'); refreshScrollLock(); }
-
-function csvSafe(v) { let str = String(v===null||v===undefined?'':v); if (/^[=+\-@\t\r]/.test(str)) str = "'"+str; return '"'+str.replace(/"/g,'""')+'"'; }
-function exportExcel() {
-  let csv = '\uFEFFСерийный номер;Модель;Статус;Сотрудник;Смена;Время на руках;Выдан;Активность\n';
-  state.devices.forEach(d => {
-    const stLabel = d.status === 'issued' ? 'В работе' : 'На складе';
-    const dur = d.status === 'issued' && d.issued_at ? fmtHoursShort(hoursSince(d.issued_at)) : '—';
-    csv += [d.serial, d.model, stLabel, d.holder||'—', d.shift||'—', dur, d.issued_at||'', d.last_move||''].map(csvSafe).join(';')+'\n';
-  });
-  const url = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `sklad_export_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
-}
-
-function processImport() {
-  if (!state.dbReady) { showToast('БАЗА НЕ ГОТОВА', '', 'err'); return; }
-  const text = $('impText').value.trim();
-  const raw = [...new Set(text.split(/\r?\n/).map(fixLayout).filter(Boolean))];
-  if (!raw.length) return;
-  const valid = raw.filter(sn => SN_REGEX.test(sn));
-  const rejected = raw.length-valid.length;
-  if (!valid.length) { showToast('ВСЁ БИТОЕ', `Отклонено: ${rejected}`, 'err'); return; }
-  const ts = nowIso();
-  try {
-    const txm = db.transaction(["devices","queue"],"readwrite");
-    const ds = txm.objectStore("devices"); const qs = txm.objectStore("queue");
-    let added = 0, skipped = 0;
-    valid.forEach(sn => {
-      if (state.devices.find(d => d.serial===sn)) { skipped++; return; }
-      const d = { serial: sn, model: detectModel(sn), status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts };
-      ds.put(d); qs.add({ type:'upsert', dev: d, action: 'Импорт', worker: '', ts }); added++;
-    });
-    txm.oncomplete = () => { closeModal('impModal'); $('impText').value=''; beep('issue'); showToast('ИМПОРТ', `+${added}, пропущено ${skipped}${rejected?`, битых ${rejected}`:''}`); loadLocal().then(() => scheduleSync(500)).catch(() => scheduleSync(500)); };
-    txm.onerror = () => showToast('ОШИБКА ИМПОРТА', txm.error?txm.error.message:'?', 'err');
-    txm.onabort = () => showToast('ИМПОРТ ОТМЕНЁН', 'Транзакция прервана', 'err');
-  } catch(e) { showToast('ОШИБКА ИМПОРТА', e.message, 'err'); }
-}
-
-function showDiag() {
-  const countReq = db ? (() => new Promise(r => { try { const t = db.transaction('queue','readonly'); const q = t.objectStore('queue').count(); q.onsuccess = () => r(q.result); q.onerror = () => r(0); t.onabort = () => r(0); } catch(e) { r(0); } }))() : Promise.resolve(0);
-  Promise.all([countReq, renderQueuePreview()]).then(([n, preview]) => {
-    const lastBk = localStorage.getItem('sklad_last_backup_date')||'—';
-    const autoSwapTxt = state.autoSwap?'ВКЛ (без окна)':'выкл (с окном)';
-    const autoSwapColor = state.autoSwap?'var(--ok-text)':'var(--text-3)';
-    const dbOk = state.dbReady?'✅ OK':'❌ не готова';
-    const dbColor = state.dbReady?'var(--ok-text)':'var(--danger-text)';
-    const syncTxt = state.syncing?'<span style="color:var(--warn-text);">● идёт</span>':'<span style="color:var(--ok-text);">○ idle</span>';
-    const backoff = state.syncBackoff>0?`<span style="color:var(--warn-text);">${state.syncBackoff}× (backoff)</span>`:'<span style="color:var(--text-3);">0</span>';
-    const debtEvents = Object.keys(state.debtorsRecorded).length;
-    const debtPeople = Object.keys(state.debtorsRegistry).length;
-    $('diagContent').innerHTML = `
-      <div>ВЕРСИЯ: <span style="color:var(--brand-text);">ORBITAL WMS v10.0 (${THEME_NAMES[state.theme]})</span></div>
-      <div>БД: <span style="color:${dbColor};">${dbOk}</span> &nbsp; SYNC: ${syncTxt}</div>
-      <div>ЛОКАЛЬНО: <span style="color:var(--brand-text);">${state.devices.length}</span> шт.</div>
-      <div>SUPABASE: <span style="color:var(--text-1);">${SUPABASE_URL.replace('https://','').split('.')[0]}...</span></div>
-      <div>ОЧЕРЕДЬ ПАКЕТОВ: <span style="color:var(--brand-text);">${n}</span></div>
-      <div>BACKOFF: ${backoff}</div>
-      <div>ДОЛЖНИКИ: <span style="color:var(--danger-text);">${debtEvents} событий / ${debtPeople} чел.</span></div>
-      <div>СМЕНА: <span style="color:var(--text-1);">${state.issueShift}</span> (${state.issueShiftAuto?'авто':'вручную'})</div>
-      <div>АВТО-ЗАМЕНА: <span style="color:${autoSwapColor};">${autoSwapTxt}</span> <button class="btn-hud" style="padding:2px 8px;font-size:10px;margin-left:8px;" onclick="toggleAutoSwap()">${state.autoSwap?'Отключить':'Включить'}</button></div>
-      <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--ok-text);">${lastBk}</span></div>
-      <div>ПОСЛЕДНЯЯ ОШИБКА: <span style="color:var(--danger-text);">${esc(state.lastError)}</span></div>
-      ${n?`<div style="margin-top:12px;border-top:1px solid var(--border-dim);padding-top:8px;"><div style="font-size:11px;font-weight:800;color:var(--warn-text);margin-bottom:6px;">⚠ ОЧЕРЕДЬ (первые 30):</div><div style="max-height:220px;overflow-y:auto;background:var(--bg-canvas);border-radius:6px;padding:6px 10px;">${preview}</div><div style="margin-top:8px;"><button class="btn-hud" style="color:var(--danger-text);font-size:10px;" onclick="clearStuckQueue()">🗑 Очистить очередь</button></div></div>`:''}
-    `;
-    openModal('diagModal');
-  });
-}
-
-function toggleAutoSwap() {
-  state.autoSwap = !state.autoSwap;
-  try { localStorage.setItem(AUTO_SWAP_KEY, state.autoSwap?'true':'false'); } catch(e) {}
-  showToast('АВТО-ЗАМЕНА', state.autoSwap?'Включена — без окна':'Отключена — с окном', 'warn');
-  closeModal('diagModal');
-}
-
-function openDeleteModal() { $('delSearch').value=''; renderDeleteList(); openModal('delModal'); setTimeout(() => $('delSearch').focus(), 50); }
-function renderDeleteList() {
-  const q = ($('delSearch').value||'').trim().toUpperCase();
-  const list = state.devices.filter(d => { if (!q) return true; const hay = ((d.serial||'')+' '+(d.model||'')+' '+(d.holder||'')).toUpperCase(); return hay.includes(q); }).sort((a,b) => String(a.serial).localeCompare(String(b.serial)));
-  const wrap = $('delList');
-  if (!list.length) { wrap.innerHTML = '<div class="del-empty">Ничего не найдено</div>'; return; }
-  wrap.innerHTML = list.map(d => {
-    const status = d.status==='issued'?`на руках у ${esc(d.holder||'—')}`:'на складе';
-    return `<div class="del-row"><span class="sn">${esc(d.serial)}</span><span class="info">${esc(d.model||'—')} · ${status}${d.shift && d.shift!=='—'?` · ${esc(d.shift)}`:''}</span><button class="del-btn" data-del-sn="${esc(d.serial)}">🗑 Удалить</button></div>`;
-  }).join('');
-}
-async function confirmDelete(sn) {
-  const dev = state.devices.find(d => d.serial===sn); if (!dev) return;
-  const ok = confirm(`Удалить ТСД "${sn}"?\n\nМодель: ${dev.model}\nСтатус: ${dev.status==='issued'?'на руках у '+(dev.holder||'—'):'на складе'}\n\nДействие необратимо.`);
-  if (!ok) return;
-  try { await deleteSerial(sn); showToast('УДАЛЕНО', sn, 'warn'); renderDeleteList(); }
-  catch(e) { showToast('ОШИБКА УДАЛЕНИЯ', e.message||'?', 'err'); }
-}
-
-function openModal(id) { const el = $(id); if (el) el.classList.add('show'); refreshScrollLock(); }
-function closeModal(id) { const el = $(id); if (el) el.classList.remove('show'); refreshScrollLock(); }
-document.querySelectorAll('.modal-overlay').forEach(m => { m.addEventListener('click', e => { if (e.target===m) closeModal(m.id); }); });
-
-function showToast(title, desc, kind = 'ok') {
-  clearUndo();
-  const el = $('toast');
-  $('tTitle').innerText = title; $('tDesc').innerText = desc || '';
-  $('tIcon').innerText = kind==='err'?'✕':(kind==='warn'?'!':'✓');
-  $('tIcon').style.background=''; $('tIcon').style.borderColor=''; $('tIcon').style.color=''; $('tTitle').style.color='';
-  const oldBtn = el.querySelector('.t-undo'); if (oldBtn) oldBtn.remove();
-  el.className = kind==='err'?'err':(kind==='warn'?'warn':'');
-  el.classList.add('show');
-  clearTimeout(state.toastTimer);
-  state.toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
-}
-
-function setupDelegation() {
-  document.querySelectorAll('[data-set-theme]').forEach(btn => btn.addEventListener('click', () => applyTheme(btn.dataset.setTheme, true)));
-
-  $('modelFilterBar').addEventListener('click', e => {
-    const btn = e.target.closest('[data-mfilter]'); if (!btn) return;
-    document.querySelectorAll('[data-mfilter]').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    state.modelFilter = btn.dataset.mfilter;
-    renderTable();
-  });
-
-  document.querySelectorAll('th[data-sort]').forEach(th => {
-    th.addEventListener('click', () => {
-      const f = th.dataset.sort;
-      if (state.sortField === f) state.sortAsc = !state.sortAsc;
-      else { state.sortField = f; state.sortAsc = true; }
-      ['serial','model','status','holder','time'].forEach(k => { const el = $('sort-'+k); if (el) el.innerText = ''; });
-      const cur = $('sort-'+f); if (cur) cur.innerText = state.sortAsc ? '▲' : '▼';
-      renderTable();
-    });
-  });
-
-  $('matrixView').addEventListener('click', e => {
-    const slot = e.target.closest('[data-slot-sn]'); if (!slot) return;
-    const sn = slot.dataset.slotSn;
-    if (slot.dataset.slotBusy === '1') quickReturnFromRow(sn);
-    else pickForIssue(sn);
-  });
-  $('matrixView').addEventListener('contextmenu', e => {
-    const slot = e.target.closest('[data-slot-sn]'); if (!slot) return;
-    e.preventDefault();
-    openAudit(slot.dataset.slotSn);
-  });
-
-  $('tbody').addEventListener('click', e => {
-    const target = e.target.closest('[data-action]'); if (!target) return;
-    const action = target.dataset.action; const sn = target.dataset.sn;
-    if (action==='audit' && (e.ctrlKey || e.metaKey || e.altKey)) { e.preventDefault(); navigator.clipboard?.writeText(sn).then(() => showToast('СКОПИРОВАНО', sn), () => showToast('ОШИБКА', 'Не удалось скопировать', 'err')); return; }
-    if (action==='audit') openAudit(sn);
-    else if (action==='return') quickReturnFromRow(sn);
-    else if (action==='issue') pickForIssue(sn);
-    else if (action==='toggle-shift') toggleDeviceShift(sn);
-    else if (action==='filter-holder') filterByHolder(target.dataset.holder);
-  });
-  $('issSnBanner').addEventListener('click', async e => {
-    const btn = e.target.closest('[data-banner-return]'); if (!btn) return;
-    const sn = btn.dataset.bannerReturn;
-    await doReturn(sn);
-    $('issSn').value = sn; updateIssBanner(sn); $('issWorker').focus();
-  });
-  $('issDrop').addEventListener('click', e => {
-    const item = e.target.closest('.drop-item'); if (!item) return;
-    const sn = item.dataset.sn;
-    $('issSn').value = sn; resetIssueDropdown(); updateIssBanner(sn); $('issWorker').focus();
-  });
-  $('issPickList').addEventListener('click', e => {
-    const item = e.target.closest('.drop-item'); if (!item) return;
-    const sn = item.dataset.sn;
-    closeModal('issPickModal');
-    $('issSn').value = sn; state.issDropNavigated = false;
-    updateIssBanner(sn); $('issWorker').focus();
-  });
-  $('workerDrop').addEventListener('click', e => {
-    const item = e.target.closest('.drop-item'); if (!item) return;
-    $('issWorker').value = item.dataset.worker; resetWorkerDropdown(); submitIssue();
-  });
-  $('retDrop').addEventListener('click', e => {
-    const item = e.target.closest('.drop-item'); if (!item) return;
-    $('retQuery').value = item.dataset.sn; resetRetDropdown(); quickReturn();
-  });
-  $('pickList').addEventListener('click', e => {
-    const item = e.target.closest('.drop-item'); if (!item) return;
-    closeModal('pickModal'); doReturn(item.dataset.sn);
-  });
-  $('debtModalList').addEventListener('click', e => {
-    const item = e.target.closest('.debt-modal-item'); if (!item) return;
-    const holder = item.dataset.holder; closeModal('debtModal'); filterByHolder(holder);
-  });
-  $('debtHistoryList').addEventListener('click', e => {
-    const item = e.target.closest('.debt-modal-item'); if (!item) return;
-    const holder = item.dataset.holder; closeModal('debtModal'); filterByHolder(holder);
-  });
-  $('delList').addEventListener('click', e => {
-    const btn = e.target.closest('[data-del-sn]'); if (!btn) return;
-    confirmDelete(btn.dataset.delSn);
-  });
-  $('backupList').addEventListener('click', e => {
-    const btn = e.target.closest('[data-bk-action]'); if (!btn) return;
-    const file = btn.dataset.bkFile;
-    if (btn.dataset.bkAction==='restore') restoreFromBackup(file);
-    else if (btn.dataset.bkAction==='delete') deleteBackup(file);
-  });
-}
-
-const debouncedRenderTable = debounce(renderTable, 80);
-
-$('issSn').addEventListener('input', () => { state.issDropNavigated = false; });
-$('issSn').addEventListener('input', debounce(handleIssSnInput, 45));
-$('issSn').addEventListener('input', debounce(saveDraft, 500));
-$('issSn').addEventListener('keydown', handleIssSnKeydown);
-
-$('issWorker').addEventListener('input', debounce(handleWorkerInput, 60));
-$('issWorker').addEventListener('input', debounce(() => { if (state.issueShiftAuto) refreshSmartShift(); }, 300));
-$('issWorker').addEventListener('input', debounce(saveDraft, 500));
-$('issWorker').addEventListener('keydown', handleIssWorkerKeydown);
-
-$('issueForm').addEventListener('submit', e => { e.preventDefault(); submitIssue(); });
-$('retQuery').addEventListener('input', debounce(handleRetInput, 50));
-$('retQuery').addEventListener('keydown', handleRetKeydown);
-$('retBtn').addEventListener('click', quickReturn);
-$('searchTable').addEventListener('input', () => { updateSearchWrap(); debouncedRenderTable(); });
-$('searchClearBtn').addEventListener('click', () => { $('searchTable').value=''; updateSearchWrap(); renderTable(); $('searchTable').focus(); });
-$('delSearch').addEventListener('input', debounce(renderDeleteList, 100));
-
-document.querySelectorAll('.kpi-card').forEach(s => {
-  s.addEventListener('click', () => {
-    const f = s.dataset.filter;
-    if (f==='overdue' && state.filter!=='overdue') { openDebtModal(); return; }
-    if (f==='all' && state.filter==='all' && $('searchTable').value) { $('searchTable').value=''; updateSearchWrap(); }
-    document.querySelectorAll('.kpi-card').forEach(x => x.classList.remove('active'));
-    s.classList.add('active'); state.filter = f; renderTable();
-  });
-});
-$('swapConfirm').addEventListener('click', confirmSwap);
-
-document.addEventListener('click', e => {
-  if (!e.target.closest('.hud-group')) { resetIssueDropdown(); resetRetDropdown(); resetWorkerDropdown(); }
-});
-
-let brandClicks = 0, brandTimer = null;
-$('brandTag').addEventListener('click', () => {
-  brandClicks++; clearTimeout(brandTimer);
-  brandTimer = setTimeout(() => { brandClicks = 0; }, 700);
-  if (brandClicks >= 3) { brandClicks = 0; openDeleteModal(); }
-});
-
-document.addEventListener('keydown', e => {
-  if ($('issPickModal').classList.contains('show')) {
-    const items = Array.from($('issPickList').querySelectorAll('.drop-item'));
-    const cur = items.findIndex(it => it.classList.contains('selected'));
-    if (e.key==='ArrowDown' || e.key==='ArrowUp') {
-      if (!items.length) return;
-      e.preventDefault();
-      if (cur>=0) items[cur].classList.remove('selected');
-      const next = e.key==='ArrowDown' ? (cur+1)%items.length : (cur-1+items.length)%items.length;
-      items[next].classList.add('selected');
-      items[next].scrollIntoView({block:'nearest'});
-      return;
-    }
-    if (e.key==='Enter' && cur>=0 && items[cur]) {
-      e.preventDefault();
-      const sn = items[cur].dataset.sn;
-      closeModal('issPickModal');
-      $('issSn').value = sn; state.issDropNavigated = false;
-      updateIssBanner(sn); $('issWorker').focus();
-      return;
-    }
-    if (e.key==='Escape') { e.preventDefault(); closeModal('issPickModal'); return; }
-  }
-
-  if ($('pickModal').classList.contains('show')) {
-    const items = Array.from($('pickList').querySelectorAll('.drop-item'));
-    const cur = items.findIndex(it => it.classList.contains('selected'));
-    if (e.key==='ArrowDown' || e.key==='ArrowUp') {
-      if (!items.length) return;
-      e.preventDefault();
-      if (cur>=0) items[cur].classList.remove('selected');
-      const next = e.key==='ArrowDown' ? (cur+1)%items.length : (cur-1+items.length)%items.length;
-      items[next].classList.add('selected');
-      items[next].scrollIntoView({block:'nearest'});
-      return;
-    }
-    if (e.key==='Enter' && cur>=0 && items[cur]) {
-      e.preventDefault();
-      const sn = items[cur].dataset.sn;
-      closeModal('pickModal');
-      doReturn(sn);
-      return;
-    }
-    if (e.key==='Escape') { e.preventDefault(); closeModal('pickModal'); return; }
-  }
-
-  if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase()==='z') { if (state.undoAction) { e.preventDefault(); undoLast(); return; } }
-  if (e.altKey && e.key.toLowerCase()==='t') { e.preventDefault(); cycleTheme(); return; }
-  if (e.altKey && e.key.toLowerCase()==='v') { e.preventDefault(); setViewMode(state.viewMode==='matrix'?'table':'matrix'); return; }
-  if (e.ctrlKey && e.altKey && e.key.toLowerCase()==='d') { e.preventDefault(); openDeleteModal(); return; }
-  if ($('delModal').classList.contains('show') && e.key==='Escape') { e.preventDefault(); closeModal('delModal'); return; }
-  if ($('backupModal').classList.contains('show') && e.key==='Escape') { e.preventDefault(); closeModal('backupModal'); return; }
-  if ($('swapModal').classList.contains('show') && e.key==='Enter') { e.preventDefault(); confirmSwap(); return; }
-  if (e.key==='F1') { e.preventDefault(); $('issSn').focus(); }
-  else if (e.key==='F2') { e.preventDefault(); $('retQuery').focus(); }
-  else if (e.ctrlKey && e.key.toLowerCase()==='k') { e.preventDefault(); $('searchTable').focus(); }
-  else if (e.ctrlKey && e.key.toLowerCase()==='e') { e.preventDefault(); exportExcel(); }
-  else if (e.ctrlKey && e.key.toLowerCase()==='i') { e.preventDefault(); openModal('impModal'); }
-  else if (e.key==='Escape') { document.querySelectorAll('.modal-overlay.show').forEach(m => closeModal(m.id)); closeAuditDrawer(); }
-});
-
-setInterval(() => { if (state.issueShiftAuto) refreshSmartShift(); else updateShiftPill(); }, 30000);
-setInterval(() => { const cutoff = Date.now()-RECENT_LOCAL_TTL; for (const [k,v] of recentLocal) { if (v<cutoff) recentLocal.delete(k); } }, 30000);
-setInterval(() => { renderTable(); checkDebtors(); alertNewDebtors(); }, 60000);
-
-window.addEventListener('DOMContentLoaded', () => {
-  try {
-    const pref = JSON.parse(localStorage.getItem('sklad_shift_pref')||'{}');
-    if (pref.auto===false && (pref.shift==='Дневная' || pref.shift==='Ночная')) { state.issueShift = pref.shift; state.issueShiftAuto = false; }
-    else { state.issueShift = computeSmartShift(''); state.issueShiftAuto = true; }
-  } catch(e) { state.issueShift = computeSmartShift(''); state.issueShiftAuto = true; }
-  applyTheme(state.theme, false);
-  applyViewModeUI();
-  updateShiftPill(); setupDelegation();
-  updateDebtBadge();
-  $('issSn').focus();
-});
-
-window.addEventListener('online', () => { state.syncBackoff = 0; scheduleSync(500); });
-window.addEventListener('offline', () => setSync(false, 'Офлайн'));
-window.addEventListener('beforeunload', () => { try { saveDraft(); } catch(e) {} });
-</script>
-</body>
-</html>
+try { state.debtorsRecorded = JSON
