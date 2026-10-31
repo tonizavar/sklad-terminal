@@ -1,883 +1,935 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="berry">
+<html lang="ru" data-theme="volt">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#080510" id="metaThemeColor">
-<title>Учёт Оборудования • Command Center v9.5</title>
+<meta name="theme-color" content="#090a0c" id="metaThemeColor">
+<title>ORBITAL WMS v10.0 • Учёт Оборудования</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* ============================================================
-   5 АРХИТЕКТУРНЫХ ТЕМ (BENTO COMMAND CENTER v9.5)
+   5 ТЕХНО-ИНДУСТРИАЛЬНЫХ ТЕМ (ORBITAL WMS v10.0)
    ============================================================ */
-:root, [data-theme="berry"] {
-  --bg-base: #080510;
-  --bg-mesh:
-    radial-gradient(at 0% 0%, rgba(203, 17, 171, 0.18) 0px, transparent 48%),
-    radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 55%),
-    linear-gradient(180deg, #090612 0%, #05030a 100%);
-  --card-bg: rgba(18, 13, 31, 0.78);
-  --card-bg-hover: rgba(27, 20, 46, 0.92);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-border-hover: rgba(217, 70, 239, 0.45);
-  --inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
-  --shadow-elevated: 0 16px 40px -12px rgba(0, 0, 0, 0.75), 0 4px 14px -2px rgba(0, 0, 0, 0.5);
-  --input-bg: rgba(9, 6, 18, 0.90);
-  --table-bg: rgba(10, 7, 20, 0.55);
-  --th-bg: rgba(16, 11, 29, 0.98);
-  --tr-even: rgba(255, 255, 255, 0.016);
-  --tr-hover: rgba(217, 70, 239, 0.09);
-  --modal-bg: #120d21;
-  --brand-1: #d946ef;
-  --brand-2: #8b5cf6;
-  --brand-text: #f0abfc;
+:root, [data-theme="volt"] {
+  --bg-app: #08090c;
+  --bg-Sidebar: #0d0f14;
+  --bg-canvas: #060709;
+  --surface-1: #12151c;
+  --surface-2: #181c26;
+  --surface-hover: #1f2432;
+  --border-dim: rgba(255, 255, 255, 0.07);
+  --border-mid: rgba(255, 255, 255, 0.14);
+  --border-focus: #d4ff00;
+
+  --brand: #d4ff00;
+  --brand-fg: #050608;
+  --brand-soft: rgba(212, 255, 0, 0.12);
+  --brand-glow: rgba(212, 255, 0, 0.28);
+  --brand-text: #d4ff00;
+
+  --ok: #00e599;
+  --ok-soft: rgba(0, 229, 153, 0.12);
+  --ok-text: #34f5b5;
+
+  --info: #38bdf8;
+  --info-soft: rgba(56, 189, 248, 0.12);
+  --info-text: #7dd3fc;
+
+  --warn: #f59e0b;
+  --warn-soft: rgba(245, 158, 11, 0.13);
+  --warn-text: #fbbf24;
+
+  --danger: #ff3366;
+  --danger-soft: rgba(255, 51, 102, 0.14);
+  --danger-text: #ff668c;
+
+  --night: #a855f7;
+  --night-soft: rgba(168, 85, 247, 0.14);
+  --night-text: #c084fc;
+
+  --text-1: #f8fafc;
+  --text-2: #94a3b8;
+  --text-3: #475569;
+  --sn-dim: #64748b;
+  --sn-bright: #ffffff;
+  --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.75);
+}
+
+[data-theme="berry"] {
+  --bg-app: #090511;
+  --bg-Sidebar: #10091d;
+  --bg-canvas: #06030b;
+  --surface-1: #160e26;
+  --surface-2: #1f1435;
+  --surface-hover: #291b45;
+  --border-dim: rgba(255, 255, 255, 0.08);
+  --border-mid: rgba(232, 121, 249, 0.22);
+  --border-focus: #e879f9;
+
+  --brand: #d946ef;
+  --brand-fg: #ffffff;
+  --brand-soft: rgba(217, 70, 239, 0.15);
   --brand-glow: rgba(217, 70, 239, 0.35);
-  --emerald: #10b981;
-  --emerald-text: #34d399;
-  --emerald-glow: rgba(16, 185, 129, 0.32);
-  --amber: #f59e0b;
-  --amber-text: #fbbf24;
-  --rose: #f43f5e;
-  --rose-text: #fb7185;
-  --purple: #a855f7;
-  --purple-text: #c084fc;
-  --text-main: #f8fafc;
-  --text-sub: #a1a1aa;
-  --text-muted: #52525b;
-  --sn-prefix: #71717a;
-  --sn-tail: #ffffff;
+  --brand-text: #f0abfc;
+
+  --ok: #10b981;
+  --ok-soft: rgba(16, 185, 129, 0.13);
+  --ok-text: #34d399;
+
+  --info: #818cf8;
+  --info-soft: rgba(129, 140, 248, 0.15);
+  --info-text: #a5b4fc;
+
+  --warn: #f59e0b;
+  --warn-soft: rgba(245, 158, 11, 0.14);
+  --warn-text: #fbbf24;
+
+  --danger: #f43f5e;
+  --danger-soft: rgba(244, 63, 94, 0.16);
+  --danger-text: #fb7185;
+
+  --night: #c084fc;
+  --night-soft: rgba(192, 132, 252, 0.15);
+  --night-text: #d8b4fe;
+
+  --text-1: #faf5ff;
+  --text-2: #a1a1aa;
+  --text-3: #52525b;
+  --sn-dim: #71717a;
+  --sn-bright: #ffffff;
 }
 
-[data-theme="sapphire"] {
-  --bg-base: #060811;
-  --bg-mesh:
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.17) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.11) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(56, 189, 248, 0.08) 0px, transparent 55%),
-    linear-gradient(180deg, #070a14 0%, #04060c 100%);
-  --card-bg: rgba(15, 20, 35, 0.78);
-  --card-bg-hover: rgba(22, 29, 49, 0.92);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-border-hover: rgba(129, 140, 248, 0.4);
-  --inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.11);
-  --shadow-elevated: 0 14px 36px -10px rgba(0, 0, 0, 0.65);
-  --input-bg: rgba(7, 10, 19, 0.88);
-  --table-bg: rgba(8, 12, 22, 0.5);
-  --th-bg: rgba(13, 18, 32, 0.96);
-  --tr-even: rgba(255, 255, 255, 0.014);
-  --tr-hover: rgba(99, 102, 241, 0.09);
-  --modal-bg: #0e1322;
-  --brand-1: #6366f1;
-  --brand-2: #3b82f6;
-  --brand-text: #a5b4fc;
-  --brand-glow: rgba(99, 102, 241, 0.35);
-  --emerald: #10b981;
-  --emerald-text: #34d399;
-  --emerald-glow: rgba(16, 185, 129, 0.3);
-  --amber: #f59e0b;
-  --amber-text: #fbbf24;
-  --rose: #f43f5e;
-  --rose-text: #fb7185;
-  --purple: #a855f7;
-  --purple-text: #c084fc;
-  --text-main: #f8fafc;
-  --text-sub: #94a3b8;
-  --text-muted: #475569;
-  --sn-prefix: #64748b;
-  --sn-tail: #ffffff;
+[data-theme="swiss"] {
+  --bg-app: #e6e4dd;
+  --bg-Sidebar: #f4f3ef;
+  --bg-canvas: #eceae4;
+  --surface-1: #ffffff;
+  --surface-2: #f8f7f4;
+  --surface-hover: #f0eee9;
+  --border-dim: rgba(15, 23, 42, 0.09);
+  --border-mid: rgba(15, 23, 42, 0.18);
+  --border-focus: #ff4f00;
+
+  --brand: #ff4f00;
+  --brand-fg: #ffffff;
+  --brand-soft: rgba(255, 79, 0, 0.11);
+  --brand-glow: rgba(255, 79, 0, 0.25);
+  --brand-text: #d94000;
+
+  --ok: #059669;
+  --ok-soft: rgba(5, 150, 105, 0.11);
+  --ok-text: #047857;
+
+  --info: #2563eb;
+  --info-soft: rgba(37, 99, 235, 0.1);
+  --info-text: #1d4ed8;
+
+  --warn: #d97706;
+  --warn-soft: rgba(217, 119, 6, 0.12);
+  --warn-text: #b45309;
+
+  --danger: #e11d48;
+  --danger-soft: rgba(225, 29, 72, 0.11);
+  --danger-text: #be123c;
+
+  --night: #7c3aed;
+  --night-soft: rgba(124, 58, 237, 0.11);
+  --night-text: #6d28d9;
+
+  --text-1: #111315;
+  --text-2: #525866;
+  --text-3: #8a909e;
+  --sn-dim: #717885;
+  --sn-bright: #090a0b;
+  --shadow-lg: 0 20px 45px rgba(15, 23, 42, 0.12);
 }
 
-[data-theme="carbon"] {
-  --bg-base: #090a0c;
-  --bg-mesh:
-    radial-gradient(at 15% 0%, rgba(16, 185, 129, 0.13) 0px, transparent 50%),
-    radial-gradient(at 85% 100%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
-    linear-gradient(180deg, #0b0d10 0%, #060709 100%);
-  --card-bg: rgba(18, 20, 24, 0.86);
-  --card-bg-hover: rgba(26, 29, 35, 0.95);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-border-hover: rgba(16, 185, 129, 0.45);
-  --inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.09);
-  --shadow-elevated: 0 16px 36px -10px rgba(0, 0, 0, 0.8);
-  --input-bg: rgba(9, 11, 13, 0.94);
-  --table-bg: rgba(9, 11, 13, 0.6);
-  --th-bg: #12151a;
-  --tr-even: rgba(255, 255, 255, 0.015);
-  --tr-hover: rgba(16, 185, 129, 0.08);
-  --modal-bg: #12151a;
-  --brand-1: #10b981;
-  --brand-2: #0ea5e9;
-  --brand-text: #6ee7b7;
-  --brand-glow: rgba(16, 185, 129, 0.3);
-  --emerald: #10b981;
-  --emerald-text: #34d399;
-  --emerald-glow: rgba(16, 185, 129, 0.3);
-  --amber: #f59e0b;
-  --amber-text: #fbbf24;
-  --rose: #f43f5e;
-  --rose-text: #fb7185;
-  --purple: #a855f7;
-  --purple-text: #c084fc;
-  --text-main: #f4f4f5;
-  --text-sub: #a1a1aa;
-  --text-muted: #52525b;
-  --sn-prefix: #71717a;
-  --sn-tail: #ffffff;
+[data-theme="nordic"] {
+  --bg-app: #070b12;
+  --bg-Sidebar: #0c121e;
+  --bg-canvas: #05080e;
+  --surface-1: #111a2b;
+  --surface-2: #172338;
+  --surface-hover: #1e2d47;
+  --border-dim: rgba(148, 163, 184, 0.1);
+  --border-mid: rgba(56, 189, 248, 0.24);
+  --border-focus: #38bdf8;
+
+  --brand: #38bdf8;
+  --brand-fg: #041019;
+  --brand-soft: rgba(56, 189, 248, 0.14);
+  --brand-glow: rgba(56, 189, 248, 0.3);
+  --brand-text: #7dd3fc;
+
+  --ok: #10b981;
+  --ok-soft: rgba(16, 185, 129, 0.13);
+  --ok-text: #34d399;
+
+  --info: #6366f1;
+  --info-soft: rgba(99, 102, 241, 0.15);
+  --info-text: #a5b4fc;
+
+  --warn: #f59e0b;
+  --warn-soft: rgba(245, 158, 11, 0.13);
+  --warn-text: #fbbf24;
+
+  --danger: #f43f5e;
+  --danger-soft: rgba(244, 63, 94, 0.15);
+  --danger-text: #fb7185;
+
+  --night: #a855f7;
+  --night-soft: rgba(168, 85, 247, 0.14);
+  --night-text: #c084fc;
+
+  --text-1: #f1f5f9;
+  --text-2: #94a3b8;
+  --text-3: #475569;
+  --sn-dim: #64748b;
+  --sn-bright: #ffffff;
 }
 
-[data-theme="quartz"] {
-  --bg-base: #eef2f6;
-  --bg-mesh:
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.10) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
-    linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
-  --card-bg: rgba(255, 255, 255, 0.92);
-  --card-bg-hover: #ffffff;
-  --card-border: rgba(15, 23, 42, 0.09);
-  --card-border-hover: rgba(79, 70, 229, 0.35);
-  --inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
-  --shadow-elevated: 0 12px 28px -8px rgba(15, 23, 42, 0.07), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
-  --input-bg: #f8fafc;
-  --table-bg: #ffffff;
-  --th-bg: #f1f5f9;
-  --tr-even: rgba(15, 23, 42, 0.018);
-  --tr-hover: rgba(79, 70, 229, 0.055);
-  --modal-bg: #ffffff;
-  --brand-1: #4f46e5;
-  --brand-2: #7c3aed;
-  --brand-text: #4338ca;
-  --brand-glow: rgba(79, 70, 229, 0.22);
-  --emerald: #059669;
-  --emerald-text: #047857;
-  --emerald-glow: rgba(5, 150, 105, 0.2);
-  --amber: #d97706;
-  --amber-text: #b45309;
-  --rose: #e11d48;
-  --rose-text: #be123c;
-  --purple: #9333ea;
-  --purple-text: #7e22ce;
-  --text-main: #0f172a;
-  --text-sub: #475569;
-  --text-muted: #94a3b8;
-  --sn-prefix: #64748b;
-  --sn-tail: #0f172a;
-}
+[data-theme="amber"] {
+  --bg-app: #0c0906;
+  --bg-Sidebar: #14100b;
+  --bg-canvas: #080604;
+  --surface-1: #1c1610;
+  --surface-2: #261e16;
+  --surface-hover: #30261c;
+  --border-dim: rgba(245, 158, 11, 0.12);
+  --border-mid: rgba(245, 158, 11, 0.28);
+  --border-focus: #fbbf24;
 
-[data-theme="gold"] {
-  --bg-base: #09090b;
-  --bg-mesh:
-    radial-gradient(at 10% 0%, rgba(245, 158, 11, 0.14) 0px, transparent 50%),
-    radial-gradient(at 90% 0%, rgba(16, 185, 129, 0.07) 0px, transparent 50%),
-    linear-gradient(180deg, #0c0c0e 0%, #050507 100%);
-  --card-bg: rgba(20, 20, 24, 0.85);
-  --card-bg-hover: rgba(28, 28, 34, 0.94);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-border-hover: rgba(245, 158, 11, 0.42);
-  --inner-glow: inset 0 1px 0 0 rgba(255, 255, 255, 0.09);
-  --shadow-elevated: 0 14px 36px -10px rgba(0, 0, 0, 0.8);
-  --input-bg: rgba(10, 10, 13, 0.92);
-  --table-bg: rgba(10, 10, 13, 0.6);
-  --th-bg: #141418;
-  --tr-even: rgba(255, 255, 255, 0.015);
-  --tr-hover: rgba(245, 158, 11, 0.08);
-  --modal-bg: #141418;
-  --brand-1: #f59e0b;
-  --brand-2: #d97706;
+  --brand: #f59e0b;
+  --brand-fg: #0c0802;
+  --brand-soft: rgba(245, 158, 11, 0.15);
+  --brand-glow: rgba(245, 158, 11, 0.32);
   --brand-text: #fcd34d;
-  --brand-glow: rgba(245, 158, 11, 0.3);
-  --emerald: #10b981;
-  --emerald-text: #34d399;
-  --emerald-glow: rgba(16, 185, 129, 0.3);
-  --amber: #f59e0b;
-  --amber-text: #fbbf24;
-  --rose: #f43f5e;
-  --rose-text: #fb7185;
-  --purple: #a855f7;
-  --purple-text: #c084fc;
-  --text-main: #fafafa;
-  --text-sub: #a1a1aa;
-  --text-muted: #52525b;
-  --sn-prefix: #71717a;
-  --sn-tail: #ffffff;
+
+  --ok: #10b981;
+  --ok-soft: rgba(16, 185, 129, 0.13);
+  --ok-text: #34d399;
+
+  --info: #fb923c;
+  --info-soft: rgba(251, 146, 60, 0.15);
+  --info-text: #fdba74;
+
+  --warn: #eab308;
+  --warn-soft: rgba(234, 179, 8, 0.14);
+  --warn-text: #fde047;
+
+  --danger: #f43f5e;
+  --danger-soft: rgba(244, 63, 94, 0.16);
+  --danger-text: #fb7185;
+
+  --night: #c084fc;
+  --night-soft: rgba(192, 132, 252, 0.14);
+  --night-text: #d8b4fe;
+
+  --text-1: #fef3c7;
+  --text-2: #a8a29e;
+  --text-3: #57534e;
+  --sn-dim: #78716c;
+  --sn-bright: #ffffff;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-html { height: 100%; }
-html, body { min-height: 100%; }
-body {
-  background-color: var(--bg-base);
-  background-image: var(--bg-mesh);
-  color: var(--text-main);
-  padding: 12px 20px;
-  display: flex;
-  flex-direction: column;
-  overflow-x: hidden;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  transition: background-color 0.3s ease, color 0.25s ease;
-}
-body.no-scroll { overflow: hidden !important; }
-@media(min-width: 900px) {
-  html, body { height: 100%; }
-  body { overflow: hidden; }
-  .app-shell { height: 100dvh; }
-}
+html, body { height: 100%; background: var(--bg-app); color: var(--text-1); overflow-x: hidden; transition: background 0.25s, color 0.2s; }
+.mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum"; }
+.display-font { font-family: 'Space Grotesk', sans-serif; }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: var(--brand-1); }
+::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--brand); }
 
-.mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: "tnum"; }
-.app-shell { max-width: 1660px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
-
-/* ===== BOOT OVERLAY ===== */
-.boot-overlay { position: fixed; inset: 0; background: var(--bg-base); z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; transition: opacity 0.45s ease; }
+/* ============================================================
+   BOOT OVERLAY
+   ============================================================ */
+.boot-overlay { position: fixed; inset: 0; background: var(--bg-app); z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; transition: opacity 0.4s ease; }
 .boot-overlay.hide { opacity: 0; pointer-events: none; }
-.boot-spinner { width: 52px; height: 52px; border: 3px solid var(--card-border); border-top-color: var(--brand-1); border-radius: 50%; animation: bootSpin 0.8s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite; box-shadow: 0 0 30px var(--brand-glow); }
-@keyframes bootSpin { to { transform: rotate(360deg); } }
-.boot-logo { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 26px; letter-spacing: 0.18em; color: var(--text-main); }
-.boot-text { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-sub); }
+.boot-spinner { width: 48px; height: 48px; border: 3px solid var(--border-dim); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.75s linear infinite; box-shadow: 0 0 25px var(--brand-glow); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.boot-logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 24px; letter-spacing: 0.22em; color: var(--text-1); }
+.boot-text { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-2); }
 
-/* ===== HEADER ===== */
-.hud-header {
-  position: relative; z-index: 60;
-  background: var(--card-bg);
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--card-border);
-  box-shadow: var(--inner-glow), var(--shadow-elevated);
-  border-radius: 16px;
-  padding: 9px 18px;
-  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+/* ============================================================
+   SPLIT-SCREEN WORKSTATION LAYOUT
+   ============================================================ */
+.workstation {
+  display: grid;
+  grid-template-columns: 390px 1fr;
+  height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
 }
-.brand-zone { display: flex; align-items: center; gap: 13px; }
-.brand-logo-box {
-  width: 40px; height: 40px; border-radius: 12px;
-  background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+@media (max-width: 1080px) {
+  html, body { height: auto; overflow-y: auto; }
+  .workstation { grid-template-columns: 1fr; height: auto; overflow: visible; }
+}
+
+/* ============================================================
+   ЛЕВАЯ КОМАНДНАЯ БАШНЯ (CONTROL TOWER)
+   ============================================================ */
+.control-tower {
+  background: var(--bg-Sidebar);
+  border-right: 1px solid var(--border-dim);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: visible;
+  z-index: 40;
+}
+
+.tower-brand {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding-bottom: 10px; border-bottom: 1px solid var(--border-dim);
+}
+.brand-left { display: flex; align-items: center; gap: 11px; }
+.brand-cube {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: var(--brand); color: var(--brand-fg);
+  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px;
   display: flex; align-items: center; justify-content: center;
-  color: #fff; font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 16px;
-  box-shadow: 0 6px 18px var(--brand-glow), inset 0 1px 0 rgba(255,255,255,0.35);
-  cursor: pointer; user-select: none; transition: transform 0.2s ease;
+  box-shadow: 0 0 20px var(--brand-glow);
+  cursor: pointer; user-select: none; transition: transform 0.18s;
 }
-.brand-logo-box:hover { transform: scale(1.06) rotate(-2deg); }
-.brand-title h1 {
-  font-family: 'Outfit', sans-serif;
-  font-size: 18px; font-weight: 800; letter-spacing: -0.01em;
-  color: var(--text-main); display: flex; align-items: center; gap: 8px;
+.brand-cube:hover { transform: scale(1.06); }
+.brand-meta h1 { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 0.02em; display: flex; align-items: center; gap: 7px; }
+.v-tag { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; padding: 2px 6px; border-radius: 4px; background: var(--brand-soft); color: var(--brand-text); border: 1px solid var(--border-mid); }
+.brand-meta p { font-size: 10.5px; color: var(--text-2); margin-top: 1px; }
+
+/* Статус-бар смены и синхронизации в башне */
+.tower-status-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.shift-reactor {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 11px; border-radius: 10px; cursor: pointer; user-select: none;
+  border: 1px solid var(--border-dim); background: var(--surface-1);
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  transition: all 0.15s;
 }
-.version-pill {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px; font-weight: 800;
-  padding: 2px 8px; border-radius: 99px;
-  background: linear-gradient(90deg, rgba(217,70,239,0.16), rgba(99,102,241,0.16));
-  color: var(--brand-text); border: 1px solid var(--card-border-hover);
+.shift-reactor.day { border-color: rgba(245, 158, 11, 0.35); color: var(--warn-text); background: var(--warn-soft); }
+.shift-reactor.night { border-color: rgba(168, 85, 247, 0.35); color: var(--night-text); background: var(--night-soft); }
+.shift-reactor.manual { box-shadow: 0 0 12px var(--brand-glow); }
+.shift-reactor .badge-auto { font-size: 9px; padding: 2px 5px; border-radius: 4px; background: rgba(128,128,128,0.2); color: var(--text-1); }
+.shift-reactor .badge-manual { font-size: 9px; padding: 2px 5px; border-radius: 4px; background: var(--brand); color: var(--brand-fg); font-weight: 800; }
+
+.pill-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 700; padding: 7px 12px;
+  border-radius: 10px; cursor: pointer; user-select: none;
 }
-.brand-title p { font-size: 11px; color: var(--text-sub); margin-top: 1px; font-weight: 500; }
-
-.hud-actions { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-.theme-switcher { display: inline-flex; align-items: center; background: var(--input-bg); border: 1px solid var(--card-border); padding: 3px; border-radius: 11px; gap: 2px; }
-.t-btn { border: none; background: transparent; color: var(--text-sub); font-size: 11px; font-weight: 700; padding: 5px 9px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.18s ease; }
-.t-btn:hover { color: var(--text-main); }
-.t-btn.active { background: linear-gradient(135deg, var(--brand-1), var(--brand-2)); color: #fff; box-shadow: 0 2px 10px var(--brand-glow); }
-
-.shift-pill { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 11px; font-size: 11px; font-weight: 700; cursor: pointer; user-select: none; transition: all 0.18s; border: 1px solid; font-family: 'JetBrains Mono', monospace; }
-.shift-pill.day { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.35); color: var(--amber-text); }
-.shift-pill.night { background: rgba(168,85,247,0.12); border-color: rgba(168,85,247,0.35); color: var(--purple-text); }
-.shift-pill.manual { box-shadow: 0 0 12px var(--brand-glow); }
-.shift-pill .t { opacity: 0.85; font-weight: 600; }
-.shift-pill:hover { transform: translateY(-1px); filter: brightness(1.1); }
-.shift-pill .badge-auto { font-size: 9px; opacity: 0.75; padding: 2px 5px; border-radius: 5px; background: rgba(128,128,128,0.15); }
-.shift-pill .badge-manual { font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 5px; background: var(--brand-1); color: #fff; }
-
-.pill-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 11px; cursor: pointer; user-select: none; transition: all 0.2s ease; }
-.pill-online { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.35); color: var(--emerald-text); }
-.pill-offline { background: rgba(244,63,94,0.12); border: 1px solid rgba(244,63,94,0.35); color: var(--rose-text); }
-.pill-busy { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.35); color: var(--amber-text); }
+.pill-online { background: var(--ok-soft); border: 1px solid rgba(0, 229, 153, 0.35); color: var(--ok-text); }
+.pill-offline { background: var(--danger-soft); border: 1px solid rgba(255, 51, 102, 0.4); color: var(--danger-text); }
+.pill-busy { background: var(--warn-soft); border: 1px solid rgba(245, 158, 11, 0.4); color: var(--warn-text); }
 .dot-ping { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
 .pill-busy .dot-ping { animation: pulse 1.2s infinite; }
-@keyframes pulse { 50% { opacity: 0.3; } }
+@keyframes pulse { 50% { opacity: 0.25; } }
 
-.btn-hud { background: var(--input-bg); border: 1px solid var(--card-border); color: var(--text-main); padding: 6.5px 12px; border-radius: 11px; font-size: 11px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.18s ease; justify-content: center; position: relative; }
-.btn-hud:hover { border-color: var(--brand-1); box-shadow: 0 4px 14px var(--brand-glow); transform: translateY(-1px); }
-.btn-debt { position: relative; border-color: rgba(244,63,94,0.4); color: var(--rose-text); }
-.btn-debt.has-debts { background: rgba(244,63,94,0.14); animation: debtPulse 1.8s ease-in-out infinite; }
-@keyframes debtPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(244,63,94,0.5); } 50% { box-shadow: 0 0 0 8px rgba(244,63,94,0); } }
-.debt-badge { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 99px; background: var(--rose); color: #fff; font-size: 10.5px; font-weight: 800; font-family: 'JetBrains Mono', monospace; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(244,63,94,0.6); border: 2px solid var(--bg-base); }
-.debt-badge.show { display: inline-flex; }
-
-/* ===== KPI METRICS С КРУГОВЫМИ ДИАГРАММАМИ ===== */
-.metrics-grid { position: relative; z-index: 20; display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
-@media(max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(3, 1fr); } }
-@media(max-width: 600px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
-
-.kpi-card {
-  position: relative; background: var(--card-bg);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--card-border);
-  box-shadow: var(--inner-glow), var(--shadow-elevated);
-  border-radius: 15px; padding: 11px 14px; cursor: pointer;
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  overflow: hidden; transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+/* ТЕРМИНАЛЬНЫЕ МОДУЛИ ВЫДАЧИ И ПРИЁМА */
+.op-module {
+  position: relative;
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: 14px;
+  padding: 13px 14px;
+  display: flex; flex-direction: column;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.kpi-card::before {
-  content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
-  background: var(--kpi-color, var(--brand-1)); opacity: 0.45; transition: opacity 0.2s, width 0.2s;
-}
-.kpi-card:hover { transform: translateY(-2px); background: var(--card-bg-hover); border-color: var(--card-border-hover); }
-.kpi-card.active {
-  border-color: var(--kpi-color, var(--brand-1));
-  box-shadow: var(--inner-glow), 0 10px 26px -8px var(--brand-glow);
-}
-.kpi-card.active::before { opacity: 1; width: 5px; }
+.op-module.issue-mod { border-left: 3px solid var(--brand); }
+.op-module.return-mod { border-left: 3px solid var(--ok); }
+.op-module.issue-mod:focus-within { border-color: var(--brand); box-shadow: 0 8px 28px -8px var(--brand-glow); }
+.op-module.return-mod:focus-within { border-color: var(--ok); box-shadow: 0 8px 28px -8px rgba(0, 229, 153, 0.25); }
 
-.kpi-info { display: flex; flex-direction: column; min-width: 0; padding-left: 4px; }
-.kpi-label { font-size: 9.5px; font-weight: 800; color: var(--text-sub); letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
-.kpi-val-row { display: flex; align-items: baseline; gap: 6px; margin-top: 3px; }
-.kpi-value { font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; color: var(--text-main); line-height: 1; }
-.kpi-sub { font-size: 10px; font-weight: 700; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
-
-.kpi-ring-wrap { position: relative; width: 40px; height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-.kpi-ring-svg { width: 40px; height: 40px; transform: rotate(-90deg); }
-.kpi-ring-bg { fill: none; stroke: var(--card-border); stroke-width: 3.5; }
-.kpi-ring-fg { fill: none; stroke: var(--kpi-color, var(--brand-1)); stroke-width: 3.5; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
-.kpi-ring-icon { position: absolute; font-size: 14px; line-height: 1; }
-
-/* ===== ПАНЕЛЬ ТЕЛЕМЕТРИИ И ЖИВОЙ ТИКЕР ОПЕРАЦИЙ ===== */
-.telemetry-strip {
-  position: relative; z-index: 19;
-  background: var(--card-bg);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--card-border);
-  border-radius: 13px;
-  padding: 7px 14px;
-  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
-}
-.telemetry-bar-zone { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 240px; }
-.telemetry-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-sub); white-space: nowrap; }
-.cap-track { flex: 1; height: 7px; background: var(--input-bg); border-radius: 99px; overflow: hidden; display: flex; gap: 2px; border: 1px solid var(--card-border); }
-.cap-seg { height: 100%; transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 99px; }
-.cap-free { background: var(--emerald); }
-.cap-day { background: var(--amber); }
-.cap-night { background: var(--purple); }
-.cap-over { background: var(--rose); }
-
-.live-ticker { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.ticker-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 3px 9px; border-radius: 99px;
-  font-size: 10.5px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
-  background: var(--input-bg); border: 1px solid var(--card-border);
-  color: var(--text-sub); cursor: pointer; transition: all 0.15s;
-}
-.ticker-chip:hover { border-color: var(--brand-1); color: var(--text-main); transform: translateY(-1px); }
-.ticker-chip.t-iss { border-color: rgba(217, 70, 239, 0.35); color: var(--brand-text); }
-.ticker-chip.t-ret { border-color: rgba(16, 185, 129, 0.35); color: var(--emerald-text); }
-.ticker-chip.t-swp { border-color: rgba(245, 158, 11, 0.4); color: var(--amber-text); }
-
-/* ===== DEBT ALERT BAR ===== */
-.debt-alert-bar { display: none; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 16px; background: linear-gradient(90deg, rgba(244,63,94,0.20) 0%, rgba(244,63,94,0.08) 100%); border: 1px solid rgba(244,63,94,0.5); border-radius: 14px; box-shadow: 0 0 24px rgba(244,63,94,0.18), var(--inner-glow); animation: alertSlide 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; z-index: 55; }
-.debt-alert-bar.show { display: flex; }
-@keyframes alertSlide { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
-.debt-alert-icon { width: 32px; height: 32px; border-radius: 9px; background: rgba(244,63,94,0.3); border: 1px solid var(--rose); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; animation: alertShake 1.5s ease-in-out infinite; }
-@keyframes alertShake { 0%, 100% { transform: rotate(0); } 20%, 60% { transform: rotate(-8deg); } 40%, 80% { transform: rotate(8deg); } }
-.debt-alert-body { flex: 1; min-width: 0; line-height: 1.3; }
-.debt-alert-body b { color: var(--rose-text); font-size: 12.5px; font-weight: 800; display: block; margin-bottom: 2px; }
-.debt-alert-body p { color: var(--text-sub); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.debt-alert-actions { display: flex; gap: 6px; flex-shrink: 0; }
-.debt-alert-btn { padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; transition: all 0.15s; border: 1px solid rgba(244,63,94,0.6); background: rgba(244,63,94,0.2); color: var(--rose-text); white-space: nowrap; }
-.debt-alert-btn:hover { background: var(--rose); color: #fff; }
-.debt-alert-close { padding: 6px 10px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid var(--card-border); background: var(--input-bg); color: var(--text-sub); transition: all 0.15s; }
-.debt-alert-close:hover { color: var(--text-main); border-color: var(--card-border-hover); }
-
-/* ===== TERMINAL DECKS (2 ПОСТА) ===== */
-.terminal-grid { position: relative; z-index: 50; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-@media(max-width: 850px) { .terminal-grid { grid-template-columns: 1fr; } }
-.deck-card {
-  position: relative; background: var(--card-bg);
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-  border: 1px solid var(--card-border);
-  box-shadow: var(--inner-glow), var(--shadow-elevated);
-  border-radius: 16px; padding: 14px 18px;
-  display: flex; flex-direction: column; overflow: visible;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
-}
-.deck-card.issue-deck { border-top: 3px solid var(--brand-1); }
-.deck-card.return-deck { border-top: 3px solid var(--emerald); }
-.deck-card.issue-deck:focus-within { border-color: var(--card-border-hover); box-shadow: var(--inner-glow), 0 14px 36px -10px var(--brand-glow); }
-.deck-card.return-deck:focus-within { border-color: rgba(16,185,129,0.45); box-shadow: var(--inner-glow), 0 14px 36px -10px var(--emerald-glow); }
-
-.deck-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 7px; border-bottom: 1px solid var(--card-border); gap: 8px; flex-wrap: wrap; }
-.deck-title { font-family: 'Outfit', sans-serif; font-size: 13.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 9px; }
-.deck-step-badge { width: 23px; height: 23px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; font-size: 11.5px; font-weight: 900; color: #fff; background: linear-gradient(135deg, var(--brand-1), var(--brand-2)); box-shadow: 0 3px 10px var(--brand-glow); }
-.return-deck .deck-step-badge { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 3px 10px var(--emerald-glow); }
-.deck-badge-key { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); }
+.op-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; }
+.op-title { font-family: 'Space Grotesk', sans-serif; font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 7px; }
+.op-tag { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border-dim); }
 
 .hud-group { position: relative; margin-bottom: 8px; }
-.hud-label { display: block; font-size: 10px; font-weight: 700; color: var(--text-sub); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
-.hud-input { width: 100%; background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 11px; padding: 10px 14px; color: var(--text-main); font-size: 14px; font-weight: 600; outline: none; transition: all 0.2s ease; }
-.hud-input::placeholder { color: var(--text-muted); font-weight: 500; }
-.hud-input:focus { border-color: var(--brand-1); box-shadow: 0 0 0 3px var(--brand-glow); }
-.return-deck .hud-input:focus { border-color: var(--emerald); box-shadow: 0 0 0 3px var(--emerald-glow); }
-.hud-input.err { border-color: var(--rose) !important; box-shadow: 0 0 0 3px rgba(244,63,94,0.25) !important; }
-.hud-input.warn-busy { border-color: var(--amber) !important; box-shadow: 0 0 0 3px rgba(245,158,11,0.22) !important; }
-
-.sn-live-banner { display: none; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; padding: 7px 12px; border-radius: 10px; font-size: 11.5px; line-height: 1.3; animation: bannerSlide 0.18s ease-out; }
-@keyframes bannerSlide { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
-.sn-live-banner.show { display: flex; }
-.sn-live-banner.busy { background: rgba(244,63,94,0.12); border: 1px solid rgba(244,63,94,0.45); color: var(--rose-text); }
-.sn-live-banner.free { background: rgba(16,185,129,0.11); border: 1px solid rgba(16,185,129,0.35); color: var(--emerald-text); }
-.sn-live-banner.new-sn { background: rgba(217,70,239,0.11); border: 1px solid rgba(217,70,239,0.35); color: var(--brand-text); }
-.banner-btn-act { padding: 5px 10px; border-radius: 7px; font-size: 11px; font-weight: 800; cursor: pointer; border: 1px solid rgba(16,185,129,0.5); background: rgba(16,185,129,0.2); color: var(--emerald-text); white-space: nowrap; transition: all 0.15s; }
-.banner-btn-act:hover { background: var(--emerald); color: #fff; }
-
-.btn-submit { width: 100%; padding: 11px; border-radius: 11px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; border: none; cursor: pointer; transition: all 0.2s ease; position: relative; }
-.deck-card .btn-submit { margin-top: auto; }
-.btn-submit.busy { opacity: 0.65; pointer-events: none; }
-.btn-submit.busy::after { content: ''; position: absolute; right: 14px; top: 50%; margin-top: -7px; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.btn-issue { background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 8px 20px -4px var(--brand-glow); }
-.btn-issue:hover { filter: brightness(1.1); transform: translateY(-1px); }
-.btn-return-action { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 8px 20px -4px var(--emerald-glow); }
-.btn-return-action:hover { filter: brightness(1.1); transform: translateY(-1px); }
-
-.drop-box { position: absolute; top: calc(100% + 5px); left: 0; right: 0; background: var(--modal-bg); border: 1px solid var(--brand-1); border-radius: 12px; max-height: 240px; overflow-y: auto; z-index: 9999; box-shadow: 0 20px 50px rgba(0,0,0,0.75); display: none; }
-.drop-box.show { display: block; }
-.drop-item { padding: 9.5px 14px; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 12.5px; color: var(--text-main); transition: background 0.12s; gap: 10px; }
-.drop-item:last-child { border-bottom: none; }
-.drop-item:hover, .drop-item.selected { background: var(--tr-hover); }
-
-/* ===== РЕЕСТР ОБОРУДОВАНИЯ ===== */
-.registry-deck { position: relative; z-index: 10; background: var(--card-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--card-border); box-shadow: var(--inner-glow), var(--shadow-elevated); border-radius: 16px; padding: 11px 18px; display: flex; flex-direction: column; flex: 1; min-height: 300px; }
-.reg-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; flex-wrap: wrap; gap: 10px; }
-.model-filter-group { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-.mf-chip {
-  background: var(--input-bg); border: 1px solid var(--card-border);
-  color: var(--text-sub); font-size: 11px; font-weight: 700;
-  padding: 4.5px 10px; border-radius: 8px; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s;
+.hud-label { display: block; font-size: 9.5px; font-weight: 800; color: var(--text-2); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+.hud-input {
+  width: 100%; background: var(--bg-canvas); border: 1px solid var(--border-mid);
+  border-radius: 9px; padding: 9.5px 12px; color: var(--text-1);
+  font-size: 13.5px; font-weight: 600; outline: none; transition: all 0.18s;
 }
-.mf-chip:hover { color: var(--text-main); border-color: var(--card-border-hover); }
-.mf-chip.active { background: linear-gradient(135deg, var(--brand-1), var(--brand-2)); color: #fff; border-color: transparent; box-shadow: 0 2px 10px var(--brand-glow); }
-.mf-cnt { font-family: 'JetBrains Mono', monospace; font-size: 10px; opacity: 0.8; }
+.hud-input::placeholder { color: var(--text-3); font-weight: 500; }
+.hud-input:focus { border-color: var(--brand); box-shadow: 0 0 0 2px var(--brand-soft); }
+.return-mod .hud-input:focus { border-color: var(--ok); box-shadow: 0 0 0 2px var(--ok-soft); }
+.hud-input.err { border-color: var(--danger) !important; box-shadow: 0 0 0 2px var(--danger-soft) !important; }
+.hud-input.warn-busy { border-color: var(--warn) !important; box-shadow: 0 0 0 2px var(--warn-soft) !important; }
 
-.reg-stats { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-sub); font-weight: 600; background: var(--input-bg); padding: 5.5px 11px; border-radius: 9px; border: 1px solid var(--card-border); }
-.reg-wrap { overflow-y: auto; flex: 1; border-radius: 12px; border: 1px solid var(--card-border); min-height: 0; background: var(--table-bg); }
+/* Живой радар занятости под полем серийника */
+.sn-live-banner {
+  display: none; align-items: center; justify-content: space-between; gap: 8px;
+  margin-top: 6px; padding: 7px 10px; border-radius: 8px; font-size: 11px; line-height: 1.3;
+}
+.sn-live-banner.show { display: flex; }
+.sn-live-banner.busy { background: var(--danger-soft); border: 1px solid var(--danger); color: var(--danger-text); }
+.sn-live-banner.free { background: var(--ok-soft); border: 1px solid var(--ok); color: var(--ok-text); }
+.sn-live-banner.new-sn { background: var(--brand-soft); border: 1px solid var(--brand); color: var(--brand-text); }
+.banner-btn-act {
+  padding: 4px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 800;
+  cursor: pointer; border: 1px solid var(--ok); background: var(--ok); color: #04120c; white-space: nowrap;
+}
+
+.btn-submit {
+  width: 100%; padding: 10.5px; border-radius: 9px; font-size: 11.5px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.06em; border: none; cursor: pointer;
+  transition: all 0.18s; position: relative;
+}
+.btn-submit.busy { opacity: 0.65; pointer-events: none; }
+.btn-issue { background: var(--brand); color: var(--brand-fg); box-shadow: 0 4px 16px var(--brand-glow); }
+.btn-issue:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.btn-return-action { background: var(--ok); color: #04120c; box-shadow: 0 4px 16px rgba(0, 229, 153, 0.28); }
+.btn-return-action:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
+/* Выпадающие подсказки */
+.drop-box {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+  background: var(--surface-2); border: 1px solid var(--brand);
+  border-radius: 10px; max-height: 220px; overflow-y: auto;
+  z-index: 9999; box-shadow: var(--shadow-lg); display: none;
+}
+.drop-box.show { display: block; }
+.drop-item {
+  padding: 8px 12px; border-bottom: 1px solid var(--border-dim);
+  display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer; font-size: 12px; color: var(--text-1); gap: 8px;
+}
+.drop-item:last-child { border-bottom: none; }
+.drop-item:hover, .drop-item.selected { background: var(--brand-soft); }
+
+/* Нижний блок утилит и тем в левой башне */
+.tower-footer { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border-dim); }
+.tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.btn-hud {
+  background: var(--surface-1); border: 1px solid var(--border-dim);
+  color: var(--text-1); padding: 7px 10px; border-radius: 8px;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  transition: all 0.15s; position: relative;
+}
+.btn-hud:hover { border-color: var(--brand); background: var(--surface-hover); }
+.btn-debt { border-color: rgba(255, 51, 102, 0.4); color: var(--danger-text); }
+.btn-debt.has-debts { background: var(--danger-soft); animation: debtPulse 1.8s infinite; }
+@keyframes debtPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,51,102,0.45); } 50% { box-shadow: 0 0 0 6px rgba(255,51,102,0); } }
+.debt-badge {
+  padding: 1px 6px; border-radius: 99px; background: var(--danger); color: #fff;
+  font-size: 10px; font-weight: 800; font-family: 'JetBrains Mono', monospace; display: none;
+}
+.debt-badge.show { display: inline-block; }
+
+.theme-bar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: var(--bg-canvas); padding: 3px; border-radius: 9px; border: 1px solid var(--border-dim); }
+.t-btn {
+  border: none; background: transparent; color: var(--text-2);
+  font-size: 10px; font-weight: 700; padding: 5px 2px; border-radius: 6px;
+  cursor: pointer; text-align: center; transition: all 0.15s;
+}
+.t-btn:hover { color: var(--text-1); }
+.t-btn.active { background: var(--brand); color: var(--brand-fg); font-weight: 800; }
+
+/* ============================================================
+   ПРАВЫЙ ХОЛСТ ДАННЫХ (MAIN WORKSPACE CANVAS)
+   ============================================================ */
+.main-canvas {
+  background: var(--bg-canvas);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* BENTO-ПАНЕЛЬ ТЕЛЕМЕТРИИ И KPI */
+.bento-telemetry {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-dim);
+  border-radius: 14px;
+  padding: 10px 14px;
+  align-items: center;
+}
+@media (max-width: 1280px) { .bento-telemetry { grid-template-columns: 1fr; } }
+
+.donut-box {
+  display: flex; align-items: center; gap: 12px;
+  padding-right: 14px; border-right: 1px solid var(--border-dim);
+}
+.donut-svg { width: 54px; height: 54px; transform: rotate(-90deg); }
+.donut-bg { fill: none; stroke: var(--surface-2); stroke-width: 5; }
+.donut-fg { fill: none; stroke: var(--ok); stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
+.donut-meta .d-title { font-size: 9.5px; font-weight: 800; text-transform: uppercase; color: var(--text-2); letter-spacing: 0.05em; }
+.donut-meta .d-val { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-1); line-height: 1.1; }
+.donut-meta .d-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-2); }
+
+.kpi-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+@media (max-width: 900px) { .kpi-strip { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 550px) { .kpi-strip { grid-template-columns: repeat(2, 1fr); } }
+
+.kpi-card {
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-dim);
+  border-radius: 10px;
+  padding: 8px 11px;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex; flex-direction: column; justify-content: space-between;
+}
+.kpi-card:hover { border-color: var(--border-mid); background: var(--surface-2); transform: translateY(-1px); }
+.kpi-card.active {
+  border-color: var(--kpi-c, var(--brand));
+  background: var(--surface-2);
+  box-shadow: 0 3px 0 0 var(--kpi-c, var(--brand)) inset;
+}
+.kpi-top { display: flex; justify-content: space-between; align-items: center; font-size: 9.5px; font-weight: 800; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.04em; }
+.kpi-num-row { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; }
+.kpi-num { font-family: 'Space Grotesk', sans-serif; font-size: 21px; font-weight: 700; line-height: 1; }
+.kpi-pct { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-3); }
+
+/* Алерт новых должников */
+.debt-alert-bar {
+  display: none; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 9px 14px; background: var(--danger-soft); border: 1px solid var(--danger);
+  border-radius: 12px;
+}
+.debt-alert-bar.show { display: flex; }
+.debt-alert-body { flex: 1; min-width: 0; font-size: 12px; }
+.debt-alert-body b { color: var(--danger-text); margin-right: 6px; }
+.debt-alert-body p { display: inline; color: var(--text-2); }
+
+/* ПАНЕЛЬ ИНСТРУМЕНТОВ РЕЕСТРА (TOOLBAR) */
+.canvas-toolbar {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: var(--surface-1); border: 1px solid var(--border-dim);
+  border-radius: 12px; padding: 7px 12px;
+}
+.toolbar-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.view-toggle { display: inline-flex; background: var(--bg-canvas); padding: 2.5px; border-radius: 8px; border: 1px solid var(--border-dim); }
+.v-mode-btn {
+  border: none; background: transparent; color: var(--text-2);
+  font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 6px;
+  cursor: pointer; transition: all 0.15s;
+}
+.v-mode-btn.active { background: var(--brand); color: var(--brand-fg); font-weight: 800; }
+
+.mf-group { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.mf-pill {
+  border: 1px solid var(--border-dim); background: var(--bg-canvas); color: var(--text-2);
+  font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 7px; cursor: pointer; transition: all 0.15s;
+}
+.mf-pill:hover { color: var(--text-1); }
+.mf-pill.active { border-color: var(--brand); color: var(--brand-text); background: var(--brand-soft); }
+
+.toolbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.reg-stats { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: var(--text-2); }
 .search-wrap { position: relative; display: inline-flex; align-items: center; }
-.search-clear-btn { position: absolute; right: 8px; background: transparent; border: none; color: var(--text-sub); font-size: 14px; cursor: pointer; display: none; padding: 2px 4px; border-radius: 4px; }
-.search-clear-btn:hover { color: var(--text-main); }
+.search-clear-btn { position: absolute; right: 8px; background: transparent; border: none; color: var(--text-2); font-size: 13px; cursor: pointer; display: none; }
 .search-wrap.has-val .search-clear-btn { display: block; }
 
+/* ОБЛАСТЬ ДАННЫХ (ТАБЛИЦА + МАТРИЦА СЛОТОВ) */
+.viewport-box {
+  flex: 1; min-height: 300px; overflow-y: auto;
+  background: var(--surface-1); border: 1px solid var(--border-dim);
+  border-radius: 14px; position: relative;
+}
+
 table { width: 100%; border-collapse: collapse; font-size: 12.5px; table-layout: fixed; }
-th { background: var(--th-bg); font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--text-sub); letter-spacing: 0.08em; position: sticky; top: 0; z-index: 2; padding: 10.5px 16px; border-bottom: 1px solid var(--card-border); text-align: left; vertical-align: middle; user-select: none; }
-th.sortable { cursor: pointer; transition: color 0.15s; }
-th.sortable:hover { color: var(--text-main); }
-th .sort-ind { font-size: 10px; margin-left: 4px; color: var(--brand-text); }
-
-td { padding: 7.5px 16px; border-bottom: 1px solid var(--card-border); text-align: left; vertical-align: middle; line-height: 1.3; color: var(--text-main); }
-tbody tr { height: 41px; transition: background 0.14s ease; }
-tbody tr:nth-child(even) { background: var(--tr-even); }
-tbody tr:hover { background: var(--tr-hover); }
-tbody tr:hover td:first-child { box-shadow: 3px 0 0 0 var(--brand-1) inset; }
-tbody tr.row-overdue { background: rgba(244,63,94,0.10); }
-tbody tr.row-overdue:hover { background: rgba(244,63,94,0.16); }
-tbody tr.row-overdue td:first-child { box-shadow: 3px 0 0 0 var(--rose) inset; }
+th {
+  background: var(--surface-2); font-size: 10px; font-weight: 800; text-transform: uppercase;
+  color: var(--text-2); letter-spacing: 0.07em; position: sticky; top: 0; z-index: 5;
+  padding: 10px 14px; border-bottom: 1px solid var(--border-dim); text-align: left; cursor: pointer; user-select: none;
+}
+th:hover { color: var(--text-1); }
+td { padding: 7.5px 14px; border-bottom: 1px solid var(--border-dim); vertical-align: middle; color: var(--text-1); }
+tbody tr { height: 40px; transition: background 0.12s; }
+tbody tr:nth-child(even) { background: rgba(255,255,255,0.012); }
+tbody tr:hover { background: var(--surface-hover); }
+tbody tr:hover td:first-child { box-shadow: 3px 0 0 0 var(--brand) inset; }
+tbody tr.row-overdue { background: var(--danger-soft); }
+tbody tr.row-overdue td:first-child { box-shadow: 3px 0 0 0 var(--danger) inset; }
 tbody tr.row-just-overdue { animation: justOverdue 2.4s ease-out 3; }
-@keyframes justOverdue { 0% { background: rgba(244,63,94,0.55); box-shadow: 0 0 20px rgba(244,63,94,0.6) inset; } 100% { background: rgba(244,63,94,0.10); } }
-tbody tr.just-returned { animation: glow-green 2.5s ease-out; }
-@keyframes glow-green { 0% { background: rgba(16,185,129,0.45); } 100% { background: transparent; } }
-tbody tr.just-issued { animation: glow-blue 2.5s ease-out; }
-@keyframes glow-blue { 0% { background: var(--brand-glow); } 100% { background: transparent; } }
+@keyframes justOverdue { 0% { background: rgba(255,51,102,0.5); } 100% { background: var(--danger-soft); } }
+tbody tr.just-returned { animation: glow-green 2.2s ease-out; }
+@keyframes glow-green { 0% { background: rgba(0,229,153,0.4); } 100% { background: transparent; } }
+tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
+@keyframes glow-blue { 0% { background: var(--brand-soft); } 100% { background: transparent; } }
 
-.sn-link { cursor: pointer; display: inline-flex; align-items: baseline; padding: 3px 9px; border-radius: 7px; background: var(--input-bg); border: 1px solid var(--card-border); transition: all 0.15s ease; }
-.sn-prefix { color: var(--sn-prefix); font-weight: 500; font-size: 12px; }
-.sn-tail { color: var(--sn-tail); font-weight: 800; font-size: 13.5px; letter-spacing: 0.01em; }
-.sn-link:hover { border-color: var(--brand-1); box-shadow: 0 0 12px var(--brand-glow); transform: translateX(2px); }
+/* РЕЖИМ 2: МАТРИЦА СЛОТОВ (СТОЙКА ТСД) */
+.matrix-grid {
+  display: none;
+  grid-template-columns: repeat(auto-fill, minmax(142px, 1fr));
+  gap: 8px; padding: 12px;
+}
+.matrix-grid.show { display: grid; }
+.slot-card {
+  background: var(--bg-canvas); border: 1px solid var(--border-dim);
+  border-radius: 10px; padding: 9px 10px; cursor: pointer;
+  display: flex; flex-direction: column; justify-content: space-between;
+  min-height: 82px; position: relative; overflow: hidden; transition: all 0.15s;
+}
+.slot-card:hover { transform: translateY(-2px); border-color: var(--brand); }
+.slot-card.s-free { border-left: 3px solid var(--ok); }
+.slot-card.s-busy { border-left: 3px solid var(--info); }
+.slot-card.s-over { border-color: var(--danger); background: var(--danger-soft); border-left: 3px solid var(--danger); }
+.slot-top { display: flex; justify-content: space-between; align-items: center; font-size: 9.5px; font-weight: 700; color: var(--text-2); }
+.slot-tail { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; color: var(--sn-bright); letter-spacing: -0.02em; margin: 2px 0; }
+.slot-prefix { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--sn-dim); display: block; }
+.slot-foot { display: flex; justify-content: space-between; align-items: center; font-size: 10.5px; font-family: 'JetBrains Mono', monospace; margin-top: 3px; }
+.slot-holder { font-weight: 700; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85px; }
 
-.model-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 7px; font-size: 11px; font-weight: 700; background: var(--input-bg); color: var(--text-sub); border: 1px solid var(--card-border); }
-.model-pill.zebra { color: var(--brand-text); border-color: rgba(217,70,239,0.28); background: rgba(217,70,239,0.08); }
-.model-pill.pm { color: var(--text-sub); }
-.model-pill.tab { color: var(--purple-text); border-color: rgba(168,85,247,0.28); background: rgba(168,85,247,0.08); }
+/* Элементы строк таблицы */
+.sn-link {
+  cursor: pointer; display: inline-flex; align-items: baseline;
+  padding: 3px 8px; border-radius: 6px;
+  background: var(--bg-canvas); border: 1px solid var(--border-dim);
+  transition: all 0.15s;
+}
+.sn-prefix { color: var(--sn-dim); font-size: 11.5px; }
+.sn-tail { color: var(--sn-bright); font-weight: 800; font-size: 13.5px; }
+.sn-link:hover { border-color: var(--brand); transform: translateX(2px); }
 
-.holder-pill { display: inline-flex; align-items: center; gap: 7px; padding: 2.5px 10px 2.5px 4px; border-radius: 99px; background: var(--input-bg); border: 1px solid var(--card-border); color: var(--text-main); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: border-color 0.15s; }
-.holder-pill:hover { border-color: var(--brand-1); }
-.holder-avatar { width: 21px; height: 21px; border-radius: 50%; background: linear-gradient(135deg, var(--brand-1), var(--brand-2)); color: #fff; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
+.model-pill { display: inline-block; padding: 2.5px 8px; border-radius: 6px; font-size: 10.5px; font-weight: 700; background: var(--bg-canvas); color: var(--text-2); border: 1px solid var(--border-dim); }
+.model-pill.zebra { color: var(--info-text); border-color: rgba(56,189,248,0.28); background: var(--info-soft); }
+.model-pill.tab { color: var(--night-text); border-color: rgba(168,85,247,0.28); background: var(--night-soft); }
 
-.badge-chip { display: inline-block; padding: 3.5px 9px; border-radius: 7px; font-size: 10px; font-weight: 800; user-select: none; vertical-align: middle; letter-spacing: 0.02em; }
-.chip-free { background: rgba(16,185,129,0.13); color: var(--emerald-text); border: 1px solid rgba(16,185,129,0.32); }
-.chip-busy { background: rgba(217,70,239,0.13); color: var(--brand-text); border: 1px solid rgba(217,70,239,0.32); }
-.chip-over { background: rgba(244,63,94,0.2); color: var(--rose-text); border: 1px solid rgba(244,63,94,0.6); box-shadow: 0 0 12px rgba(244,63,94,0.25); }
-.chip-day { background: rgba(245,158,11,0.13); color: var(--amber-text); border: 1px solid rgba(245,158,11,0.32); }
-.chip-night { background: rgba(168,85,247,0.14); color: var(--purple-text); border: 1px solid rgba(168,85,247,0.32); }
+.holder-pill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px 2px 3px; border-radius: 99px; background: var(--bg-canvas); border: 1px solid var(--border-dim); color: var(--text-1); font-size: 12px; font-weight: 700; cursor: pointer; }
+.holder-pill:hover { border-color: var(--brand); }
+.holder-avatar { width: 20px; height: 20px; border-radius: 50%; background: var(--brand); color: var(--brand-fg); font-size: 9.5px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
 
-.time-inline { display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; font-family: 'JetBrains Mono', monospace; vertical-align: middle; }
-.time-inline .val { font-size: 13.5px; font-weight: 800; letter-spacing: -0.02em; min-width: 68px; text-align: right; }
-.time-inline .val.fresh { color: var(--emerald-text); }
-.time-inline .val.mid { color: var(--amber-text); }
-.time-inline .val.late { color: #f97316; }
-.time-inline .val.over { color: var(--rose-text); }
-.time-inline .val.empty { color: var(--text-muted); font-weight: 500; font-size: 12px; }
-.time-inline .bar { width: 64px; height: 5px; background: var(--card-border); border-radius: 99px; overflow: hidden; flex-shrink: 0; }
-.time-inline .bar-fill { height: 100%; border-radius: 99px; display: block; }
-.time-inline .bar-fill.fresh { background: #10b981; }
-.time-inline .bar-fill.mid { background: #f59e0b; }
-.time-inline .bar-fill.late { background: #f97316; }
-.time-inline .bar-fill.over { background: #f43f5e; }
-.time-inline .bar-fill.zero { background: transparent; }
-.time-inline .inherit-mark { font-size: 12px; color: var(--brand-text); cursor: help; margin-left: -2px; }
+.badge-chip { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; }
+.chip-free { background: var(--ok-soft); color: var(--ok-text); border: 1px solid rgba(0,229,153,0.3); }
+.chip-busy { background: var(--info-soft); color: var(--info-text); border: 1px solid rgba(56,189,248,0.3); }
+.chip-over { background: var(--danger-soft); color: var(--danger-text); border: 1px solid var(--danger); }
+.chip-day { background: var(--warn-soft); color: var(--warn-text); border: 1px solid rgba(245,158,11,0.3); }
+.chip-night { background: var(--night-soft); color: var(--night-text); border: 1px solid rgba(168,85,247,0.3); }
 
-.row-action-cell { opacity: 0.8; transition: opacity 0.18s ease; }
-tbody tr:hover .row-action-cell { opacity: 1; }
-@media(hover: none) { .row-action-cell { opacity: 1; } }
-.btn-row-return { background: rgba(16,185,129,0.15); color: var(--emerald-text); border: 1px solid rgba(16,185,129,0.38); padding: 5px 13px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
-.btn-row-return:hover { background: var(--emerald); color: #fff; border-color: var(--emerald); box-shadow: 0 4px 12px var(--emerald-glow); }
-.btn-row-issue { background: rgba(217,70,239,0.13); color: var(--brand-text); border: 1px solid rgba(217,70,239,0.35); padding: 5px 13px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
-.btn-row-issue:hover { background: var(--brand-1); color: #fff; border-color: var(--brand-1); box-shadow: 0 4px 12px var(--brand-glow); }
+.time-inline { display: inline-flex; align-items: center; justify-content: flex-end; gap: 9px; font-family: 'JetBrains Mono', monospace; }
+.time-inline .val { font-size: 13px; font-weight: 800; min-width: 64px; text-align: right; }
+.time-inline .val.fresh { color: var(--ok-text); }
+.time-inline .val.mid { color: var(--warn-text); }
+.time-inline .val.late { color: #fb923c; }
+.time-inline .val.over { color: var(--danger-text); }
+.time-inline .val.empty { color: var(--text-3); font-size: 12px; }
+.time-inline .bar { width: 56px; height: 5px; background: var(--border-dim); border-radius: 99px; overflow: hidden; }
+.time-inline .bar-fill { height: 100%; display: block; }
+.time-inline .bar-fill.fresh { background: var(--ok); }
+.time-inline .bar-fill.mid { background: var(--warn); }
+.time-inline .bar-fill.late { background: #fb923c; }
+.time-inline .bar-fill.over { background: var(--danger); }
 
-/* ===== TOAST, DRAWER & MODALS ===== */
-#toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-120px); background: var(--modal-bg); border: 1.5px solid var(--emerald); border-radius: 14px; padding: 14px 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 16px; z-index: 10000; opacity: 0; transition: all 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; max-width: 90vw; }
+.btn-row-return { background: var(--ok-soft); color: var(--ok-text); border: 1px solid rgba(0,229,153,0.4); padding: 4.5px 12px; border-radius: 7px; font-size: 11px; font-weight: 700; cursor: pointer; }
+.btn-row-return:hover { background: var(--ok); color: #04120c; }
+.btn-row-issue { background: var(--brand-soft); color: var(--brand-text); border: 1px solid var(--border-mid); padding: 4.5px 12px; border-radius: 7px; font-size: 11px; font-weight: 700; cursor: pointer; }
+.btn-row-issue:hover { background: var(--brand); color: var(--brand-fg); }
+
+.canvas-footer { display: flex; justify-content: space-between; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-2); padding: 2px 4px; }
+
+/* ============================================================
+   TOAST, DRAWER & MODALS
+   ============================================================ */
+#toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-130px); background: var(--surface-2); border: 1.5px solid var(--ok); border-radius: 12px; padding: 12px 20px; box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 14px; z-index: 10000; opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; max-width: 92vw; }
 #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
-#toast.err { border-color: var(--rose); }
-#toast.err .t-icon { background: rgba(244,63,94,0.18); border-color: var(--rose); color: var(--rose-text); }
-#toast.warn { border-color: var(--amber); }
-#toast.warn .t-icon { background: rgba(245,158,11,0.18); border-color: var(--amber); color: var(--amber-text); }
-.t-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(16,185,129,0.18); border: 1px solid var(--emerald); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--emerald-text); flex-shrink: 0; }
-.t-body h4 { font-size: 14px; font-weight: 800; color: var(--emerald-text); }
-#toast.err .t-body h4 { color: var(--rose-text); }
-#toast.warn .t-body h4 { color: var(--amber-text); }
-.t-body p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
-.t-undo { margin-left: 8px; padding: 6px 12px; background: var(--tr-hover); border: 1px solid var(--brand-1); color: var(--brand-text); border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all 0.15s; pointer-events: auto; white-space: nowrap; }
-.t-undo:hover { background: var(--brand-1); color: #fff; }
+#toast.err { border-color: var(--danger); }
+#toast.warn { border-color: var(--warn); }
+.t-icon { width: 34px; height: 34px; border-radius: 8px; background: var(--ok-soft); border: 1px solid var(--ok); display: flex; align-items: center; justify-content: center; font-size: 16px; color: var(--ok-text); flex-shrink: 0; }
+#toast.err .t-icon { background: var(--danger-soft); border-color: var(--danger); color: var(--danger-text); }
+#toast.warn .t-icon { background: var(--warn-soft); border-color: var(--warn); color: var(--warn-text); }
+.t-body h4 { font-size: 13.5px; font-weight: 800; color: var(--ok-text); }
+#toast.err .t-body h4 { color: var(--danger-text); }
+#toast.warn .t-body h4 { color: var(--warn-text); }
+.t-body p { font-size: 11.5px; color: var(--text-2); margin-top: 2px; }
+.t-undo { margin-left: 8px; padding: 5px 11px; background: var(--brand-soft); border: 1px solid var(--brand); color: var(--brand-text); border-radius: 7px; font-size: 11px; font-weight: 700; cursor: pointer; pointer-events: auto; white-space: nowrap; }
+.t-undo:hover { background: var(--brand); color: var(--brand-fg); }
 
-.audit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: none; z-index: 9998; opacity: 0; transition: opacity 0.25s ease; }
+.audit-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: none; z-index: 9998; opacity: 0; transition: opacity 0.25s; }
 .audit-overlay.show { display: block; opacity: 1; }
-.audit-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 440px; max-width: 90vw; background: var(--modal-bg); border-left: 1px solid var(--card-border-hover); box-shadow: -15px 0 40px rgba(0,0,0,0.6); z-index: 9999; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); padding: 22px; color: var(--text-main); }
+.audit-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 430px; max-width: 92vw; background: var(--bg-Sidebar); border-left: 1px solid var(--border-mid); box-shadow: var(--shadow-lg); z-index: 9999; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1); padding: 20px; }
 .audit-drawer.open { transform: translateX(0); }
-.audit-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 14px; border-bottom: 1px solid var(--card-border); margin-bottom: 14px; gap: 10px; }
-.audit-header h3 { font-size: 18px; font-weight: 800; color: var(--brand-text); word-break: break-all; }
-.barcode-card { background: var(--input-bg); border: 1px dashed var(--card-border-hover); border-radius: 11px; padding: 10px 14px; margin-bottom: 12px; text-align: center; }
-.barcode-bars { height: 28px; width: 100%; background: repeating-linear-gradient(90deg, var(--text-main) 0px, var(--text-main) 2px, transparent 2px, transparent 5px, var(--text-main) 5px, var(--text-main) 6px, transparent 6px, transparent 9px, var(--text-main) 9px, var(--text-main) 13px, transparent 13px, transparent 16px); opacity: 0.75; border-radius: 3px; }
-.audit-summary { background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 14px; margin-bottom: 16px; font-size: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.summary-item label { color: var(--text-muted); font-size: 10px; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 2px; }
-.summary-item b { color: var(--text-main); font-size: 13px; }
-.timeline-box { flex: 1; overflow-y: auto; padding-right: 4px; display: flex; flex-direction: column; gap: 12px; }
-.timeline-item { position: relative; padding-left: 20px; border-left: 2px solid var(--card-border-hover); }
-.timeline-dot { position: absolute; left: -6px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: var(--brand-1); }
-.timeline-item.return .timeline-dot { background: var(--emerald); }
-.timeline-time { font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
-.timeline-action { font-size: 12px; font-weight: 800; color: var(--text-main); margin-top: 1px; }
-.timeline-actor { font-size: 11.5px; color: var(--text-sub); margin-top: 2px; }
+.audit-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px; border-bottom: 1px solid var(--border-dim); margin-bottom: 12px; }
+.audit-header h3 { font-size: 18px; font-weight: 800; color: var(--brand-text); }
+.audit-summary { background: var(--surface-1); border: 1px solid var(--border-dim); border-radius: 11px; padding: 12px; margin-bottom: 14px; font-size: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.summary-item label { color: var(--text-3); font-size: 10px; text-transform: uppercase; font-weight: 700; display: block; }
+.summary-item b { color: var(--text-1); font-size: 13px; }
+.timeline-box { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 11px; }
+.timeline-item { position: relative; padding-left: 18px; border-left: 2px solid var(--border-mid); }
+.timeline-dot { position: absolute; left: -5px; top: 3px; width: 8px; height: 8px; border-radius: 50%; background: var(--brand); }
+.timeline-item.return .timeline-dot { background: var(--ok); }
+.timeline-time { font-size: 10px; color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
+.timeline-action { font-size: 12px; font-weight: 800; color: var(--text-1); }
+.timeline-actor { font-size: 11.5px; color: var(--text-2); }
 
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 14px; overflow-y: auto; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 14px; }
 .modal-overlay.show { display: flex; }
-.modal-card { background: var(--modal-bg); color: var(--text-main); border: 1px solid var(--card-border-hover); border-radius: 16px; width: 100%; max-width: 480px; padding: 22px; box-shadow: 0 24px 60px rgba(0,0,0,0.65); max-height: 90vh; overflow-y: auto; margin: auto; }
-.swap-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin: 14px 0; }
-.swap-card { background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 12px; text-align: center; }
-.swap-card.old { border-color: rgba(244,63,94,0.4); }
-.swap-card.new { border-color: rgba(16,185,129,0.4); }
-.swap-card .label { font-size: 10px; color: var(--text-sub); text-transform: uppercase; font-weight: 700; }
-.swap-card .sn { font-size: 16px; font-weight: 800; margin-top: 4px; font-family: 'JetBrains Mono', monospace; word-break: break-all; }
-.swap-card.old .sn { color: var(--rose-text); }
-.swap-card.new .sn { color: var(--emerald-text); }
-.swap-arrow { font-size: 26px; color: var(--amber-text); }
-.swap-inherit-note { display: flex; align-items: center; gap: 8px; background: var(--tr-hover); border: 1px solid var(--card-border-hover); border-radius: 8px; padding: 9px 12px; font-size: 11.5px; color: var(--brand-text); margin-bottom: 8px; }
+.modal-card { background: var(--bg-Sidebar); color: var(--text-1); border: 1px solid var(--border-mid); border-radius: 15px; width: 100%; max-width: 480px; padding: 20px; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; }
+.swap-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin: 12px 0; }
+.swap-card { background: var(--surface-1); border: 1px solid var(--border-dim); border-radius: 10px; padding: 11px; text-align: center; }
+.swap-card.old .sn { color: var(--danger-text); font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+.swap-card.new .sn { color: var(--ok-text); font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+.swap-inherit-note { display: flex; align-items: center; gap: 8px; background: var(--brand-soft); border: 1px solid var(--border-mid); border-radius: 8px; padding: 8px 11px; font-size: 11.5px; color: var(--brand-text); }
 
-.debt-modal-list { display: flex; flex-direction: column; gap: 6px; max-height: 40vh; overflow-y: auto; padding-right: 4px; }
-.debt-modal-item { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 11px 14px; background: rgba(244,63,94,0.08); border: 1px solid rgba(244,63,94,0.28); border-radius: 10px; cursor: pointer; transition: all 0.15s; line-height: 1; }
-.debt-modal-item:hover { background: rgba(244,63,94,0.16); border-color: rgba(244,63,94,0.5); }
-.debt-modal-item .dname { font-size: 13px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; line-height: 1.2; }
-.debt-modal-item .dname .id { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-sub); font-weight: 500; }
-.debt-modal-item .dmeta { display: flex; align-items: center; gap: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.2; color: var(--text-sub); }
-.debt-modal-item .dcnt { color: var(--rose-text); font-weight: 800; }
-.debt-modal-item .dtime { grid-column: 2/3; grid-row: 1/3; color: var(--rose-text); font-size: 14px; font-weight: 800; align-self: center; font-family: 'JetBrains Mono', monospace; }
-.debt-empty-modal, .del-empty { padding: 36px 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
+.debt-modal-list { display: flex; flex-direction: column; gap: 6px; max-height: 38vh; overflow-y: auto; }
+.debt-modal-item { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 10px 13px; background: var(--danger-soft); border: 1px solid rgba(255,51,102,0.3); border-radius: 9px; cursor: pointer; }
+.debt-modal-item .dname { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.debt-modal-item .dmeta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-2); display: flex; gap: 8px; }
+.debt-modal-item .dcnt { color: var(--danger-text); font-weight: 800; }
+.debt-modal-item .dtime { grid-column: 2/3; grid-row: 1/3; color: var(--danger-text); font-size: 14px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+.debt-empty-modal, .del-empty { padding: 30px; text-align: center; color: var(--text-3); font-size: 12.5px; }
 
-.del-search { width: 100%; padding: 10px 14px; background: var(--input-bg); border: 1px solid var(--card-border-hover); border-radius: 9px; color: var(--text-main); font-size: 13px; outline: none; font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; }
-.del-list { max-height: 50vh; overflow-y: auto; border: 1px solid var(--card-border); border-radius: 10px; }
-.del-row, .backup-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-bottom: 1px solid var(--card-border); font-size: 12px; gap: 10px; }
-.del-row:last-child, .backup-row:last-child { border-bottom: none; }
-.del-row .sn, .backup-name { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--brand-text); font-size: 11.5px; }
-.backup-meta { font-size: 11px; color: var(--text-sub); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
-.del-row .info { flex: 1; color: var(--text-sub); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.del-btn, .backup-btn-delete { padding: 4px 10px; border-radius: 6px; background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.4); color: var(--rose-text); font-size: 10.5px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
-.del-btn:hover, .backup-btn-delete:hover { background: var(--rose); color: #fff; }
-.backup-btn-restore { padding: 4px 10px; border-radius: 6px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.4); color: var(--emerald-text); font-size: 10.5px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
-.backup-btn-restore:hover { background: var(--emerald); color: #fff; }
+.del-search { width: 100%; padding: 9px 12px; background: var(--bg-canvas); border: 1px solid var(--border-mid); border-radius: 8px; color: var(--text-1); font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; }
+.del-list { max-height: 48vh; overflow-y: auto; border: 1px solid var(--border-dim); border-radius: 9px; }
+.del-row, .backup-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 11px; border-bottom: 1px solid var(--border-dim); font-size: 12px; gap: 8px; }
+.del-row .sn, .backup-name { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--brand-text); }
+.del-row .info { flex: 1; color: var(--text-2); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.del-btn, .backup-btn-delete { padding: 4px 9px; border-radius: 6px; background: var(--danger-soft); border: 1px solid var(--danger); color: var(--danger-text); font-size: 10.5px; font-weight: 700; cursor: pointer; }
+.backup-btn-restore { padding: 4px 9px; border-radius: 6px; background: var(--ok-soft); border: 1px solid var(--ok); color: var(--ok-text); font-size: 10.5px; font-weight: 700; cursor: pointer; }
 
 @media print {
-  body { background: #fff !important; color: #000 !important; overflow: visible !important; height: auto !important; padding: 0 !important; }
-  .hud-header, .metrics-grid, .telemetry-strip, .terminal-grid, .hud-actions, .reg-head input, .search-wrap, .btn-hud, #toast, .drop-box, #logStatus, .reg-stats, .debt-alert-bar, .model-filter-group { display: none !important; }
-  .registry-deck { border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 !important; }
-  .reg-wrap { border: none !important; overflow: visible !important; }
-  table { width: 100% !important; border: 1px solid #000 !important; color: #000 !important; font-size: 10pt !important; }
-  th, td { border: 1px solid #999 !important; color: #000 !important; padding: 6px !important; }
+  .control-tower, .bento-telemetry, .canvas-toolbar, .canvas-footer, #toast, .debt-alert-bar, .row-action-cell { display: none !important; }
+  .workstation { display: block !important; height: auto !important; }
+  .main-canvas, .viewport-box { overflow: visible !important; height: auto !important; border: none !important; background: #fff !important; color: #000 !important; }
+  table { border: 1px solid #000 !important; color: #000 !important; }
+  th, td { border: 1px solid #888 !important; color: #000 !important; }
 }
 </style>
 </head>
 <body>
 
 <div class="boot-overlay" id="bootOverlay">
-  <div class="boot-logo">COMMAND CENTER v9.5</div>
+  <div class="boot-logo">ORBITAL WMS</div>
   <div class="boot-spinner"></div>
-  <div class="boot-text" id="bootText">Синхронизация складского комплекса…</div>
+  <div class="boot-text" id="bootText">Инициализация рабочей станции…</div>
 </div>
 
-<div class="app-shell">
-  <header class="hud-header">
-    <div class="brand-zone">
-      <div id="brandTag" class="brand-logo-box mono" title="Тройной клик — сервисное меню удаления">WB</div>
-      <div class="brand-title">
-        <h1>Учёт Оборудования <span class="version-pill">PRO v9.5</span></h1>
-        <p>Интеллектуальный диспетчерский терминал • Облачная синхронизация</p>
+<div class="workstation">
+  <!-- ================= ЛЕВАЯ КОМАНДНАЯ БАШНЯ ================= -->
+  <aside class="control-tower">
+    <div class="tower-brand">
+      <div class="brand-left">
+        <div id="brandTag" class="brand-cube" title="Тройной клик — сервисное удаление ТСД">WB</div>
+        <div class="brand-meta">
+          <h1>ORBITAL <span class="v-tag">v10.0</span></h1>
+          <p>Диспетчерский пульт учёта ТСД</p>
+        </div>
       </div>
-    </div>
-    <div class="hud-actions">
-      <div class="theme-switcher" title="Выбор стиля интерфейса (Alt+T)">
-        <button type="button" class="t-btn active" data-set-theme="berry">🔮 Вайлд</button>
-        <button type="button" class="t-btn" data-set-theme="sapphire">💎 Сапфир</button>
-        <button type="button" class="t-btn" data-set-theme="carbon">🌑 Карбон</button>
-        <button type="button" class="t-btn" data-set-theme="quartz">☀️ Кварц</button>
-        <button type="button" class="t-btn" data-set-theme="gold">✨ Золото</button>
-      </div>
-      <div id="shiftPill" class="shift-pill day" onclick="toggleShift()" title="Клик — переключить смену День/Ночь">
-        <span id="shiftIcon">☀</span>
-        <span id="shiftLabel">ДЕНЬ</span>
-        <span class="t" id="shiftTime">--:--</span>
-        <span id="shiftBadge" class="badge-auto" onclick="resetShiftToAuto(event)">AUTO</span>
-      </div>
-      <div id="syncStatus" class="pill-badge pill-online" onclick="showDiag()">
+      <div id="syncStatus" class="pill-badge pill-online" onclick="showDiag()" title="Статус облака Supabase">
         <span class="dot-ping"></span>
         <span id="syncText">Онлайн</span>
       </div>
-      <button class="btn-hud btn-debt" id="debtBtn" onclick="openDebtModal()" title="Список должников и история нарушений">
-        🚨 Должники <span class="debt-badge" id="debtBadge">0</span>
-      </button>
-      <button class="btn-hud" onclick="copyTelegramSummary()" title="Скопировать красивую сводку смены в буфер обмена">📋 Сводка</button>
-      <button class="btn-hud" onclick="openBackupModal()" title="Резервные копии">💾 Бэкап</button>
-      <button class="btn-hud" onclick="exportExcel()" title="Выгрузить отчёт в Excel (Ctrl+E)">📊 Excel</button>
-      <button class="btn-hud" onclick="openModal('impModal')" title="Импорт списка ТСД (Ctrl+I)">📥 Импорт</button>
     </div>
-  </header>
 
-  <div class="debt-alert-bar" id="debtAlertBar">
-    <div class="debt-alert-icon">🚨</div>
-    <div class="debt-alert-body">
-      <b id="debtAlertTitle">Новые должники обнаружены!</b>
-      <p id="debtAlertText">—</p>
-    </div>
-    <div class="debt-alert-actions">
-      <button class="debt-alert-btn" onclick="openDebtModal()">👁 Показать</button>
-      <button class="debt-alert-close" onclick="dismissDebtAlert()" title="Скрыть на 30 минут">✕</button>
-    </div>
-  </div>
-
-  <!-- КАРТОЧКИ ПОКАЗАТЕЛЕЙ С КРУГОВЫМИ ДИАГРАММАМИ -->
-  <section class="metrics-grid">
-    <div class="kpi-card active" data-filter="all" style="--kpi-color:var(--brand-1);">
-      <div class="kpi-info">
-        <span class="kpi-label">Весь парк ТСД</span>
-        <div class="kpi-val-row"><span id="mTotal" class="kpi-value mono">0</span><span class="kpi-sub">100%</span></div>
-      </div>
-      <div class="kpi-ring-wrap">
-        <svg class="kpi-ring-svg" viewBox="0 0 36 36"><circle class="kpi-ring-bg" cx="18" cy="18" r="15"></circle><circle class="kpi-ring-fg" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="0"></circle></svg>
-        <span class="kpi-ring-icon">📦</span>
+    <div class="tower-status-row">
+      <div id="shiftPill" class="shift-reactor day" onclick="toggleShift()" title="Клик — переключить смену День/Ночь">
+        <span><span id="shiftIcon">☀</span> СМЕНА: <b id="shiftLabel">ДЕНЬ</b></span>
+        <span class="t" id="shiftTime">--:--</span>
+        <span id="shiftBadge" class="badge-auto" onclick="resetShiftToAuto(event)">AUTO</span>
       </div>
     </div>
 
-    <div class="kpi-card" data-filter="free" style="--kpi-color:var(--emerald);">
-      <div class="kpi-info">
-        <span class="kpi-label" style="color:var(--emerald-text);">Доступно (Склад)</span>
-        <div class="kpi-val-row"><span id="mFree" class="kpi-value mono" style="color:var(--emerald-text);">0</span><span id="mFreePct" class="kpi-sub">0%</span></div>
+    <!-- МОДУЛЬ 01: ВЫДАЧА -->
+    <div class="op-module issue-mod">
+      <div class="op-head">
+        <span class="op-title" style="color:var(--brand-text);">📤 01 // ВЫДАЧА</span>
+        <span id="modelHint" class="op-tag">F1 • Скан ➔ ID</span>
       </div>
-      <div class="kpi-ring-wrap">
-        <svg class="kpi-ring-svg" viewBox="0 0 36 36"><circle class="kpi-ring-bg" cx="18" cy="18" r="15"></circle><circle id="ringFree" class="kpi-ring-fg" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle></svg>
-        <span class="kpi-ring-icon">🟢</span>
-      </div>
-    </div>
-
-    <div class="kpi-card" data-filter="issued" style="--kpi-color:var(--brand-2);">
-      <div class="kpi-info">
-        <span class="kpi-label" style="color:var(--brand-text);">В работе (На руках)</span>
-        <div class="kpi-val-row"><span id="mIssued" class="kpi-value mono" style="color:var(--brand-text);">0</span><span id="mIssuedPct" class="kpi-sub">0%</span></div>
-      </div>
-      <div class="kpi-ring-wrap">
-        <svg class="kpi-ring-svg" viewBox="0 0 36 36"><circle class="kpi-ring-bg" cx="18" cy="18" r="15"></circle><circle id="ringIssued" class="kpi-ring-fg" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle></svg>
-        <span class="kpi-ring-icon">⚡</span>
-      </div>
-    </div>
-
-    <div class="kpi-card" data-filter="overdue" style="--kpi-color:var(--rose);" title="Выдано более 14 часов назад">
-      <div class="kpi-info">
-        <span class="kpi-label" style="color:var(--rose-text);">Просрочка (&gt;14ч)</span>
-        <div class="kpi-val-row"><span id="mOverdue" class="kpi-value mono" style="color:var(--rose-text);">0</span><span class="kpi-sub">контроль</span></div>
-      </div>
-      <div class="kpi-ring-wrap">
-        <svg class="kpi-ring-svg" viewBox="0 0 36 36"><circle class="kpi-ring-bg" cx="18" cy="18" r="15"></circle><circle id="ringOverdue" class="kpi-ring-fg" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle></svg>
-        <span class="kpi-ring-icon">🚨</span>
-      </div>
-    </div>
-
-    <div class="kpi-card" data-filter="day" style="--kpi-color:var(--amber);">
-      <div class="kpi-info">
-        <span class="kpi-label" style="color:var(--amber-text);">Дневная смена</span>
-        <div class="kpi-val-row"><span id="mDay" class="kpi-value mono" style="color:var(--amber-text);">0</span><span class="kpi-sub">активно</span></div>
-      </div>
-      <div class="kpi-ring-wrap">
-        <svg class="kpi-ring-svg" viewBox="0 0 36 36"><circle class="kpi-ring-bg" cx="18" cy="18" r="15"></circle><circle id="ringDay" class="kpi-ring-fg" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle></svg>
-        <span class="kpi-ring-icon">☀️</span>
-      </div>
-    </div>
-
-    <div class="kpi-card" data-filter="night" style="--kpi-color:var(--purple);">
-      <div class="kpi-info">
-        <span class="kpi-label" style="color:var(--purple-text);">Ночная смена</span>
-        <div class="kpi-val-row"><span id="mNight" class="kpi-value mono" style="color:var(--purple-text);">0</span><span class="kpi-sub">активно</span></div>
-      </div>
-      <div class="kpi-ring-wrap">
-        <svg class="kpi-ring-svg" viewBox="0 0 36 36"><circle class="kpi-ring-bg" cx="18" cy="18" r="15"></circle><circle id="ringNight" class="kpi-ring-fg" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle></svg>
-        <span class="kpi-ring-icon">🌙</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ПОЛОСА ТЕЛЕМЕТРИИ ПАРКА И LIVE-ТИКЕР ПОСЛЕДНИХ ОПЕРАЦИЙ -->
-  <div class="telemetry-strip">
-    <div class="telemetry-bar-zone" title="Живой баланс парка: Зелёный — склад, Жёлтый — день, Фиолетовый — ночь, Красный — просрочка">
-      <span class="telemetry-label">📡 Баланс парка:</span>
-      <div class="cap-track">
-        <div class="cap-seg cap-free" id="capFree" style="width:100%"></div>
-        <div class="cap-seg cap-day" id="capDay" style="width:0%"></div>
-        <div class="cap-seg cap-night" id="capNight" style="width:0%"></div>
-        <div class="cap-seg cap-over" id="capOver" style="width:0%"></div>
-      </div>
-    </div>
-    <div class="live-ticker" id="liveTicker">
-      <span style="font-size:10.5px; color:var(--text-muted); font-family:'JetBrains Mono', monospace;">⚡ Ожидание сканирования…</span>
-    </div>
-  </div>
-
-  <!-- ДВУХПОСТОВОЙ ТЕРМИНАЛ -->
-  <section class="terminal-grid">
-    <div class="deck-card issue-deck">
-      <div class="deck-header">
-        <span class="deck-title" style="color:var(--brand-text);"><span class="deck-step-badge">1</span> ВЫДАЧА ОБОРУДОВАНИЯ</span>
-        <span id="modelHint" class="deck-badge-key">F1 • Скан SN ➔ ID ➔ Enter</span>
-      </div>
-      <form id="issueForm" autocomplete="off" style="display:flex;flex-direction:column;flex:1;">
+      <form id="issueForm" autocomplete="off">
         <div class="hud-group">
-          <label class="hud-label">Серийный номер ТСД (или последние 4 цифры):</label>
-          <input id="issSn" class="hud-input mono" placeholder="Отсканируйте штрихкод или введите хвост номера..." autocomplete="off" spellcheck="false">
+          <label class="hud-label">Серийный номер (или хвост 4 цифры):</label>
+          <input id="issSn" class="hud-input mono" placeholder="Пикните ТСД или введите хвост..." autocomplete="off" spellcheck="false">
           <div id="issDrop" class="drop-box"></div>
           <div id="issSnBanner" class="sn-live-banner"></div>
         </div>
         <div class="hud-group">
-          <label class="hud-label">Исполнитель (ID бейджа / Табельный / ФИО):</label>
-          <input id="issWorker" class="hud-input" placeholder="Например: 611252 или Иванов И.И." autocomplete="off" spellcheck="false" maxlength="40">
+          <label class="hud-label">Сотрудник (ID бейджа / ФИО):</label>
+          <input id="issWorker" class="hud-input" placeholder="611252 или Иванов И.И." autocomplete="off" spellcheck="false" maxlength="40">
           <div id="workerDrop" class="drop-box"></div>
         </div>
-        <button type="submit" class="btn-submit btn-issue" id="btnIssue">ОФОРМИТЬ ВЫДАЧУ (ENTER)</button>
+        <button type="submit" class="btn-submit btn-issue" id="btnIssue">ВЫДАТЬ В РАБОТУ (ENTER)</button>
       </form>
     </div>
-    <div class="deck-card return-deck">
-      <div class="deck-header">
-        <span class="deck-title" style="color:var(--emerald-text);"><span class="deck-step-badge">2</span> ПРИЁМ НА СКЛАД</span>
-        <span class="deck-badge-key">F2 • Мгновенный возврат по Enter</span>
+
+    <!-- МОДУЛЬ 02: ПРИЁМ -->
+    <div class="op-module return-mod">
+      <div class="op-head">
+        <span class="op-title" style="color:var(--ok-text);">📥 02 // ПРИЁМ НА СКЛАД</span>
+        <span class="op-tag">F2 • Мгновенно</span>
       </div>
       <div class="hud-group">
-        <label class="hud-label">Серийный номер ТСД или ID сотрудника:</label>
-        <input id="retQuery" class="hud-input mono" placeholder="Отсканируйте возвращаемый прибор или бейдж сотрудника ➔ Enter" autocomplete="off" spellcheck="false">
+        <label class="hud-label">Серийник ТСД или ID сотрудника:</label>
+        <input id="retQuery" class="hud-input mono" placeholder="Пикните сдаваемый ТСД / бейдж ➔ Enter" autocomplete="off" spellcheck="false">
         <div id="retDrop" class="drop-box"></div>
       </div>
       <button type="button" class="btn-submit btn-return-action" id="retBtn">ПРИНЯТЬ НА СКЛАД (ENTER)</button>
     </div>
-  </section>
 
-  <!-- ОПЕРАТИВНЫЙ РЕЕСТР -->
-  <section class="registry-deck">
-    <div class="reg-head">
-      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-        <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-main);">
-          РЕЕСТР ПАРКА
-        </div>
-        <div class="model-filter-group" id="modelFilterBar">
-          <button type="button" class="mf-chip active" data-mfilter="all">Все <span class="mf-cnt" id="mcAll">0</span></button>
-          <button type="button" class="mf-chip" data-mfilter="Zebra">Zebra <span class="mf-cnt" id="mcZebra">0</span></button>
-          <button type="button" class="mf-chip" data-mfilter="Point Mobile">Point Mobile <span class="mf-cnt" id="mcPm">0</span></button>
-          <button type="button" class="mf-chip" data-mfilter="Планшет">Планшеты <span class="mf-cnt" id="mcTab">0</span></button>
+    <!-- НИЖНИЙ ДОК УТИЛИТ И ТЕМ -->
+    <div class="tower-footer">
+      <div class="tools-grid">
+        <button class="btn-hud btn-debt" id="debtBtn" onclick="openDebtModal()">
+          🚨 Должники <span class="debt-badge" id="debtBadge">0</span>
+        </button>
+        <button class="btn-hud" onclick="copyTelegramSummary()" title="Скопировать сводку смены в буфер">📋 Сводка в чат</button>
+        <button class="btn-hud" onclick="openBackupModal()">💾 Бэкапы</button>
+        <button class="btn-hud" onclick="exportExcel()" title="Ctrl+E">📊 Отчёт Excel</button>
+        <button class="btn-hud" style="grid-column: span 2;" onclick="openModal('impModal')" title="Ctrl+I">📥 Массовый импорт серийников</button>
+      </div>
+      <div class="theme-bar" title="Переключение темы оформления (Alt+T)">
+        <button type="button" class="t-btn active" data-set-theme="volt">⚡ Volt</button>
+        <button type="button" class="t-btn" data-set-theme="berry">🔮 WB</button>
+        <button type="button" class="t-btn" data-set-theme="swiss">🤍 Swiss</button>
+        <button type="button" class="t-btn" data-set-theme="nordic">🌊 Nord</button>
+        <button type="button" class="t-btn" data-set-theme="amber">🔥 Amber</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= ПРАВЫЙ ПАНОРАМНЫЙ ХОЛСТ ================= -->
+  <main class="main-canvas">
+    <div class="debt-alert-bar" id="debtAlertBar">
+      <div class="debt-alert-body">
+        <b id="debtAlertTitle">🚨 Обнаружены просрочки (&gt;14ч)!</b>
+        <p id="debtAlertText">—</p>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn-hud" style="border-color:var(--danger);color:var(--danger-text);padding:5px 10px;" onclick="openDebtModal()">Показать</button>
+        <button class="btn-hud" style="padding:5px 9px;" onclick="dismissDebtAlert()">✕</button>
+      </div>
+    </div>
+
+    <!-- ВЕРХНЯЯ ПАНЕЛЬ ТЕЛЕМЕТРИИ И KPI -->
+    <section class="bento-telemetry">
+      <div class="donut-box">
+        <svg class="donut-svg" viewBox="0 0 36 36">
+          <circle class="donut-bg" cx="18" cy="18" r="15"></circle>
+          <circle id="donutFreeSeg" class="donut-fg" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="0"></circle>
+        </svg>
+        <div class="donut-meta">
+          <div class="d-title">Готовность склада</div>
+          <div class="d-val" id="mFreePct">100%</div>
+          <div class="d-sub">В работе: <b id="mIssuedPct">0%</b></div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <div class="reg-stats" id="regStats">Среднее время: — · Макс: —</div>
+
+      <div class="kpi-strip">
+        <div class="kpi-card active" data-filter="all" style="--kpi-c:var(--brand);">
+          <div class="kpi-top"><span>ВЕСЬ ПАРК</span><span>📦</span></div>
+          <div class="kpi-num-row"><span id="mTotal" class="kpi-num">0</span><span class="kpi-pct">шт.</span></div>
+        </div>
+        <div class="kpi-card" data-filter="free" style="--kpi-c:var(--ok);">
+          <div class="kpi-top"><span style="color:var(--ok-text);">НА СКЛАДЕ</span><span>🟢</span></div>
+          <div class="kpi-num-row"><span id="mFree" class="kpi-num" style="color:var(--ok-text);">0</span><span class="kpi-pct">своб.</span></div>
+        </div>
+        <div class="kpi-card" data-filter="issued" style="--kpi-c:var(--info);">
+          <div class="kpi-top"><span style="color:var(--info-text);">НА РУКАХ</span><span>⚡</span></div>
+          <div class="kpi-num-row"><span id="mIssued" class="kpi-num" style="color:var(--info-text);">0</span><span class="kpi-pct">актив.</span></div>
+        </div>
+        <div class="kpi-card" data-filter="overdue" style="--kpi-c:var(--danger);">
+          <div class="kpi-top"><span style="color:var(--danger-text);">ДОЛГИ &gt;14Ч</span><span>🚨</span></div>
+          <div class="kpi-num-row"><span id="mOverdue" class="kpi-num" style="color:var(--danger-text);">0</span><span class="kpi-pct">проср.</span></div>
+        </div>
+        <div class="kpi-card" data-filter="day" style="--kpi-c:var(--warn);">
+          <div class="kpi-top"><span style="color:var(--warn-text);">ДЕНЬ</span><span>☀️</span></div>
+          <div class="kpi-num-row"><span id="mDay" class="kpi-num" style="color:var(--warn-text);">0</span><span class="kpi-pct">смена</span></div>
+        </div>
+        <div class="kpi-card" data-filter="night" style="--kpi-c:var(--night);">
+          <div class="kpi-top"><span style="color:var(--night-text);">НОЧЬ</span><span>🌙</span></div>
+          <div class="kpi-num-row"><span id="mNight" class="kpi-num" style="color:var(--night-text);">0</span><span class="kpi-pct">смена</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ТУЛБАР УПРАВЛЕНИЯ РЕЕСТРОМ -->
+    <div class="canvas-toolbar">
+      <div class="toolbar-left">
+        <div class="view-toggle" title="Переключить вид (Alt+V)">
+          <button type="button" class="v-mode-btn active" id="btnViewTable" onclick="setViewMode('table')">☰ Таблица</button>
+          <button type="button" class="v-mode-btn" id="btnViewMatrix" onclick="setViewMode('matrix')">🎛 Матрица слотов</button>
+        </div>
+        <div class="mf-group" id="modelFilterBar">
+          <button type="button" class="mf-pill active" data-mfilter="all">Все модели</button>
+          <button type="button" class="mf-pill" data-mfilter="Zebra">Zebra</button>
+          <button type="button" class="mf-pill" data-mfilter="Point Mobile">Point Mobile</button>
+          <button type="button" class="mf-pill" data-mfilter="Планшет">Планшеты</button>
+        </div>
+      </div>
+      <div class="toolbar-right">
+        <div class="reg-stats" id="regStats">Среднее: — · Макс: —</div>
         <div class="search-wrap" id="searchWrap">
-          <input id="searchTable" class="hud-input mono" style="width:235px;padding:6.5px 28px 6.5px 12px;font-size:12px;" placeholder="Быстрый поиск (Ctrl+K)..." spellcheck="false">
-          <button class="search-clear-btn" id="searchClearBtn" title="Очистить поиск">✕</button>
+          <input id="searchTable" class="hud-input mono" style="width:230px;padding:6px 26px 6px 11px;font-size:12px;" placeholder="Поиск SN / ФИО (Ctrl+K)..." spellcheck="false">
+          <button class="search-clear-btn" id="searchClearBtn" title="Очистить">✕</button>
         </div>
       </div>
     </div>
-    <div class="reg-wrap">
-      <table>
+
+    <!-- ГЛАВНЫЙ ЭКРАН ДАННЫХ -->
+    <div class="viewport-box">
+      <table id="tableView">
         <thead><tr>
-          <th class="sortable" data-sort="serial" style="width:205px;">СЕРИЙНЫЙ НОМЕР <span class="sort-ind" id="sort-serial"></span></th>
-          <th class="sortable" data-sort="model" style="width:150px;">МОДЕЛЬ ТСД <span class="sort-ind" id="sort-model"></span></th>
-          <th class="sortable" data-sort="status" style="width:230px;">ТЕКУЩИЙ СТАТУС <span class="sort-ind" id="sort-status"></span></th>
-          <th class="sortable" data-sort="holder" style="width:210px;">СОТРУДНИК (ДЕРЖАТЕЛЬ) <span class="sort-ind" id="sort-holder"></span></th>
-          <th class="sortable" data-sort="time" style="text-align:right;">ВРЕМЯ В РАБОТЕ <span class="sort-ind" id="sort-time"></span></th>
-          <th style="text-align:right;width:120px;">ОПЕРАЦИЯ</th>
+          <th data-sort="serial" style="width:200px;">СЕРИЙНЫЙ НОМЕР <span id="sort-serial"></span></th>
+          <th data-sort="model" style="width:145px;">МОДЕЛЬ ТСД <span id="sort-model"></span></th>
+          <th data-sort="status" style="width:225px;">СТАТУС И СМЕНА <span id="sort-status"></span></th>
+          <th data-sort="holder" style="width:210px;">СОТРУДНИК (ДЕРЖАТЕЛЬ) <span id="sort-holder"></span></th>
+          <th data-sort="time" style="text-align:right;">ВРЕМЯ В РАБОТЕ <span id="sort-time"></span></th>
+          <th style="text-align:right;width:115px;">ДЕЙСТВИЕ</th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table>
+
+      <div id="matrixView" class="matrix-grid"></div>
     </div>
-    <div style="margin-top:6px;display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono';font-size:11px;color:var(--text-muted);">
-      <span id="logStatus">[SYSTEM] Система готова к работе</span>
-      <span id="sessionStats">Сессия: 📤 0 · 📥 0</span>
+
+    <div class="canvas-footer">
+      <span id="logStatus">[SYSTEM] Рабочая станция активна</span>
+      <span>Горячие клавиши: <b>F1</b> Выдача · <b>F2</b> Приём · <b>Ctrl+K</b> Поиск · <b>Ctrl+Z</b> Отмена · <b>Alt+V</b> Вид · <b>Alt+T</b> Тема</span>
     </div>
-  </section>
+  </main>
 </div>
 
+<!-- ТОСТ И МОДАЛЬНЫЕ ОКНА -->
 <div id="toast"><div class="t-icon" id="tIcon">✓</div><div class="t-body"><h4 id="tTitle">ГОТОВО</h4><p id="tDesc"></p></div></div>
 
 <div id="issPickModal" class="modal-overlay">
   <div class="modal-card" style="max-width:540px;">
     <h3 style="font-size:14px;margin-bottom:8px;color:var(--brand-text);">🔍 НЕСКОЛЬКО СОВПАДЕНИЙ ПО ХВОСТУ</h3>
-    <p style="font-size:12px;color:var(--text-sub);margin-bottom:10px;">Уточните, какой ТСД выдаётся (клавиатура: ↑↓ + Enter):</p>
-    <div id="issPickList" style="max-height:320px;overflow-y:auto;border:1px solid var(--card-border);border-radius:8px;"></div>
+    <p style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Уточните, какой ТСД выдаётся (клавиатура: ↑↓ + Enter):</p>
+    <div id="issPickList" style="max-height:320px;overflow-y:auto;border:1px solid var(--border-dim);border-radius:8px;"></div>
     <div style="display:flex;justify-content:flex-end;margin-top:12px;"><button class="btn-hud" onclick="closeModal('issPickModal')">Отмена (Esc)</button></div>
   </div>
 </div>
 
 <div id="debtModal" class="modal-overlay">
-  <div class="modal-card" style="max-width:620px;border-color:rgba(244,63,94,.4);">
+  <div class="modal-card" style="max-width:620px;border-color:var(--danger);">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;">
-      <h3 style="font-size:14px;color:var(--rose-text);display:flex;align-items:center;gap:10px;">
-        🚨 ДОЛЖНИКИ <span id="debtModalCount" style="font-family:'JetBrains Mono';background:rgba(244,63,94,.2);border:1px solid rgba(244,63,94,.5);color:var(--rose-text);padding:2px 9px;border-radius:9px;font-size:11px;">0</span>
+      <h3 style="font-size:14px;color:var(--danger-text);display:flex;align-items:center;gap:10px;">
+        🚨 ДОЛЖНИКИ <span id="debtModalCount" class="mono" style="background:var(--danger-soft);border:1px solid var(--danger);padding:2px 8px;border-radius:8px;font-size:11px;">0</span>
       </h3>
       <div style="display:flex;gap:8px;">
-        <button class="btn-hud" style="min-width:auto;padding:4px 10px;font-size:11px;border-color:rgba(244,63,94,.4);color:var(--rose-text);" onclick="showAllDebtsInTable()">📋 Показать в реестре</button>
-        <button class="btn-hud" style="min-width:auto;padding:4px 10px;font-size:11px;" onclick="closeModal('debtModal')">✕</button>
+        <button class="btn-hud" style="color:var(--danger-text);" onclick="showAllDebtsInTable()">📋 Показать в реестре</button>
+        <button class="btn-hud" onclick="closeModal('debtModal')">✕</button>
       </div>
     </div>
-    <div style="font-size:10.5px;font-weight:800;color:var(--rose-text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">⚠ Активные просрочки (&gt;14ч) — клик для фильтрации</div>
-    <div class="debt-modal-list" id="debtModalList" style="margin-bottom:18px;"></div>
-    <div style="font-size:10.5px;font-weight:800;color:var(--amber-text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;justify-content:space-between;align-items:center;">
+    <div style="font-size:10.5px;font-weight:800;color:var(--danger-text);margin-bottom:8px;text-transform:uppercase;">⚠ Активные просрочки (&gt;14ч) — клик для фильтрации</div>
+    <div class="debt-modal-list" id="debtModalList" style="margin-bottom:16px;"></div>
+    <div style="font-size:10.5px;font-weight:800;color:var(--warn-text);margin-bottom:8px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;">
       <span>📜 История нарушений (реестр несдавших)</span>
-      <button class="btn-hud" style="padding:2px 8px;font-size:10px;min-width:auto;" onclick="clearDebtHistory()">🗑 Очистить</button>
+      <button class="btn-hud" style="padding:3px 8px;font-size:10px;" onclick="clearDebtHistory()">🗑 Очистить</button>
     </div>
-    <div class="debt-modal-list" id="debtHistoryList" style="max-height:35vh;"></div>
+    <div class="debt-modal-list" id="debtHistoryList"></div>
   </div>
 </div>
 
 <div id="auditOverlay" class="audit-overlay" onclick="closeAuditDrawer()"></div>
 <div id="auditDrawer" class="audit-drawer">
   <div class="audit-header">
-    <div style="min-width:0;"><h3 id="audSn" class="mono">S10023</h3><span id="audStatusBadge" class="badge-chip chip-free" style="margin-top:4px;">На складе</span></div>
-    <button class="btn-hud" style="padding:4px 8px;font-size:12px;min-width:auto;" onclick="closeAuditDrawer()">✕ Закрыть</button>
-  </div>
-  <div class="barcode-card" title="Клик — скопировать серийный номер">
-    <div class="barcode-bars"></div>
-    <div id="audBarcodeText" class="mono" style="font-size:11px;margin-top:5px;letter-spacing:0.25em;color:var(--text-sub);">S10023</div>
+    <div><h3 id="audSn" class="mono">S10023</h3><span id="audStatusBadge" class="badge-chip chip-free" style="margin-top:4px;">На складе</span></div>
+    <button class="btn-hud" onclick="closeAuditDrawer()">✕ Закрыть</button>
   </div>
   <div class="audit-summary">
     <div class="summary-item"><label>Модель:</label><b id="audModel">—</b></div>
@@ -885,23 +937,23 @@ tbody tr:hover .row-action-cell { opacity: 1; }
     <div class="summary-item" style="grid-column:span 2;"><label>Время на руках:</label><b id="audDuration">—</b></div>
     <div class="summary-item" style="grid-column:span 2;display:flex;gap:8px;align-items:center;">
       <label style="flex:1;">Смена:</label>
-      <button id="audShiftBtn" class="btn-hud" style="min-width:auto;padding:5px 12px;font-size:11px;">🔀 Сменить</button>
+      <button id="audShiftBtn" class="btn-hud">🔀 Сменить</button>
     </div>
   </div>
-  <div style="font-size:11px;font-weight:800;color:var(--text-sub);text-transform:uppercase;margin-bottom:10px;letter-spacing:.04em;">📜 Журнал операций по устройству:</div>
+  <div style="font-size:11px;font-weight:800;color:var(--text-2);text-transform:uppercase;margin-bottom:10px;">📜 Журнал операций по устройству:</div>
   <div id="audTimeline" class="timeline-box"></div>
 </div>
 
 <div id="swapModal" class="modal-overlay">
   <div class="modal-card">
-    <h3 style="font-size:15px;margin-bottom:10px;color:var(--amber-text);">🔄 ЭКСПРЕСС-ЗАМЕНА СКАНЕРА</h3>
-    <p style="font-size:12px;color:var(--text-sub);margin-bottom:6px;">На сотруднике <b id="swapWorker" style="color:var(--text-main);"></b> уже числится прибор:</p>
+    <h3 style="font-size:15px;margin-bottom:10px;color:var(--warn-text);">🔄 ЭКСПРЕСС-ЗАМЕНА СКАНЕРА</h3>
+    <p style="font-size:12px;color:var(--text-2);margin-bottom:6px;">На сотруднике <b id="swapWorker" style="color:var(--text-1);"></b> уже числится прибор:</p>
     <div class="swap-grid">
-      <div class="swap-card old"><div class="label">Сдать на склад</div><div class="sn" id="swapOldSn">—</div><div class="model" id="swapOldModel" style="font-size:11px;color:var(--text-sub);margin-top:2px;">—</div></div>
-      <div class="swap-arrow">→</div>
-      <div class="swap-card new"><div class="label">Выдать в работу</div><div class="sn" id="swapNewSn">—</div><div class="model" id="swapNewModel" style="font-size:11px;color:var(--text-sub);margin-top:2px;">—</div></div>
+      <div class="swap-card old"><div style="font-size:10px;color:var(--text-2);">Сдать на склад</div><div class="sn" id="swapOldSn">—</div><div id="swapOldModel" style="font-size:11px;color:var(--text-2);margin-top:2px;">—</div></div>
+      <div style="font-size:24px;color:var(--warn-text);">→</div>
+      <div class="swap-card new"><div style="font-size:10px;color:var(--text-2);">Выдать в работу</div><div class="sn" id="swapNewSn">—</div><div id="swapNewModel" style="font-size:11px;color:var(--text-2);margin-top:2px;">—</div></div>
     </div>
-    <div class="swap-inherit-note"><span style="font-size:16px;">🔁</span><span>Время на руках: <b id="swapInheritTime" style="color:var(--text-main);">—</b> — переносится со старого сканера</span></div>
+    <div class="swap-inherit-note"><span>🔁</span><span>Время на руках: <b id="swapInheritTime">—</b> — переносится со старого сканера</span></div>
     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;">
       <button class="btn-hud" onclick="closeModal('swapModal')">Отмена</button>
       <button class="btn-submit btn-issue" style="width:auto;padding:8px 18px;" id="swapConfirm">Заменить (Enter)</button>
@@ -911,9 +963,9 @@ tbody tr:hover .row-action-cell { opacity: 1; }
 
 <div id="pickModal" class="modal-overlay">
   <div class="modal-card">
-    <h3 style="font-size:14px;margin-bottom:8px;color:var(--amber-text);">⚠️ НЕСКОЛЬКО СОВПАДЕНИЙ</h3>
-    <p style="font-size:12px;color:var(--text-sub);margin-bottom:10px;">Уточните, какой именно сканер принимается (клавиатура: ↑↓ + Enter):</p>
-    <div id="pickList" style="max-height:240px;overflow-y:auto;border:1px solid var(--card-border);border-radius:8px;"></div>
+    <h3 style="font-size:14px;margin-bottom:8px;color:var(--warn-text);">⚠️ НЕСКОЛЬКО СОВПАДЕНИЙ</h3>
+    <p style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Уточните, какой именно сканер принимается (↑↓ + Enter):</p>
+    <div id="pickList" style="max-height:240px;overflow-y:auto;border:1px solid var(--border-dim);border-radius:8px;"></div>
     <div style="display:flex;justify-content:flex-end;margin-top:12px;"><button class="btn-hud" onclick="closeModal('pickModal')">Отмена</button></div>
   </div>
 </div>
@@ -924,7 +976,7 @@ tbody tr:hover .row-action-cell { opacity: 1; }
     <textarea id="impText" rows="8" class="hud-input mono" placeholder="Список серийников (каждый с новой строки)..."></textarea>
     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
       <button class="btn-hud" onclick="closeModal('impModal')">Отмена</button>
-      <button class="btn-submit btn-issue" style="width:auto;padding:6px 16px;" onclick="processImport()">Загрузить</button>
+      <button class="btn-submit btn-issue" style="width:auto;padding:8px 16px;" onclick="processImport()">Загрузить</button>
     </div>
   </div>
 </div>
@@ -932,19 +984,19 @@ tbody tr:hover .row-action-cell { opacity: 1; }
 <div id="diagModal" class="modal-overlay">
   <div class="modal-card" style="max-width:560px;">
     <h3 style="font-size:14px;margin-bottom:10px;color:var(--brand-text);">⚡ СТАТУС СИНХРОНИЗАЦИИ</h3>
-    <div id="diagContent" class="mono" style="font-size:12px;line-height:1.8;color:var(--text-sub);margin-bottom:14px;"></div>
+    <div id="diagContent" class="mono" style="font-size:12px;line-height:1.8;color:var(--text-2);margin-bottom:14px;"></div>
     <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
       <button class="btn-hud" onclick="closeModal('diagModal')">Закрыть</button>
-      <button class="btn-hud" style="border-color:rgba(244,63,94,.4);color:var(--rose-text);" onclick="hardReset()">🔥 Жёсткий сброс</button>
-      <button class="btn-submit btn-issue" style="width:auto;padding:6px 14px;" onclick="forceSync()">Форсировать sync</button>
+      <button class="btn-hud" style="color:var(--danger-text);" onclick="hardReset()">🔥 Жёсткий сброс</button>
+      <button class="btn-submit btn-issue" style="width:auto;padding:8px 14px;" onclick="forceSync()">Форсировать sync</button>
     </div>
   </div>
 </div>
 
 <div id="delModal" class="modal-overlay">
-  <div class="modal-card" style="max-width:640px;border-color:rgba(244,63,94,.4);">
-    <h3 style="font-size:14px;margin-bottom:10px;color:var(--rose-text);">🗑 УДАЛЕНИЕ ТСД ИЗ БАЗЫ</h3>
-    <p style="font-size:11.5px;color:var(--text-sub);margin-bottom:10px;">Удаляет из локальной базы, очереди, истории и облака Supabase. Действие необратимо.</p>
+  <div class="modal-card" style="max-width:640px;border-color:var(--danger);">
+    <h3 style="font-size:14px;margin-bottom:10px;color:var(--danger-text);">🗑 УДАЛЕНИЕ ТСД ИЗ БАЗЫ</h3>
+    <p style="font-size:11.5px;color:var(--text-2);margin-bottom:10px;">Удаляет из локальной базы, очереди, истории и облака Supabase. Действие необратимо.</p>
     <input id="delSearch" class="del-search" placeholder="Поиск по SN / модели / держателю..." autocomplete="off" spellcheck="false">
     <div id="delList" class="del-list"></div>
     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;"><button class="btn-hud" onclick="closeModal('delModal')">Закрыть (Esc)</button></div>
@@ -954,12 +1006,12 @@ tbody tr:hover .row-action-cell { opacity: 1; }
 <div id="backupModal" class="modal-overlay">
   <div class="modal-card" style="max-width:640px;">
     <h3 style="font-size:14px;margin-bottom:6px;color:var(--brand-text);">💾 РЕЗЕРВНЫЕ КОПИИ</h3>
-    <p style="font-size:11.5px;color:var(--text-sub);margin-bottom:14px;">Автосохранение раз в день в Supabase Storage. Хранятся последние 7 файлов.</p>
+    <p style="font-size:11.5px;color:var(--text-2);margin-bottom:14px;">Автосохранение раз в день в Supabase Storage. Хранятся последние 7 файлов.</p>
     <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-      <button class="btn-hud" style="border-color:var(--brand-1);color:var(--brand-text);" onclick="doBackup('manual')">💾 Создать бэкап сейчас</button>
+      <button class="btn-hud" style="border-color:var(--brand);color:var(--brand-text);" onclick="doBackup('manual')">💾 Создать бэкап сейчас</button>
       <button class="btn-hud" onclick="renderBackupList()">🔄 Обновить список</button>
     </div>
-    <div id="backupList" style="max-height:50vh;overflow-y:auto;border:1px solid var(--card-border);border-radius:10px;"></div>
+    <div id="backupList" style="max-height:50vh;overflow-y:auto;border:1px solid var(--border-dim);border-radius:10px;"></div>
     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px;"><button class="btn-hud" onclick="closeModal('backupModal')">Закрыть</button></div>
   </div>
 </div>
@@ -973,7 +1025,8 @@ const BACKUP_KEEP = 7;
 const BACKUP_MIN_INTERVAL = 6*60*60*1000;
 const RECENT_LOCAL_TTL = 60*1000;
 const AUTO_SWAP_KEY = 'sklad_auto_swap_v2';
-const THEME_STORAGE_KEY = 'sklad_exec_theme';
+const THEME_STORAGE_KEY = 'sklad_orbital_theme';
+const VIEW_MODE_KEY = 'sklad_orbital_view';
 const DRAFT_KEY = 'sklad_draft_iss';
 const DRAFT_TTL_MS = 5*60*1000;
 const SN_REGEX = /^[A-Z0-9\-_.]{2,60}$/;
@@ -989,16 +1042,16 @@ const SYNC_TIMEOUT_MS = 45000;
 const SYNC_BASE_INTERVAL = 20000;
 const SYNC_MAX_INTERVAL = 300000;
 const SYNC_JITTER = 0.25;
-const THEMES = ['berry','sapphire','carbon','quartz','gold'];
-const THEME_NAMES = { berry:'🔮 Вайлд (Berry Cyber)', sapphire:'💎 Сапфир (Executive Dark)', carbon:'🌑 Карбон (Stealth Ops)', quartz:'☀️ Кварц (Светлая)', gold:'✨ Графит и Золото' };
-const THEME_META_COLORS = { berry:'#080510', sapphire:'#060811', carbon:'#090a0c', quartz:'#eef2f6', gold:'#09090b' };
+const THEMES = ['volt','berry','swiss','nordic','amber'];
+const THEME_NAMES = { volt:'⚡ Volt (Industrial Cyber)', berry:'🔮 WB (Berry Pro)', swiss:'🤍 Swiss (Daylight Paper)', nordic:'🌊 Nordic (Arctic Slate)', amber:'🔥 Amber (Phosphor)' };
+const THEME_META_COLORS = { volt:'#08090c', berry:'#090511', swiss:'#e6e4dd', nordic:'#070b12', amber:'#0c0906' };
 const DEBUG = false;
 function dbg(...args) { if (DEBUG) console.log('[DBG]', ...args); }
 
 const state = {
   devices: [], filter: 'all', modelFilter: 'all',
-  sortField: 'default', sortAsc: true,
-  theme: 'berry',
+  viewMode: 'table', sortField: 'default', sortAsc: true,
+  theme: 'volt',
   issueShift: 'Дневная', issueShiftAuto: true, workerShifts: {},
   syncing: false, dbReady: false, lastError: '—',
   pendingSwap: null, justIssued: null, justReturned: null,
@@ -1009,13 +1062,12 @@ const state = {
   alertedDebtors: {},
   justOverdueHighlights: {},
   debtAlertDismissedUntil: 0,
-  lastDebtAlertInfo: null,
-  sessionOut: 0, sessionIn: 0,
-  recentEvents: []
+  lastDebtAlertInfo: null
 };
 
 try { const v = localStorage.getItem(AUTO_SWAP_KEY); state.autoSwap = v === null ? true : v === 'true'; } catch(e) {}
 try { const st = localStorage.getItem(THEME_STORAGE_KEY); if (st && THEMES.includes(st)) state.theme = st; } catch(e) {}
+try { const vm = localStorage.getItem(VIEW_MODE_KEY); if (vm === 'matrix' || vm === 'table') state.viewMode = vm; } catch(e) {}
 try { state.workerShifts = JSON.parse(localStorage.getItem('sklad_worker_shifts') || '{}'); } catch(e) {}
 try { state.debtorsRegistry = JSON.parse(localStorage.getItem(DEBT_REGISTRY_KEY) || '{}'); } catch(e) {}
 try { state.debtorsRecorded = JSON.parse(localStorage.getItem(DEBT_RECORDED_KEY) || '{}'); } catch(e) {}
@@ -1027,35 +1079,29 @@ const $ = id => document.getElementById(id);
 const nowIso = () => new Date().toISOString();
 
 function applyTheme(themeName, notify = false) {
-  const t = THEMES.includes(themeName) ? themeName : 'berry';
+  const t = THEMES.includes(themeName) ? themeName : 'volt';
   state.theme = t;
   document.documentElement.setAttribute('data-theme', t);
-  const meta = $('metaThemeColor'); if (meta) meta.setAttribute('content', THEME_META_COLORS[t] || '#080510');
+  const meta = $('metaThemeColor'); if (meta) meta.setAttribute('content', THEME_META_COLORS[t] || '#08090c');
   document.querySelectorAll('[data-set-theme]').forEach(btn => btn.classList.toggle('active', btn.dataset.setTheme === t));
   try { localStorage.setItem(THEME_STORAGE_KEY, t); } catch(e) {}
-  if (notify) showToast('СТИЛЬ ИНТЕРФЕЙСА', THEME_NAMES[t]);
+  if (notify) showToast('ТЕМА ИНТЕРФЕЙСА', THEME_NAMES[t]);
 }
 function cycleTheme() { const i = THEMES.indexOf(state.theme); applyTheme(THEMES[(i+1) % THEMES.length], true); }
 applyTheme(state.theme, false);
 
-function pushTickerEvent(kind, sn, worker) {
-  const t = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  state.recentEvents.unshift({ kind, sn, worker: worker || 'Склад', t });
-  if (state.recentEvents.length > 4) state.recentEvents.pop();
-  if (kind === 't-iss' || kind === 't-swp') state.sessionOut++;
-  else if (kind === 't-ret') state.sessionIn++;
-  renderTicker();
+function setViewMode(mode) {
+  state.viewMode = mode === 'matrix' ? 'matrix' : 'table';
+  try { localStorage.setItem(VIEW_MODE_KEY, state.viewMode); } catch(e) {}
+  applyViewModeUI();
+  renderTable();
 }
-
-function renderTicker() {
-  const sEl = $('sessionStats');
-  if (sEl) sEl.innerText = `Сессия: 📤 ${state.sessionOut} · 📥 ${state.sessionIn}`;
-  const wrap = $('liveTicker');
-  if (!wrap || !state.recentEvents.length) return;
-  wrap.innerHTML = state.recentEvents.map(ev => {
-    const icon = ev.kind === 't-ret' ? '📥' : (ev.kind === 't-swp' ? '🔄' : '📤');
-    return `<span class="ticker-chip ${ev.kind}" data-ticker-sn="${esc(ev.sn)}" title="Клик — открыть досье ${esc(ev.sn)}">${icon} <b>${esc(ev.sn.slice(-4))}</b> · ${esc(ev.worker)} <span style="opacity:0.65;">${ev.t}</span></span>`;
-  }).join('');
+function applyViewModeUI() {
+  const isM = state.viewMode === 'matrix';
+  $('btnViewTable')?.classList.toggle('active', !isM);
+  $('btnViewMatrix')?.classList.toggle('active', isM);
+  if ($('tableView')) $('tableView').style.display = isM ? 'none' : 'table';
+  $('matrixView')?.classList.toggle('show', isM);
 }
 
 function copyTelegramSummary() {
@@ -1071,7 +1117,7 @@ function copyTelegramSummary() {
   });
   const dt = new Date().toLocaleString('ru-RU', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
   const lines = [
-    `📊 СВОДКА ПАРКА ТСД (${dt} • ${state.issueShift})`,
+    `📊 СВОДКА ТСД (${dt} • ${state.issueShift})`,
     `📦 Всего в базе: ${state.devices.length} шт.`,
     `🟢 Свободно на складе: ${free} шт.`,
     `⚡ В работе: ${issued} шт. (☀️ День: ${dayCount} | 🌙 Ночь: ${nightCount})`,
@@ -1081,8 +1127,8 @@ function copyTelegramSummary() {
     lines.push(`  • ${x.sn} — ${x.holder} (${fmtHoursShort(x.h)})`);
   });
   navigator.clipboard?.writeText(lines.join('\n')).then(
-    () => showToast('📋 СВОДКА СКОПИРОВАНА', 'Отчёт готов к вставке в Telegram / чат'),
-    () => showToast('ОШИБКА', 'Не удалось скопировать в буфер', 'err')
+    () => showToast('📋 СВОДКА СКОПИРОВАНА', 'Отчёт готов к отправке в чат'),
+    () => showToast('ОШИБКА', 'Не удалось скопировать', 'err')
   );
 }
 
@@ -1142,7 +1188,7 @@ function computeSmartShift(worker) {
 }
 function updateShiftPill() {
   const pill = $('shiftPill'); const isDay = state.issueShift==='Дневная';
-  pill.className = 'shift-pill ' + (isDay?'day':'night') + (state.issueShiftAuto?'':' manual');
+  pill.className = 'shift-reactor ' + (isDay?'day':'night') + (state.issueShiftAuto?'':' manual');
   $('shiftIcon').innerText = isDay?'☀':'🌙';
   $('shiftLabel').innerText = isDay?'ДЕНЬ':'НОЧЬ';
   const badge = $('shiftBadge');
@@ -1625,15 +1671,15 @@ async function clearStuckQueue() {
 
 async function renderQueuePreview() {
   const items = await readQueueWithKeys();
-  if (!items.length) return '<div style="color:var(--text-muted);padding:6px 0;">Пусто</div>';
+  if (!items.length) return '<div style="color:var(--text-3);padding:6px 0;">Пусто</div>';
   return items.slice(0,30).map(item => {
     const it = item.value||{}; const type = it.type||'upsert';
     const sn = (it.dev && it.dev.serial) || it.serial || '?';
     const action = it.action||type;
     const t = it.ts ? new Date(it.ts).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}) : '';
-    const color = type==='delete' ? 'var(--rose-text)' : 'var(--brand-text)';
-    return `<div style="font-size:11px;padding:3px 0;border-bottom:1px solid var(--card-border);display:flex;gap:8px;"><span style="color:${color};font-weight:700;">${esc(type)}</span><span style="color:var(--text-main);font-family:'JetBrains Mono';flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(sn)}</span><span style="color:var(--text-muted);font-size:10px;">${esc(action)}</span><span style="color:var(--text-muted);font-size:10px;">${t}</span></div>`;
-  }).join('') + (items.length>30 ? `<div style="font-size:10px;color:var(--text-muted);padding:4px 0;">… ещё ${items.length-30}</div>` : '');
+    const color = type==='delete' ? 'var(--danger-text)' : 'var(--brand-text)';
+    return `<div style="font-size:11px;padding:3px 0;border-bottom:1px solid var(--border-dim);display:flex;gap:8px;"><span style="color:${color};font-weight:700;">${esc(type)}</span><span style="color:var(--text-1);font-family:'JetBrains Mono';flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(sn)}</span><span style="color:var(--text-3);font-size:10px;">${esc(action)}</span><span style="color:var(--text-3);font-size:10px;">${t}</span></div>`;
+  }).join('') + (items.length>30 ? `<div style="font-size:10px;color:var(--text-3);padding:4px 0;">… ещё ${items.length-30}</div>` : '');
 }
 
 async function hardReset() {
@@ -1717,9 +1763,9 @@ async function listBackups() {
 
 async function renderBackupList() {
   const wrap = $('backupList'); if (!wrap) return;
-  wrap.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-sub);font-size:12px;">Загрузка...</div>';
+  wrap.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-2);font-size:12px;">Загрузка...</div>';
   const files = await listBackups();
-  if (!files.length) { wrap.innerHTML = '<div style="padding:30px 20px;text-align:center;color:var(--text-muted);font-size:12px;">Бэкапов пока нет</div>'; return; }
+  if (!files.length) { wrap.innerHTML = '<div style="padding:30px 20px;text-align:center;color:var(--text-3);font-size:12px;">Бэкапов пока нет</div>'; return; }
   wrap.innerHTML = files.map(f => {
     const sizeKb = Math.max(1, Math.round((f.metadata?.size||1024)/1024));
     const date = new Date(f.created_at||f.updated_at||Date.now());
@@ -1799,7 +1845,7 @@ function resetWorkerDropdown() { const drop = $('workerDrop'); if (drop) { drop.
 function updateIssBanner(fixedQuery) {
   const banner = $('issSnBanner'); const inp = $('issSn'); if (!banner || !inp) return;
   const q = String(fixedQuery||'').trim().toUpperCase();
-  if (q.length < 2) { banner.className = 'sn-live-banner'; banner.innerHTML = ''; inp.classList.remove('warn-busy'); $('modelHint').innerText = "F1 • Скан SN ➔ ID ➔ Enter"; return; }
+  if (q.length < 2) { banner.className = 'sn-live-banner'; banner.innerHTML = ''; inp.classList.remove('warn-busy'); $('modelHint').innerText = "F1 • Скан ➔ ID"; return; }
   const exact = state.devices.find(d => d.serial.toUpperCase()===q);
   const tailMatches = state.devices.filter(d => d.serial.toUpperCase().endsWith(q));
   const target = exact || (tailMatches.length===1 ? tailMatches[0] : null);
@@ -1807,29 +1853,29 @@ function updateIssBanner(fixedQuery) {
     if (target.status==='issued') {
       const h = hoursSince(target.issued_at); const shIcon = target.shift==='Ночная'?'🌙':'☀';
       inp.classList.add('warn-busy');
-      $('modelHint').innerText = `🔴 НА РУКАХ: ${target.holder}`;
+      $('modelHint').innerText = `🔴 У: ${target.holder}`;
       banner.className = 'sn-live-banner show busy';
-      const overdueMark = h >= OVERDUE_H ? ' <span style="color:var(--rose-text);font-weight:800;">🚨 ДОЛГ</span>' : '';
-      banner.innerHTML = `<div><b>🔴 НА РУКАХ:</b> <span class="mono">${esc(target.serial)}</span> числится за <b>👤 ${esc(target.holder)}</b> <span style="opacity:.85;font-size:11px;margin-left:4px;">(${shIcon} ${esc(target.shift||'—')} • ${fmtHoursShort(h)})</span>${overdueMark}</div><button type="button" class="banner-btn-act" data-banner-return="${esc(target.serial)}">📥 Принять на склад</button>`;
+      const overdueMark = h >= OVERDUE_H ? ' <b>🚨 ДОЛГ</b>' : '';
+      banner.innerHTML = `<div><b>🔴 НА РУКАХ:</b> <span class="mono">${esc(target.serial)}</span> у <b>👤 ${esc(target.holder)}</b> (${shIcon} ${fmtHoursShort(h)})${overdueMark}</div><button type="button" class="banner-btn-act" data-banner-return="${esc(target.serial)}">📥 Принять</button>`;
     } else {
       inp.classList.remove('warn-busy');
       $('modelHint').innerText = `🟢 Свободен (${target.model})`;
       banner.className = 'sn-live-banner show free';
-      banner.innerHTML = `<div><b>🟢 НА СКЛАДЕ:</b> <span class="mono">${esc(target.serial)}</span> (${esc(target.model)}) — свободен и готов к выдаче</div>`;
+      banner.innerHTML = `<div><b>🟢 НА СКЛАДЕ:</b> <span class="mono">${esc(target.serial)}</span> (${esc(target.model)}) — готов к выдаче</div>`;
     }
     return;
   }
   inp.classList.remove('warn-busy');
   if (tailMatches.length > 1) {
     const busyCount = tailMatches.filter(d => d.status==='issued').length;
-    $('modelHint').innerText = `Найдено совпадений: ${tailMatches.length}`;
+    $('modelHint').innerText = `Совпадений: ${tailMatches.length}`;
     banner.className = 'sn-live-banner show new-sn';
-    banner.innerHTML = `<div>🔎 Найдено <b>${tailMatches.length}</b> ТСД с хвостом «${esc(q)}» (свободно: ${tailMatches.length-busyCount}, на руках: ${busyCount}) — выберите из списка</div>`;
+    banner.innerHTML = `<div>🔎 Найдено <b>${tailMatches.length}</b> ТСД с хвостом «${esc(q)}» (своб: ${tailMatches.length-busyCount}, занято: ${busyCount})</div>`;
     return;
   }
-  $('modelHint').innerText = `⚡ Новый: создастся как ${detectModel(q)}`;
+  $('modelHint').innerText = `⚡ Новый (${detectModel(q)})`;
   banner.className = 'sn-live-banner show new-sn';
-  banner.innerHTML = `<div>⚡ Нет в базе: при выдаче создастся новый ТСД <b>${esc(q)}</b> (${esc(detectModel(q))})</div>`;
+  banner.innerHTML = `<div>⚡ Новый ТСД: создастся как <b>${esc(q)}</b> (${esc(detectModel(q))})</div>`;
 }
 
 function handleIssSnInput() {
@@ -1851,8 +1897,8 @@ function handleIssSnInput() {
   if (allMatches.length === 1 && allMatches[0].serial.toUpperCase()===fixed) { resetIssueDropdown(); state.lastDropQuery = fixed; return; }
   drop.innerHTML = allMatches.slice(0,8).map((d,i) => {
     const isBusy = d.status==='issued';
-    const rightBadge = isBusy ? `<span style="font-size:11px;color:var(--rose-text);font-weight:700;">🔴 НА РУКАХ: 👤 ${esc(d.holder)} (${fmtHoursShort(hoursSince(d.issued_at))})</span>` : `<span style="font-size:10.5px;color:var(--emerald-text);font-weight:700;">🟢 НА СКЛАДЕ</span>`;
-    return `<div class="drop-item ${i===0?'selected':''}" data-sn="${esc(d.serial)}"><div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span><span style="color:var(--text-sub);font-size:11px;margin-left:6px;">(${esc(d.model)})</span></div>${rightBadge}</div>`;
+    const rightBadge = isBusy ? `<span style="font-size:11px;color:var(--danger-text);font-weight:700;">🔴 У: ${esc(d.holder)} (${fmtHoursShort(hoursSince(d.issued_at))})</span>` : `<span style="font-size:10.5px;color:var(--ok-text);font-weight:700;">🟢 СКЛАД</span>`;
+    return `<div class="drop-item ${i===0?'selected':''}" data-sn="${esc(d.serial)}"><div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span><span style="color:var(--text-2);font-size:11px;margin-left:6px;">(${esc(d.model)})</span></div>${rightBadge}</div>`;
   }).join('');
   drop.classList.add('show');
   state.lastDropQuery = fixed;
@@ -1863,8 +1909,8 @@ function showIssuePickModal(items) {
     const sn = it.dataset.sn; const dev = state.devices.find(d => d.serial===sn);
     const isBusy = dev && dev.status==='issued';
     const model = dev ? esc(dev.model) : '';
-    const status = isBusy ? `<span style="font-size:11px;color:var(--rose-text);font-weight:700;">🔴 НА РУКАХ: 👤 ${esc(dev.holder)} (${fmtHoursShort(hoursSince(dev.issued_at))})</span>` : `<span style="font-size:11px;color:var(--emerald-text);font-weight:700;">🟢 НА СКЛАДЕ</span>`;
-    return `<div class="drop-item ${idx===0?'selected':''}" data-sn="${esc(sn)}" style="padding:11px 14px;"><div><span class="mono" style="font-weight:700;">${formatSnSplit(sn)}</span><span style="color:var(--text-sub);font-size:11px;margin-left:6px;">(${model})</span></div>${status}</div>`;
+    const status = isBusy ? `<span style="font-size:11px;color:var(--danger-text);font-weight:700;">🔴 НА РУКАХ: 👤 ${esc(dev.holder)} (${fmtHoursShort(hoursSince(dev.issued_at))})</span>` : `<span style="font-size:11px;color:var(--ok-text);font-weight:700;">🟢 НА СКЛАДЕ</span>`;
+    return `<div class="drop-item ${idx===0?'selected':''}" data-sn="${esc(sn)}" style="padding:11px 14px;"><div><span class="mono" style="font-weight:700;">${formatSnSplit(sn)}</span><span style="color:var(--text-2);font-size:11px;margin-left:6px;">(${model})</span></div>${status}</div>`;
   }).join('');
   resetIssueDropdown();
   openModal('issPickModal');
@@ -1915,7 +1961,7 @@ function handleWorkerInput() {
   if (state.workerShifts) Object.keys(state.workerShifts).forEach(w => workerSet.add(w));
   const matches = Array.from(workerSet).filter(w => w.toUpperCase().includes(q) && w.toUpperCase()!==q).slice(0,5);
   if (!matches.length) { resetWorkerDropdown(); return; }
-  drop.innerHTML = matches.map(w => `<div class="drop-item" data-worker="${esc(w)}"><span style="font-weight:700;">👤 ${esc(w)}</span><span style="font-size:10px;color:var(--text-muted);">выбрать</span></div>`).join('');
+  drop.innerHTML = matches.map(w => `<div class="drop-item" data-worker="${esc(w)}"><span style="font-weight:700;">👤 ${esc(w)}</span><span style="font-size:10px;color:var(--text-3);">выбрать</span></div>`).join('');
   drop.classList.add('show');
 }
 
@@ -2003,7 +2049,6 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
   try {
     await saveDevice(updated, actionName, worker);
     rememberWorkerShift(worker, shift); beep('issue');
-    pushTickerEvent('t-iss', sn, worker);
     showUndoToast('ВЫДАНО', `${sn} ➔ ${worker} (${shift})`, '↩ Отменить выдачу (Ctrl+Z)', async () => {
       try {
         if (isNew) { await deleteSerial(sn); } else { await saveDevice({...oldSnapshot, last_move: nowIso()}, 'Отмена выдачи', worker); }
@@ -2041,7 +2086,6 @@ async function confirmSwap() {
     if (oldDev) { await saveDevice({...oldDev, status:'free', holder:'', shift:'—', issued_at:null, last_move: ts}, 'Возврат (замена)', p.worker); }
     await saveDevice(newRecord, p.isNew?'Создан и выдан (замена, время сохранено)':'Выдача (замена, время сохранено)', p.worker);
     rememberWorkerShift(p.worker, p.shift); beep('swap');
-    pushTickerEvent('t-swp', p.newSn, p.worker);
     const hoursOnHands = hoursSince(inheritedIssuedAt);
     showUndoToast(`ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn}`, `${p.worker} · время ${fmtHoursShort(hoursOnHands)} сохранено`, '↩ Отменить (Ctrl+Z)', async () => {
       const t = nowIso();
@@ -2099,7 +2143,7 @@ function handleRetInput() {
   drop.innerHTML = matches.slice(0,8).map((d,idx) => {
     const sh = d.shift==='Ночная'?'🌙':(d.shift==='Дневная'?'☀':'');
     const ov = hoursSince(d.issued_at) >= OVERDUE_H;
-    return `<div class="drop-item ${idx===0?'selected':''}" data-sn="${esc(d.serial)}"><div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span><span style="color:var(--text-sub);font-size:11px;margin-left:6px;">(${esc(d.model)})</span></div><span style="font-size:11.5px;font-weight:600;color:${ov?'var(--rose-text)':'inherit'};">${ov?'🚨 ':''}${sh} ${esc(d.holder||'—')}</span></div>`;
+    return `<div class="drop-item ${idx===0?'selected':''}" data-sn="${esc(d.serial)}"><div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span><span style="color:var(--text-2);font-size:11px;margin-left:6px;">(${esc(d.model)})</span></div><span style="font-size:11.5px;font-weight:600;color:${ov?'var(--danger-text)':'inherit'};">${ov?'🚨 ':''}${sh} ${esc(d.holder||'—')}</span></div>`;
   }).join('');
   drop.classList.add('show');
   state.lastRetDropQuery = qFixed;
@@ -2147,7 +2191,7 @@ async function quickReturn() {
   $('pickList').innerHTML = candidates.map((d, idx) => {
     const ov = hoursSince(d.issued_at) >= OVERDUE_H;
     const sh = d.shift==='Ночная'?'🌙':(d.shift==='Дневная'?'☀':'');
-    return `<div class="drop-item ${idx===0?'selected':''}" data-sn="${esc(d.serial)}" style="padding:10px 14px;"><div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span><span style="color:var(--text-sub);margin-left:8px;">${sh} ${esc(d.holder)}</span></div><span class="mono" style="font-size:11px;color:${ov?'var(--rose-text)':'var(--brand-text)'};">${ov?'🚨 ':''}${fmtHoursShort(hoursSince(d.issued_at))}</span></div>`;
+    return `<div class="drop-item ${idx===0?'selected':''}" data-sn="${esc(d.serial)}" style="padding:10px 14px;"><div><span class="mono" style="font-weight:700;">${formatSnSplit(d.serial)}</span><span style="color:var(--text-2);margin-left:8px;">${sh} ${esc(d.holder)}</span></div><span class="mono" style="font-size:11px;color:${ov?'var(--danger-text)':'var(--brand-text)'};">${ov?'🚨 ':''}${fmtHoursShort(hoursSince(d.issued_at))}</span></div>`;
   }).join('');
   openModal('pickModal');
 }
@@ -2167,7 +2211,6 @@ async function doReturn(sn) {
     setTimeout(() => { state.justReturned = null; }, 2500);
     await saveDevice(updated, 'Возврат', holder);
     beep('return');
-    pushTickerEvent('t-ret', sn, holder);
     setTimeout(() => updateDebtBadge(), 200);
     showUndoToast(`ПРИБОР ${sn} ПРИНЯТ`, `Сотрудник: ${holder}`, '↩ Отменить приём (Ctrl+Z)', async () => {
       try {
@@ -2223,7 +2266,7 @@ function openDebtModal() {
   else {
     histWrap.innerHTML = history.map(r => {
       const lastStr = r.lastDate ? new Date(r.lastDate).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit'}) : '—';
-      return `<div class="debt-modal-item" style="background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.28);" data-holder="${esc(r.name)}" title="История: ${r.count} просрочек"><div class="dname"><span>👤 ${esc(r.name)}</span></div><div class="dtime" style="color:var(--amber-text);">${r.count}×</div><div class="dmeta"><span style="color:var(--amber-text);">${r.serials.length} ТСД</span><span style="font-size:10px;">${lastStr}</span></div></div>`;
+      return `<div class="debt-modal-item" style="background:var(--warn-soft);border-color:rgba(245,158,11,.3);" data-holder="${esc(r.name)}" title="История: ${r.count} просрочек"><div class="dname"><span>👤 ${esc(r.name)}</span></div><div class="dtime" style="color:var(--warn-text);">${r.count}×</div><div class="dmeta"><span style="color:var(--warn-text);">${r.serials.length} ТСД</span><span style="font-size:10px;">${lastStr}</span></div></div>`;
     }).join('');
   }
   openModal('debtModal');
@@ -2248,48 +2291,26 @@ function filterByHolder(holder) {
 
 function updateSearchWrap() { const w = $('searchWrap'); if (w) w.classList.toggle('has-val', !!$('searchTable').value); }
 
-function setRingProgress(id, ratio) {
-  const el = $(id);
-  if (!el) return;
-  const c = 94.2;
-  const r = Math.max(0, Math.min(1, ratio || 0));
-  el.style.strokeDashoffset = String(c - c * r);
-}
-
 function renderTable() {
   const q = ($('searchTable').value||'').trim().toUpperCase();
   let free = 0, issued = 0, overdue = 0, dayCount = 0, nightCount = 0;
-  let zebraCnt = 0, pmCnt = 0, tabCnt = 0;
   const issuedTimes = [];
   state.devices.forEach(d => {
-    if (d.model === 'Zebra') zebraCnt++;
-    else if (d.model === 'Планшет') tabCnt++;
-    else pmCnt++;
     if (d.status==='issued') { issued++; const h = hoursSince(d.issued_at); issuedTimes.push(h); if (h>=OVERDUE_H) overdue++; if (d.shift==='Ночная') nightCount++; else dayCount++; }
     else free++;
   });
   const total = state.devices.length;
   $('mTotal').innerText = total; $('mFree').innerText = free; $('mIssued').innerText = issued;
   $('mOverdue').innerText = overdue; $('mDay').innerText = dayCount; $('mNight').innerText = nightCount;
-  $('mFreePct').innerText = total ? Math.round((free/total)*100)+'%' : '0%';
-  $('mIssuedPct').innerText = total ? Math.round((issued/total)*100)+'%' : '0%';
+  const freePct = total ? Math.round((free/total)*100) : 0;
+  const issPct = total ? Math.round((issued/total)*100) : 0;
+  $('mFreePct').innerText = freePct + '%';
+  $('mIssuedPct').innerText = issPct + '%';
 
-  $('mcAll').innerText = total;
-  $('mcZebra').innerText = zebraCnt;
-  $('mcPm').innerText = pmCnt;
-  $('mcTab').innerText = tabCnt;
-
-  setRingProgress('ringFree', total ? free / total : 0);
-  setRingProgress('ringIssued', total ? issued / total : 0);
-  setRingProgress('ringOverdue', issued ? overdue / issued : 0);
-  setRingProgress('ringDay', issued ? dayCount / issued : 0);
-  setRingProgress('ringNight', issued ? nightCount / issued : 0);
-
-  if (total > 0) {
-    $('capFree').style.width = ((free / total) * 100) + '%';
-    $('capDay').style.width = ((Math.max(0, dayCount - overdue) / total) * 100) + '%';
-    $('capNight').style.width = ((nightCount / total) * 100) + '%';
-    $('capOver').style.width = ((overdue / total) * 100) + '%';
+  const donut = $('donutFreeSeg');
+  if (donut) {
+    const c = 94.2;
+    donut.style.strokeDashoffset = String(c - (c * freePct) / 100);
   }
 
   const statsEl = $('regStats');
@@ -2298,9 +2319,9 @@ function renderTable() {
       const avg = issuedTimes.reduce((a,b) => a+b, 0)/issuedTimes.length;
       const max = Math.max(...issuedTimes);
       const avgCls = timeClass(avg), maxCls = timeClass(max);
-      const colors = { fresh:'var(--emerald-text)', mid:'var(--amber-text)', late:'#f97316', over:'var(--rose-text)' };
+      const colors = { fresh:'var(--ok-text)', mid:'var(--warn-text)', late:'#fb923c', over:'var(--danger-text)' };
       statsEl.innerHTML = `Среднее: <b style="color:${colors[avgCls]};">${fmtHoursShort(avg)}</b> · Макс: <b style="color:${colors[maxCls]};">${fmtHoursShort(max)}</b>`;
-    } else { statsEl.innerHTML = 'Среднее: <span style="color:var(--text-muted);">—</span> · Макс: <span style="color:var(--text-muted);">—</span>'; }
+    } else { statsEl.innerHTML = 'Среднее: <span style="color:var(--text-3);">—</span> · Макс: <span style="color:var(--text-3);">—</span>'; }
   }
   updateDebtBadge();
   const filtered = state.devices.filter(d => {
@@ -2328,8 +2349,44 @@ function renderTable() {
     if (aTime !== bTime) return bTime-aTime;
     return String(a.serial).localeCompare(String(b.serial));
   });
-  if (!filtered.length) { $('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:45px;color:var(--text-muted);font-size:13px;">Оборудование по заданному фильтру не найдено</td></tr>'; return; }
+
+  if (state.viewMode === 'matrix') {
+    renderMatrix(filtered);
+    return;
+  }
+
+  if (!filtered.length) { $('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:45px;color:var(--text-3);font-size:13px;">Оборудование по заданному фильтру не найдено</td></tr>'; return; }
   $('tbody').innerHTML = filtered.map(d => renderRow(d, d.status==='issued')).join('');
+}
+
+function renderMatrix(list) {
+  const wrap = $('matrixView');
+  if (!wrap) return;
+  if (!list.length) {
+    wrap.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:45px;color:var(--text-3);">Нет оборудования по выбранному фильтру</div>';
+    return;
+  }
+  wrap.innerHTML = list.map(d => {
+    const busy = d.status === 'issued';
+    const h = busy ? hoursSince(d.issued_at) : 0;
+    const over = busy && h >= OVERDUE_H;
+    const s = String(d.serial || '');
+    const pref = s.length > 4 ? s.slice(0, -4) : '';
+    const tail = s.length > 4 ? s.slice(-4) : s;
+    const cls = busy ? (over ? 's-over' : 's-busy') : 's-free';
+    const sh = busy ? (d.shift === 'Ночная' ? '🌙' : '☀') : '🟢';
+    return `<div class="slot-card ${cls}" data-slot-sn="${esc(d.serial)}" data-slot-busy="${busy?'1':'0'}" title="${busy ? 'Клик — принять на склад · ПКМ — история' : 'Клик — выбрать для выдачи · ПКМ — история'}">
+      <div class="slot-top"><span>${esc(d.model)}</span><span>${sh}</span></div>
+      <div>
+        <span class="slot-prefix">${esc(pref || ' ')}</span>
+        <div class="slot-tail">${esc(tail)}</div>
+      </div>
+      <div class="slot-foot">
+        <span class="slot-holder">${busy ? esc(d.holder) : 'СВОБОДЕН'}</span>
+        <span style="color:${over?'var(--danger-text)':'var(--text-2)'};font-weight:700;">${busy ? fmtHoursShort(h) : ''}</span>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderRow(d, busy) {
@@ -2345,7 +2402,7 @@ function renderRow(d, busy) {
   if (busy && d.shift==='Дневная') shiftChip = ` <span class="badge-chip chip-day" style="cursor:pointer;" data-action="toggle-shift" data-sn="${esc(d.serial)}" title="Клик — переключить на НОЧЬ">☀ День ⇄</span>`;
   else if (busy && d.shift==='Ночная') shiftChip = ` <span class="badge-chip chip-night" style="cursor:pointer;" data-action="toggle-shift" data-sn="${esc(d.serial)}" title="Клик — переключить на ДЕНЬ">🌙 Ночь ⇄</span>`;
   let modelCls = 'pm'; if (d.model==='Zebra') modelCls='zebra'; else if (d.model==='Планшет') modelCls='tab';
-  const holderHtml = d.holder ? `<span class="holder-pill mono" data-action="filter-holder" data-holder="${esc(d.holder)}" title="Клик — фильтр по сотруднику"><span class="holder-avatar">${esc(getInitials(d.holder))}</span>${esc(d.holder)}</span>` : '<span style="color:var(--text-muted);font-weight:400;">—</span>';
+  const holderHtml = d.holder ? `<span class="holder-pill mono" data-action="filter-holder" data-holder="${esc(d.holder)}" title="Клик — фильтр по сотруднику"><span class="holder-avatar">${esc(getInitials(d.holder))}</span>${esc(d.holder)}</span>` : '<span style="color:var(--text-3);font-weight:400;">—</span>';
   const action = busy ? `<button class="btn-row-return" data-action="return" data-sn="${esc(d.serial)}">Принять</button>` : `<button class="btn-row-issue" data-action="issue" data-sn="${esc(d.serial)}">Выдать</button>`;
   let timeHtml = '', timeTitle = '';
   if (busy) {
@@ -2373,9 +2430,7 @@ function pickForIssue(sn) { $('issSn').value = sn; $('issSn').classList.remove('
 async function openAudit(sn) {
   const dev = state.devices.find(d => d.serial===sn); if (!dev) return;
   state.auditSn = sn;
-  $('audSn').innerText = dev.serial;
-  const bcTxt = $('audBarcodeText'); if (bcTxt) bcTxt.innerText = dev.serial;
-  $('audModel').innerText = dev.model||'—'; $('audHolder').innerText = dev.holder||'На складе';
+  $('audSn').innerText = dev.serial; $('audModel').innerText = dev.model||'—'; $('audHolder').innerText = dev.holder||'На складе';
   const badge = $('audStatusBadge');
   if (dev.status==='issued') { badge.className='badge-chip chip-busy'; badge.innerText='В работе'; } else { badge.className='badge-chip chip-free'; badge.innerText='На складе'; }
   $('audDuration').innerText = dev.status==='issued' && dev.issued_at ? fmtHoursShort(hoursSince(dev.issued_at))+' ('+(dev.shift||'—')+')' : '—';
@@ -2407,12 +2462,12 @@ async function openAudit(sn) {
   }).sort((a,b) => parseTime(b.created_at||b.at) - parseTime(a.created_at||a.at)).slice(0, 30);
 
   const tl = $('audTimeline');
-  if (!moves.length) { tl.innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:15px;">Записей пока нет.</div>'; return; }
+  if (!moves.length) { tl.innerHTML = '<div style="color:var(--text-3);font-size:12px;text-align:center;padding:15px;">Записей пока нет.</div>'; return; }
   tl.innerHTML = moves.map(h => {
     const isRet = h.action && h.action.startsWith('Возврат');
     const d = h.created_at || h.at;
     const t = d ? new Date(d).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
-    const actColor = isRet ? 'var(--emerald-text)' : 'var(--brand-text)';
+    const actColor = isRet ? 'var(--ok-text)' : 'var(--brand-text)';
     return `<div class="timeline-item ${isRet?'return':''}"><div class="timeline-dot"></div><div class="timeline-time">${t}</div><div class="timeline-action" style="color:${actColor};">${esc(h.action)}</div><div class="timeline-actor">👤 ${esc(h.worker||'—')}</div></div>`;
   }).join('');
 }
@@ -2464,29 +2519,26 @@ function showDiag() {
   Promise.all([countReq, renderQueuePreview()]).then(([n, preview]) => {
     const lastBk = localStorage.getItem('sklad_last_backup_date')||'—';
     const autoSwapTxt = state.autoSwap?'ВКЛ (без окна)':'выкл (с окном)';
-    const autoSwapColor = state.autoSwap?'var(--emerald-text)':'var(--text-muted)';
+    const autoSwapColor = state.autoSwap?'var(--ok-text)':'var(--text-3)';
     const dbOk = state.dbReady?'✅ OK':'❌ не готова';
-    const dbColor = state.dbReady?'var(--emerald-text)':'var(--rose-text)';
-    const syncTxt = state.syncing?'<span style="color:var(--amber-text);">● идёт</span>':'<span style="color:var(--emerald-text);">○ idle</span>';
-    const backoff = state.syncBackoff>0?`<span style="color:var(--amber-text);">${state.syncBackoff}× (backoff)</span>`:'<span style="color:var(--text-muted);">0</span>';
+    const dbColor = state.dbReady?'var(--ok-text)':'var(--danger-text)';
+    const syncTxt = state.syncing?'<span style="color:var(--warn-text);">● идёт</span>':'<span style="color:var(--ok-text);">○ idle</span>';
+    const backoff = state.syncBackoff>0?`<span style="color:var(--warn-text);">${state.syncBackoff}× (backoff)</span>`:'<span style="color:var(--text-3);">0</span>';
     const debtEvents = Object.keys(state.debtorsRecorded).length;
     const debtPeople = Object.keys(state.debtorsRegistry).length;
-    const alerted = Object.keys(state.alertedDebtors).length;
     $('diagContent').innerHTML = `
-      <div>ВЕРСИЯ: <span style="color:var(--brand-text);">v9.5 Command Center (${THEME_NAMES[state.theme]})</span></div>
+      <div>ВЕРСИЯ: <span style="color:var(--brand-text);">ORBITAL WMS v10.0 (${THEME_NAMES[state.theme]})</span></div>
       <div>БД: <span style="color:${dbColor};">${dbOk}</span> &nbsp; SYNC: ${syncTxt}</div>
       <div>ЛОКАЛЬНО: <span style="color:var(--brand-text);">${state.devices.length}</span> шт.</div>
-      <div>SUPABASE: <span style="color:var(--text-main);">${SUPABASE_URL.replace('https://','').split('.')[0]}...</span></div>
+      <div>SUPABASE: <span style="color:var(--text-1);">${SUPABASE_URL.replace('https://','').split('.')[0]}...</span></div>
       <div>ОЧЕРЕДЬ ПАКЕТОВ: <span style="color:var(--brand-text);">${n}</span></div>
       <div>BACKOFF: ${backoff}</div>
-      <div>ПОРОГ ДОЛГА: <span style="color:var(--rose-text);">${OVERDUE_H}ч</span></div>
-      <div>ДОЛЖНИКИ: <span style="color:var(--rose-text);">${debtEvents} событий / ${debtPeople} чел.</span></div>
-      <div>ОПОВЕЩЕНО: <span style="color:var(--brand-text);">${alerted} шт.</span></div>
-      <div>СМЕНА: <span style="color:var(--text-main);">${state.issueShift}</span> (${state.issueShiftAuto?'авто':'вручную'})</div>
-      <div>АВТО-ЗАМЕНА: <span style="color:${autoSwapColor};">${autoSwapTxt}</span> <button class="btn-hud" style="padding:2px 8px;font-size:10px;margin-left:8px;min-width:auto;" onclick="toggleAutoSwap()">${state.autoSwap?'Отключить':'Включить'}</button></div>
-      <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--emerald-text);">${lastBk}</span></div>
-      <div>ПОСЛЕДНЯЯ ОШИБКА: <span style="color:var(--rose-text);">${esc(state.lastError)}</span></div>
-      ${n?`<div style="margin-top:12px;border-top:1px solid var(--card-border);padding-top:8px;"><div style="font-size:11px;font-weight:800;color:var(--amber-text);margin-bottom:6px;">⚠ ОЧЕРЕДЬ (первые 30):</div><div style="max-height:220px;overflow-y:auto;background:var(--input-bg);border-radius:6px;padding:6px 10px;">${preview}</div><div style="margin-top:8px;"><button class="btn-hud" style="border-color:rgba(244,63,94,.4);color:var(--rose-text);font-size:10px;min-width:auto;" onclick="clearStuckQueue()">🗑 Очистить очередь (данные не тронем)</button></div></div>`:''}
+      <div>ДОЛЖНИКИ: <span style="color:var(--danger-text);">${debtEvents} событий / ${debtPeople} чел.</span></div>
+      <div>СМЕНА: <span style="color:var(--text-1);">${state.issueShift}</span> (${state.issueShiftAuto?'авто':'вручную'})</div>
+      <div>АВТО-ЗАМЕНА: <span style="color:${autoSwapColor};">${autoSwapTxt}</span> <button class="btn-hud" style="padding:2px 8px;font-size:10px;margin-left:8px;" onclick="toggleAutoSwap()">${state.autoSwap?'Отключить':'Включить'}</button></div>
+      <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--ok-text);">${lastBk}</span></div>
+      <div>ПОСЛЕДНЯЯ ОШИБКА: <span style="color:var(--danger-text);">${esc(state.lastError)}</span></div>
+      ${n?`<div style="margin-top:12px;border-top:1px solid var(--border-dim);padding-top:8px;"><div style="font-size:11px;font-weight:800;color:var(--warn-text);margin-bottom:6px;">⚠ ОЧЕРЕДЬ (первые 30):</div><div style="max-height:220px;overflow-y:auto;background:var(--bg-canvas);border-radius:6px;padding:6px 10px;">${preview}</div><div style="margin-top:8px;"><button class="btn-hud" style="color:var(--danger-text);font-size:10px;" onclick="clearStuckQueue()">🗑 Очистить очередь</button></div></div>`:''}
     `;
     openModal('diagModal');
   });
@@ -2546,21 +2598,27 @@ function setupDelegation() {
     renderTable();
   });
 
-  document.querySelectorAll('th.sortable').forEach(th => {
+  document.querySelectorAll('th[data-sort]').forEach(th => {
     th.addEventListener('click', () => {
       const f = th.dataset.sort;
       if (state.sortField === f) state.sortAsc = !state.sortAsc;
       else { state.sortField = f; state.sortAsc = true; }
-      document.querySelectorAll('.sort-ind').forEach(el => el.innerText = '');
-      const ind = $('sort-' + f);
-      if (ind) ind.innerText = state.sortAsc ? '▲' : '▼';
+      ['serial','model','status','holder','time'].forEach(k => { const el = $('sort-'+k); if (el) el.innerText = ''; });
+      const cur = $('sort-'+f); if (cur) cur.innerText = state.sortAsc ? '▲' : '▼';
       renderTable();
     });
   });
 
-  $('liveTicker').addEventListener('click', e => {
-    const chip = e.target.closest('[data-ticker-sn]');
-    if (chip) openAudit(chip.dataset.tickerSn);
+  $('matrixView').addEventListener('click', e => {
+    const slot = e.target.closest('[data-slot-sn]'); if (!slot) return;
+    const sn = slot.dataset.slotSn;
+    if (slot.dataset.slotBusy === '1') quickReturnFromRow(sn);
+    else pickForIssue(sn);
+  });
+  $('matrixView').addEventListener('contextmenu', e => {
+    const slot = e.target.closest('[data-slot-sn]'); if (!slot) return;
+    e.preventDefault();
+    openAudit(slot.dataset.slotSn);
   });
 
   $('tbody').addEventListener('click', e => {
@@ -2713,6 +2771,7 @@ document.addEventListener('keydown', e => {
 
   if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key.toLowerCase()==='z') { if (state.undoAction) { e.preventDefault(); undoLast(); return; } }
   if (e.altKey && e.key.toLowerCase()==='t') { e.preventDefault(); cycleTheme(); return; }
+  if (e.altKey && e.key.toLowerCase()==='v') { e.preventDefault(); setViewMode(state.viewMode==='matrix'?'table':'matrix'); return; }
   if (e.ctrlKey && e.altKey && e.key.toLowerCase()==='d') { e.preventDefault(); openDeleteModal(); return; }
   if ($('delModal').classList.contains('show') && e.key==='Escape') { e.preventDefault(); closeModal('delModal'); return; }
   if ($('backupModal').classList.contains('show') && e.key==='Escape') { e.preventDefault(); closeModal('backupModal'); return; }
@@ -2736,6 +2795,7 @@ window.addEventListener('DOMContentLoaded', () => {
     else { state.issueShift = computeSmartShift(''); state.issueShiftAuto = true; }
   } catch(e) { state.issueShift = computeSmartShift(''); state.issueShiftAuto = true; }
   applyTheme(state.theme, false);
+  applyViewModeUI();
   updateShiftPill(); setupDelegation();
   updateDebtBadge();
   $('issSn').focus();
