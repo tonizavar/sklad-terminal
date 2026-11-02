@@ -2262,7 +2262,6 @@ function renderTable() {
   const issuedTimes = [];
   state.devices.forEach(d => {
     if (d.model === 'Zebra') zebraCnt++;
-    else if (d.model === 'Планшет') tabCnt++;
     else pmCnt++;
     if (d.status==='issued') { issued++; const h = hoursSince(d.issued_at); issuedTimes.push(h); if (h>=OVERDUE_H) overdue++; if (d.shift==='Ночная') nightCount++; else dayCount++; }
     else free++;
@@ -2276,7 +2275,6 @@ function renderTable() {
   $('mcAll').innerText = total;
   $('mcZebra').innerText = zebraCnt;
   $('mcPm').innerText = pmCnt;
-  $('mcTab').innerText = tabCnt;
 
   setRingProgress('ringFree', total ? free / total : 0);
   setRingProgress('ringIssued', total ? issued / total : 0);
