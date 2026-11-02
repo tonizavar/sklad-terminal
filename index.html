@@ -658,7 +658,7 @@ tbody tr:hover .row-action-cell { opacity: 1; }
       <button class="btn-hud" onclick="copyTelegramSummary()" title="Скопировать красивую сводку смены в буфер обмена">📋 Сводка</button>
       <button class="btn-hud" onclick="openBackupModal()" title="Резервные копии">💾 Бэкап</button>
       <button class="btn-hud" onclick="exportExcel()" title="Выгрузить отчёт в Excel (Ctrl+E)">📊 Excel</button>
-      <button class="btn-hud" onclick="openModal('impModal')" title="Импорт списка ТСД (Ctrl+I)">📥 Импорт</button>
+      <button class="btn-hud" onclick="openModal('impModal')" title="Импорт списка сканеров (Ctrl+I)">📥 Импорт</button>
     </div>
   </header>
 
@@ -678,7 +678,7 @@ tbody tr:hover .row-action-cell { opacity: 1; }
   <section class="metrics-grid">
     <div class="kpi-card active" data-filter="all" style="--kpi-color:var(--brand-1);">
       <div class="kpi-info">
-        <span class="kpi-label">Весь парк ТСД</span>
+        <span class="kpi-label">Все сканеры</span>
         <div class="kpi-val-row"><span id="mTotal" class="kpi-value mono">0</span><span class="kpi-sub">100%</span></div>
       </div>
       <div class="kpi-ring-wrap">
@@ -768,7 +768,7 @@ tbody tr:hover .row-action-cell { opacity: 1; }
       </div>
       <form id="issueForm" autocomplete="off" style="display:flex;flex-direction:column;flex:1;">
         <div class="hud-group">
-          <label class="hud-label">Серийный номер ТСД (или последние 4 цифры):</label>
+          <label class="hud-label">Серийный номер сканера (или последние 4 цифры):</label>
           <input id="issSn" class="hud-input mono" placeholder="Отсканируйте штрихкод или введите хвост номера..." autocomplete="off" spellcheck="false">
           <div id="issDrop" class="drop-box"></div>
           <div id="issSnBanner" class="sn-live-banner"></div>
@@ -787,7 +787,7 @@ tbody tr:hover .row-action-cell { opacity: 1; }
         <span class="deck-badge-key">F2 • Мгновенный возврат по Enter</span>
       </div>
       <div class="hud-group">
-        <label class="hud-label">Серийный номер ТСД или ID сотрудника:</label>
+        <label class="hud-label">Серийный номер сканера или ID сотрудника:</label>
         <input id="retQuery" class="hud-input mono" placeholder="Отсканируйте возвращаемый прибор или бейдж сотрудника ➔ Enter" autocomplete="off" spellcheck="false">
         <div id="retDrop" class="drop-box"></div>
       </div>
@@ -806,7 +806,6 @@ tbody tr:hover .row-action-cell { opacity: 1; }
           <button type="button" class="mf-chip active" data-mfilter="all">Все <span class="mf-cnt" id="mcAll">0</span></button>
           <button type="button" class="mf-chip" data-mfilter="Zebra">Zebra <span class="mf-cnt" id="mcZebra">0</span></button>
           <button type="button" class="mf-chip" data-mfilter="Point Mobile">Point Mobile <span class="mf-cnt" id="mcPm">0</span></button>
-          <button type="button" class="mf-chip" data-mfilter="Планшет">Планшеты <span class="mf-cnt" id="mcTab">0</span></button>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -821,7 +820,7 @@ tbody tr:hover .row-action-cell { opacity: 1; }
       <table>
         <thead><tr>
           <th class="sortable" data-sort="serial" style="width:205px;">СЕРИЙНЫЙ НОМЕР <span class="sort-ind" id="sort-serial"></span></th>
-          <th class="sortable" data-sort="model" style="width:150px;">МОДЕЛЬ ТСД <span class="sort-ind" id="sort-model"></span></th>
+          <th class="sortable" data-sort="model" style="width:150px;">МОДЕЛЬ СКАНЕРА <span class="sort-ind" id="sort-model"></span></th>
           <th class="sortable" data-sort="status" style="width:230px;">ТЕКУЩИЙ СТАТУС <span class="sort-ind" id="sort-status"></span></th>
           <th class="sortable" data-sort="holder" style="width:210px;">СОТРУДНИК (ДЕРЖАТЕЛЬ) <span class="sort-ind" id="sort-holder"></span></th>
           <th class="sortable" data-sort="time" style="text-align:right;">ВРЕМЯ В РАБОТЕ <span class="sort-ind" id="sort-time"></span></th>
@@ -842,7 +841,7 @@ tbody tr:hover .row-action-cell { opacity: 1; }
 <div id="issPickModal" class="modal-overlay">
   <div class="modal-card" style="max-width:540px;">
     <h3 style="font-size:14px;margin-bottom:8px;color:var(--brand-text);">🔍 НЕСКОЛЬКО СОВПАДЕНИЙ ПО ХВОСТУ</h3>
-    <p style="font-size:12px;color:var(--text-sub);margin-bottom:10px;">Уточните, какой ТСД выдаётся (клавиатура: ↑↓ + Enter):</p>
+    <p style="font-size:12px;color:var(--text-sub);margin-bottom:10px;">Уточните, какой сканер выдаётся (клавиатура: ↑↓ + Enter):</p>
     <div id="issPickList" style="max-height:320px;overflow-y:auto;border:1px solid var(--card-border);border-radius:8px;"></div>
     <div style="display:flex;justify-content:flex-end;margin-top:12px;"><button class="btn-hud" onclick="closeModal('issPickModal')">Отмена (Esc)</button></div>
   </div>
@@ -943,7 +942,7 @@ tbody tr:hover .row-action-cell { opacity: 1; }
 
 <div id="delModal" class="modal-overlay">
   <div class="modal-card" style="max-width:640px;border-color:rgba(244,63,94,.4);">
-    <h3 style="font-size:14px;margin-bottom:10px;color:var(--rose-text);">🗑 УДАЛЕНИЕ ТСД ИЗ БАЗЫ</h3>
+    <h3 style="font-size:14px;margin-bottom:10px;color:var(--rose-text);">🗑 УДАЛЕНИЕ СКАНЕРА ИЗ БАЗЫ</h3>
     <p style="font-size:11.5px;color:var(--text-sub);margin-bottom:10px;">Удаляет из локальной базы, очереди, истории и облака Supabase. Действие необратимо.</p>
     <input id="delSearch" class="del-search" placeholder="Поиск по SN / модели / держателю..." autocomplete="off" spellcheck="false">
     <div id="delList" class="del-list"></div>
@@ -1071,7 +1070,7 @@ function copyTelegramSummary() {
   });
   const dt = new Date().toLocaleString('ru-RU', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
   const lines = [
-    `📊 СВОДКА ПАРКА ТСД (${dt} • ${state.issueShift})`,
+    `📊 СВОДКА ПАРКА СКАНЕРОВ (${dt} • ${state.issueShift})`,
     `📦 Всего в базе: ${state.devices.length} шт.`,
     `🟢 Свободно на складе: ${free} шт.`,
     `⚡ В работе: ${issued} шт. (☀️ День: ${dayCount} | 🌙 Ночь: ${nightCount})`,
@@ -1097,7 +1096,7 @@ function pluralN(n, one, few, many) { const m10 = n%10, m100 = n%100; if (m10===
 const RU = {'й':'q','ц':'w','у':'e','к':'r','е':'t','н':'y','г':'u','ш':'i','щ':'o','з':'p','х':'[','ъ':']','ф':'a','ы':'s','в':'d','а':'f','п':'g','р':'h','о':'j','л':'k','д':'l','ж':';','э':'\'','я':'z','ч':'x','с':'c','м':'v','и':'b','т':'n','ь':'m','б':',','ю':'.','ё':'`'};
 function fixLayout(s) { return String(s?s:'').split('').map(ch => { const lo = ch.toLowerCase(); return RU[lo]!==undefined ? RU[lo] : ch; }).join('').toUpperCase().replace(/\s+/g,''); }
 function hasCyr(s) { return /[а-яёА-ЯЁ]/.test(String(s||'')); }
-function detectModel(sn) { const s = String(sn?sn:'').toUpperCase(); if (s.startsWith('S')) return 'Zebra'; if (s.includes('TAB') || s.includes('ПЛАНШЕТ')) return 'Планшет'; return 'Point Mobile'; }
+function detectModel(sn) { const s = String(sn?sn:'').toUpperCase(); if (s.startsWith('S')) return 'Zebra'; return 'Point Mobile'; }
 function formatSnSplit(sn) { const s = String(sn||''); if (s.length<=4) return `<span class="sn-tail">${esc(s)}</span>`; return `<span class="sn-prefix">${esc(s.slice(0,-4))}</span><span class="sn-tail">${esc(s.slice(-4))}</span>`; }
 function getInitials(h) { const s = String(h||'').trim(); if (!s) return '•'; const l = s.match(/[А-ЯЁA-Z]/gi); if (l && l.length>=2) return (l[0]+l[1]).toUpperCase(); return s.slice(-2).toUpperCase(); }
 function hoursSince(iso) { if (!iso) return 0; const t = Date.parse(iso); if (isNaN(t)) return 0; return (Date.now()-t)/3600000; }
@@ -1398,7 +1397,7 @@ function alertNewDebtors() {
 
   updateDebtBadge();
   renderTable();
-  logMsg(`🚨 НОВЫЙ ДОЛГ: ${fresh.length} ТСД · ${namesList}`);
+  logMsg(`🚨 НОВЫЙ ДОЛГ: ${fresh.length} сканеров · ${namesList}`);
 
   setTimeout(() => {
     fresh.forEach(d => { delete state.justOverdueHighlights[d.serial]; });
@@ -1683,8 +1682,8 @@ async function doBackup(trigger) {
     if (error) throw error;
     localStorage.setItem('sklad_last_backup_date', date);
     localStorage.setItem('sklad_last_backup_time', String(Date.now()));
-    logMsg(`💾 бэкап: ${filename} (${state.devices.length} ТСД)`);
-    if (trigger==='manual') { showToast('БЭКАП СОЗДАН', `${state.devices.length} ТСД → ${filename}`); renderBackupList(); }
+    logMsg(`💾 бэкап: ${filename} (${state.devices.length} сканеров)`);
+    if (trigger==='manual') { showToast('БЭКАП СОЗДАН', `${state.devices.length} сканеров → ${filename}`); renderBackupList(); }
     await cleanupOldBackups();
   } catch(e) {
     const msg = e.message||'?'; state.lastError = 'backup: '+msg;
@@ -1736,7 +1735,7 @@ async function restoreFromBackup(filename) {
     const text = await data.text(); const backup = JSON.parse(text);
     const devices = (backup.devices || []).map(normalizeCloudDevice).filter(Boolean);
     if (!devices.length) throw new Error('Пустой бэкап');
-    const ok = confirm(`Восстановить из "${filename}"?\n\nТСД: ${devices.length}\n\n⚠️ Локальные и облачные данные будут приведены в соответствие с копией.`);
+    const ok = confirm(`Восстановить из "${filename}"?\n\nСканеров: ${devices.length}\n\n⚠️ Локальные и облачные данные будут приведены в соответствие с копией.`);
     if (!ok) return;
     showToast('ВОССТАНОВЛЕНИЕ', 'Загрузка данных в облако...', 'warn');
     const cloudPayload = devices.map(d => ({
@@ -1761,7 +1760,7 @@ async function restoreFromBackup(filename) {
     await new Promise((res, rej) => { const t = db.transaction(['devices','queue'],'readwrite'); t.objectStore('devices').clear(); t.objectStore('queue').clear(); t.oncomplete = res; t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); });
     await new Promise((res, rej) => { const t = db.transaction('devices','readwrite'); const s = t.objectStore('devices'); devices.forEach(d => { if (d && d.serial) s.put(d); }); t.oncomplete = res; t.onerror = () => rej(t.error); t.onabort = () => rej(t.error); });
     await loadLocal(); closeModal('backupModal');
-    showToast('ВОССТАНОВЛЕНО', `${devices.length} ТСД успешно загружено`);
+    showToast('ВОССТАНОВЛЕНО', `${devices.length} сканеров успешно загружено`);
   } catch(e) { showToast('ОШИБКА', e.message||'?', 'err'); }
 }
 
@@ -1824,12 +1823,12 @@ function updateIssBanner(fixedQuery) {
     const busyCount = tailMatches.filter(d => d.status==='issued').length;
     $('modelHint').innerText = `Найдено совпадений: ${tailMatches.length}`;
     banner.className = 'sn-live-banner show new-sn';
-    banner.innerHTML = `<div>🔎 Найдено <b>${tailMatches.length}</b> ТСД с хвостом «${esc(q)}» (свободно: ${tailMatches.length-busyCount}, на руках: ${busyCount}) — выберите из списка</div>`;
+    banner.innerHTML = `<div>🔎 Найдено <b>${tailMatches.length}</b> сканеров с хвостом «${esc(q)}» (свободно: ${tailMatches.length-busyCount}, на руках: ${busyCount}) — выберите из списка</div>`;
     return;
   }
   $('modelHint').innerText = `⚡ Новый: создастся как ${detectModel(q)}`;
   banner.className = 'sn-live-banner show new-sn';
-  banner.innerHTML = `<div>⚡ Нет в базе: при выдаче создастся новый ТСД <b>${esc(q)}</b> (${esc(detectModel(q))})</div>`;
+  banner.innerHTML = `<div>⚡ Нет в базе: при выдаче создастся новый сканер <b>${esc(q)}</b> (${esc(detectModel(q))})</div>`;
 }
 
 function handleIssSnInput() {
@@ -2136,7 +2135,7 @@ async function quickReturn() {
   resetRetDropdown();
   const qu = raw.toUpperCase(); const qNoSpace = qu.replace(/\s+/g,''); const qFixed = hasCyr(raw)?qu:fixLayout(raw);
   const busy = state.devices.filter(d => d.status==='issued');
-  if (!busy.length) { beep('err'); showToast('НЕЧЕГО ПРИНИМАТЬ', 'Все ТСД на складе', 'warn'); return; }
+  if (!busy.length) { beep('err'); showToast('НЕЧЕГО ПРИНИМАТЬ', 'Все сканеры на складе', 'warn'); return; }
   const exactHolders = busy.filter(d => { const h = (d.holder||'').toUpperCase(); return h===qu || h===qNoSpace || h===qFixed; });
   const exactSerial = busy.filter(d => { const s = (d.serial||'').toUpperCase(); return s===qu || s===qFixed; });
   const partialHolders = busy.filter(d => { const h = (d.holder||'').toUpperCase(); return h && (h.includes(qu) || h.includes(qNoSpace) || h.replace(/\s+/g,'').includes(qNoSpace)); });
@@ -2223,7 +2222,7 @@ function openDebtModal() {
   else {
     histWrap.innerHTML = history.map(r => {
       const lastStr = r.lastDate ? new Date(r.lastDate).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit'}) : '—';
-      return `<div class="debt-modal-item" style="background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.28);" data-holder="${esc(r.name)}" title="История: ${r.count} просрочек"><div class="dname"><span>👤 ${esc(r.name)}</span></div><div class="dtime" style="color:var(--amber-text);">${r.count}×</div><div class="dmeta"><span style="color:var(--amber-text);">${r.serials.length} ТСД</span><span style="font-size:10px;">${lastStr}</span></div></div>`;
+      return `<div class="debt-modal-item" style="background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.28);" data-holder="${esc(r.name)}" title="История: ${r.count} просрочек"><div class="dname"><span>👤 ${esc(r.name)}</span></div><div class="dtime" style="color:var(--amber-text);">${r.count}×</div><div class="dmeta"><span style="color:var(--amber-text);">${r.serials.length} сканеров</span><span style="font-size:10px;">${lastStr}</span></div></div>`;
     }).join('');
   }
   openModal('debtModal');
@@ -2259,7 +2258,7 @@ function setRingProgress(id, ratio) {
 function renderTable() {
   const q = ($('searchTable').value||'').trim().toUpperCase();
   let free = 0, issued = 0, overdue = 0, dayCount = 0, nightCount = 0;
-  let zebraCnt = 0, pmCnt = 0, tabCnt = 0;
+  let zebraCnt = 0, pmCnt = 0;
   const issuedTimes = [];
   state.devices.forEach(d => {
     if (d.model === 'Zebra') zebraCnt++;
@@ -2344,7 +2343,7 @@ function renderRow(d, busy) {
   let shiftChip = '';
   if (busy && d.shift==='Дневная') shiftChip = ` <span class="badge-chip chip-day" style="cursor:pointer;" data-action="toggle-shift" data-sn="${esc(d.serial)}" title="Клик — переключить на НОЧЬ">☀ День ⇄</span>`;
   else if (busy && d.shift==='Ночная') shiftChip = ` <span class="badge-chip chip-night" style="cursor:pointer;" data-action="toggle-shift" data-sn="${esc(d.serial)}" title="Клик — переключить на ДЕНЬ">🌙 Ночь ⇄</span>`;
-  let modelCls = 'pm'; if (d.model==='Zebra') modelCls='zebra'; else if (d.model==='Планшет') modelCls='tab';
+  let modelCls = d.model==='Zebra' ? 'zebra' : 'pm';
   const holderHtml = d.holder ? `<span class="holder-pill mono" data-action="filter-holder" data-holder="${esc(d.holder)}" title="Клик — фильтр по сотруднику"><span class="holder-avatar">${esc(getInitials(d.holder))}</span>${esc(d.holder)}</span>` : '<span style="color:var(--text-muted);font-weight:400;">—</span>';
   const action = busy ? `<button class="btn-row-return" data-action="return" data-sn="${esc(d.serial)}">Принять</button>` : `<button class="btn-row-issue" data-action="issue" data-sn="${esc(d.serial)}">Выдать</button>`;
   let timeHtml = '', timeTitle = '';
@@ -2512,7 +2511,7 @@ function renderDeleteList() {
 }
 async function confirmDelete(sn) {
   const dev = state.devices.find(d => d.serial===sn); if (!dev) return;
-  const ok = confirm(`Удалить ТСД "${sn}"?\n\nМодель: ${dev.model}\nСтатус: ${dev.status==='issued'?'на руках у '+(dev.holder||'—'):'на складе'}\n\nДействие необратимо.`);
+  const ok = confirm(`Удалить сканер "${sn}"?\n\nМодель: ${dev.model}\nСтатус: ${dev.status==='issued'?'на руках у '+(dev.holder||'—'):'на складе'}\n\nДействие необратимо.`);
   if (!ok) return;
   try { await deleteSerial(sn); showToast('УДАЛЕНО', sn, 'warn'); renderDeleteList(); }
   catch(e) { showToast('ОШИБКА УДАЛЕНИЯ', e.message||'?', 'err'); }
