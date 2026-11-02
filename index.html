@@ -1285,6 +1285,35 @@ function saveDevice(dev, actionName, workerName) {
   });
 }
 
+async function saveSwapAtomic(oldRecord, newRecord, workerName, isNew, ts) {
+  if (!db || !state.dbReady) throw new Error('База данных не готова. Обновите страницу (F5).');
+  if (!newRecord || !newRecord.serial) throw new Error('Не указан серийный номер нового сканера');
+  if (oldRecord && oldRecord.serial===newRecord.serial) throw new Error('Серийные номера сканеров совпадают');
+  await new Promise((resolve, reject) => {
+    let tx;
+    try {
+      tx = db.transaction(['devices','queue','moves'], 'readwrite');
+      const devices = tx.objectStore('devices');
+      const queue = tx.objectStore('queue');
+      const moves = tx.objectStore('moves');
+      if (oldRecord) {
+        devices.put(oldRecord);
+        queue.add({type:'upsert', dev:oldRecord, action:'Возврат (замена)', worker:workerName||'', ts});
+        moves.add({serial:oldRecord.serial, action:'Возврат (замена)', worker:workerName||'', created_at:ts});
+      }
+      devices.put(newRecord);
+      queue.add({type:'upsert', dev:newRecord, action:isNew?'Создан и выдан (замена, время сохранено)':'Выдача (замена, время сохранено)', worker:workerName||'', ts});
+      moves.add({serial:newRecord.serial, action:isNew?'Создан и выдан (замена, время сохранено)':'Выдача (замена, время сохранено)', worker:workerName||'', created_at:ts});
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error || new Error('Ошибка атомарной записи замены'));
+      tx.onabort = () => reject(tx.error || new Error('Транзакция замены отменена'));
+    } catch(e) { if (tx) { try { tx.abort(); } catch(_) {} } reject(e); }
+  });
+  [oldRecord, newRecord].filter(Boolean).forEach(dev => recentLocal.set(dev.serial, Date.now()));
+  await loadLocal();
+  scheduleSync(150);
+}
+
 function readQueueWithKeys() {
   return new Promise(resolve => {
     if (!db) return resolve([]);
@@ -1298,6 +1327,19 @@ function readQueueWithKeys() {
 }
 function deleteQueueKey(key) {
   return new Promise(r => { if (!db) return r(); try { const t = db.transaction('queue','readwrite'); t.objectStore('queue').delete(key); t.oncomplete = r; t.onerror = r; t.onabort = r; } catch(e) { r(); } });
+}
+
+function deleteQueueKeyStrict(key) {
+  return new Promise((resolve, reject) => {
+    if (!db) return reject(new Error('Локальная база не готова'));
+    try {
+      const tx = db.transaction('queue','readwrite');
+      tx.objectStore('queue').delete(key);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error || new Error('Не удалось удалить пакет очереди'));
+      tx.onabort = () => reject(tx.error || new Error('Удаление пакета отменено'));
+    } catch(e) { reject(e); }
+  });
 }
 
 async function deleteSerial(sn) {
@@ -1504,8 +1546,23 @@ async function syncNow() {
         if (devErr) { state.lastError = 'upsert: '+devErr.message; failCount++; continue; }
       } catch(e) { state.lastError = 'upsert: '+e.message; failCount++; continue; }
       const fullMove = { serial: it.dev.serial, action: it.action, worker: it.worker||(it.dev.holder||''), created_at: it.ts };
-      try { await withTimeout(cloud.from('movements').insert(fullMove), NET_TIMEOUT_MS, `move ${fullMove.serial}`); } catch(e) { dbg('movements insert failed', e); }
-      await deleteQueueKey(key);
+      try {
+        const existing = await withTimeout(
+          cloud.from('movements').select('serial').eq('serial', fullMove.serial).eq('action', fullMove.action).eq('worker', fullMove.worker).eq('created_at', fullMove.created_at).limit(1),
+          NET_TIMEOUT_MS, `check move ${fullMove.serial}`
+        );
+        if (existing.error) throw existing.error;
+        if (!existing.data || !existing.data.length) {
+          const { error: moveErr } = await withTimeout(cloud.from('movements').insert(fullMove), NET_TIMEOUT_MS, `move ${fullMove.serial}`);
+          if (moveErr) throw moveErr;
+        }
+      } catch(e) {
+        state.lastError = 'history: '+(e.message||'ошибка записи истории');
+        failCount++;
+        continue;
+      }
+      try { await deleteQueueKeyStrict(key); }
+      catch(e) { state.lastError = 'queue: '+(e.message||'не удалось удалить пакет'); failCount++; }
     }
     if (!alive()) { clearTimeout(watchdog); return false; }
     const allData = await pullAllDevices();
@@ -2032,13 +2089,9 @@ async function confirmSwap() {
     const ts = nowIso();
     const inheritedIssuedAt = p.originalIssuedAt || ts;
     const snapshot = { oldDevSnapshot: oldDev?JSON.parse(JSON.stringify(oldDev)):null, newDevSnapshot: newDev?JSON.parse(JSON.stringify(newDev)):null, worker: p.worker, newSn: p.newSn, oldSn: p.oldSn, isNew: p.isNew };
-    if (oldDev) { const oIdx = state.devices.findIndex(d => d.serial===p.oldSn); if (oIdx>=0) state.devices[oIdx] = {...oldDev, status:'free', holder:'', shift:'—', issued_at:null, last_move: ts}; }
-    const nIdx = state.devices.findIndex(d => d.serial===p.newSn);
+    const oldRecord = oldDev ? {...oldDev, status:'free', holder:'', shift:'—', issued_at:null, last_move: ts} : null;
     const newRecord = { serial: p.newSn, model: newDev?newDev.model:detectModel(p.newSn), status:'issued', holder: p.worker, issued_at: inheritedIssuedAt, last_move: ts, shift: p.shift };
-    if (nIdx>=0) state.devices[nIdx] = newRecord; else state.devices.push(newRecord);
-    renderTable();
-    if (oldDev) { await saveDevice({...oldDev, status:'free', holder:'', shift:'—', issued_at:null, last_move: ts}, 'Возврат (замена)', p.worker); }
-    await saveDevice(newRecord, p.isNew?'Создан и выдан (замена, время сохранено)':'Выдача (замена, время сохранено)', p.worker);
+    await saveSwapAtomic(oldRecord, newRecord, p.worker, p.isNew, ts);
     rememberWorkerShift(p.worker, p.shift); beep('swap');
     pushTickerEvent('t-swp', p.newSn, p.worker);
     const hoursOnHands = hoursSince(inheritedIssuedAt);
