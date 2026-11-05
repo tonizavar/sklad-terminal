@@ -941,3 +941,72 @@ tbody tr:hover { background: rgba(244,119,24,.07) !important; }
   .telemetry-strip { gap:10px; }
   .command-heading { padding-top:8px; }
 }
+
+
+/* ============================================================
+   SCANNER CONTROL • EXECUTIVE SHELL + NAVIGATION
+   Anchors point only to existing functional areas.
+   ============================================================ */
+:root { scroll-behavior:smooth; scroll-padding-top:96px; }
+body { padding-left:0; }
+.sc-sidebar {
+  position:fixed; z-index:150; inset:0 auto 0 0; width:226px;
+  display:flex; flex-direction:column; gap:5px; padding:19px 13px 14px;
+  background:rgba(19,23,28,.98); border-right:1px solid #2e3740;
+  box-shadow:8px 0 30px rgba(0,0,0,.12);
+}
+.sc-side-brand {
+  display:flex; align-items:center; gap:11px; padding:4px 8px 22px;
+  color:#f2f4f6; text-decoration:none;
+}
+.sc-side-mark {
+  display:grid; place-items:center; width:38px; height:38px; border-radius:10px;
+  background:linear-gradient(145deg,#ff9a3d,#e9650d); color:#17191c;
+  font-size:13px; font-weight:900; letter-spacing:-.05em;
+}
+.sc-side-brand-copy { display:flex; flex-direction:column; gap:1px; font-size:12px; letter-spacing:.08em; }
+.sc-side-brand-copy small { color:#85919d; font-size:9px; letter-spacing:.2em; }
+.sc-nav-caption {
+  padding:11px 10px 7px; color:#687480; font:700 8px/1.2 Inter,sans-serif;
+  letter-spacing:.14em;
+}
+.sc-nav-link {
+  display:flex; align-items:center; gap:11px; min-height:42px; padding:0 10px;
+  border:1px solid transparent; border-radius:9px; color:#aab4be;
+  text-decoration:none; font-size:11px; font-weight:600;
+  transition:background .16s,border-color .16s,color .16s;
+}
+.sc-nav-link:hover { background:#222931; color:#f0f2f4; border-color:#35404a; }
+.sc-nav-link.active {
+  background:rgba(244,119,24,.12); border-color:rgba(244,119,24,.26);
+  color:#ffad66; box-shadow:inset 2px 0 #f47718;
+}
+.sc-nav-icon { display:grid; place-items:center; width:20px; color:#87939f; font-size:17px; }
+.sc-nav-link.active .sc-nav-icon { color:#ff9a3d; }
+.sc-nav-link kbd { margin-left:auto; color:#64717d; font:500 9px 'JetBrains Mono',monospace; }
+.sc-nav-divider { height:1px; background:#2c343d; margin:12px 4px 4px; }
+.sc-sidebar-footer {
+  display:flex; align-items:center; gap:8px; margin-top:auto; padding:12px 8px 3px;
+  border-top:1px solid #2c343d; color:#7f8b97; font-size:9px; line-height:1.4;
+}
+.sc-sidebar-status-dot { width:7px; height:7px; flex:0 0 7px; border-radius:50%; background:#35b77b; box-shadow:0 0 0 4px rgba(53,183,123,.1); }
+.app-shell { margin-left:226px; max-width:none; width:calc(100% - 226px); padding:18px 24px 28px; }
+@media (min-width:1501px) {
+  .app-shell { padding-left:30px; padding-right:30px; }
+}
+@media (max-width:900px) {
+  .sc-sidebar {
+    inset:auto 0 0 0; width:auto; height:62px; padding:6px 10px;
+    flex-direction:row; justify-content:space-around; gap:5px;
+    border-right:0; border-top:1px solid #303943; box-shadow:0 -8px 26px rgba(0,0,0,.25);
+  }
+  .sc-side-brand,.sc-nav-caption,.sc-nav-divider,.sc-sidebar-footer { display:none; }
+  .sc-nav-link { flex:1; min-height:46px; justify-content:center; flex-direction:column; gap:2px; padding:4px 2px; font-size:9px; }
+  .sc-nav-link kbd { display:none; }
+  .sc-nav-icon { width:auto; font-size:15px; }
+  .app-shell { margin:0; width:100%; padding:10px 12px 82px; }
+}
+@media (max-width:480px) {
+  .sc-nav-link { font-size:8px; }
+  .sc-nav-link.active { box-shadow:inset 0 2px #f47718; }
+}
