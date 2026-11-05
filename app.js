@@ -724,7 +724,9 @@ function saveDevice(dev, actionName, workerName) {
 
     try {
       const ts = dev.last_move || nowIso();
-      const moveId = `${dev.serial}_${Date.parse(ts) || Date.now()}_${actionName}`;
+      const moveId = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+        ? crypto.randomUUID()
+        : `evt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}_${Math.random().toString(36).slice(2)}`;
       const t = db.transaction(["devices", "queue", "moves"], "readwrite");
       const devStore = t.objectStore("devices");
       const qStore = t.objectStore("queue");
@@ -1065,6 +1067,7 @@ async function syncNow() {
       // только после подтверждённого ответа Supabase без ошибки.
       if (it.type === 'movement') {
         const fullMove = {
+          event_id: String(it.moveId || `legacy_${key}`),
           serial: it.serial,
           action: it.action,
           worker: it.worker || '',
@@ -1077,6 +1080,11 @@ async function syncNow() {
             `move ${fullMove.serial}`
           );
           if (moveErr) {
+            // 23505 = event_id уже существует: событие ранее было успешно доставлено.
+            if (moveErr.code === '23505') {
+              await deleteQueueKey(key);
+              continue;
+            }
             state.lastError = 'movement: ' + moveErr.message;
             failCount++;
             continue;
