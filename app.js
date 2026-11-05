@@ -12,7 +12,6 @@ const BACKUP_KEEP = 7;
 const BACKUP_MIN_INTERVAL = 6 * 60 * 60 * 1000;
 const RECENT_LOCAL_TTL = 60 * 1000;
 const OP_COOLDOWN_MS = 1200; // Анти-дубль защита от двойного пика сканера (1.2 сек)
-const AUTO_SWAP_KEY = 'sklad_auto_swap_v2';
 const THEME_STORAGE_KEY = 'sklad_exec_theme';
 const DRAFT_KEY = 'sklad_draft_iss';
 const DRAFT_TTL_MS = 5 * 60 * 1000;
@@ -67,7 +66,7 @@ const state = {
   pendingSwap: null,
   justIssued: null,
   justReturned: null,
-  autoSwap: true,
+  fastDeskMode: 'issue',
   undoAction: null,
   undoTimer: null,
   toastTimer: null,
@@ -91,7 +90,6 @@ const state = {
   recentEvents: []
 };
 
-try { const v = localStorage.getItem(AUTO_SWAP_KEY); state.autoSwap = v === null ? true : v === 'true'; } catch(e) {}
 try { const st = localStorage.getItem(THEME_STORAGE_KEY); if (st && THEMES.includes(st)) state.theme = st; } catch(e) {}
 try { state.workerShifts = JSON.parse(localStorage.getItem('sklad_worker_shifts') || '{}'); } catch(e) {}
 try { state.repairMap = JSON.parse(localStorage.getItem(REPAIR_MAP_KEY) || '{}'); } catch(e) {}
@@ -1629,7 +1627,37 @@ function resetWorkerDropdown() {
   if (drop) { drop.classList.remove('show'); drop.innerHTML = ''; }
 }
 
-/* ===== ПЕРЕКЛЮЧЕНИЕ РЕЖИМОВ ПРАВОГО ПОСТА: ПРИЁМКА (F2) / БРАК (F3) ===== */
+/* ===== FAST DESK: ЕДИНЫЙ ПЕРЕКЛЮЧАТЕЛЬ ОПЕРАЦИЙ ===== */
+function setFastDeskMode(mode, focus = true) {
+  const next = ['issue', 'return', 'replace'].includes(mode) ? mode : 'issue';
+  state.fastDeskMode = next;
+  const issueDeck = $('issueDeck');
+  const returnDeck = $('rightDeckCard');
+  const bar = $('fastDeskModeBar');
+  issueDeck.hidden = next === 'return';
+  returnDeck.hidden = next !== 'return';
+  $('fastDesk')?.classList.toggle('fastdesk-single', next !== 'return');
+  bar?.querySelectorAll('[data-fast-mode]').forEach(button => {
+    const active = button.dataset.fastMode === next;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  const isReplace = next === 'replace';
+  $('modelHint').innerText = isReplace
+    ? 'ЗАМЕНА • сначала бейдж сотрудника, затем новый сканер'
+    : 'F1 • Бейдж сотрудника ➔ Сканер';
+  $('btnIssue').innerText = isReplace
+    ? 'ПРОВЕРИТЬ И ПОДТВЕРДИТЬ ЗАМЕНУ'
+    : 'ВЫДАТЬ СКАНЕР В СМЕНУ';
+  $('rightDeckCard').hidden = next !== 'return';
+  if (next === 'return') {
+    setRightMode('return');
+  } else if (focus) {
+    (isReplace ? $('issWorker') : $('issWorker'))?.focus();
+  }
+}
+
+/* ===== ПЕРЕКЛЮЧЕНИЕ ПРИЁМКИ И РЕМОНТА В ПАНЕЛИ ВОЗВРАТА ===== */
 function setRightMode(mode) {
   state.rightMode = mode === 'defect' ? 'defect' : 'return';
   const card = $('rightDeckCard');
@@ -2022,6 +2050,23 @@ async function submitIssue() {
       d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === worker.toUpperCase()
     );
 
+    if (existingWorkerDev && state.fastDeskMode !== 'replace') {
+      showToastWithAction(
+        'СОТРУДНИК УЖЕ ИМЕЕТ СКАНЕР',
+        `За ${worker} уже числится ${existingWorkerDev.serial}. Для смены устройства используйте отдельный режим замены.`,
+        'Перейти к замене',
+        () => setFastDeskMode('replace'),
+        'warn'
+      );
+      return;
+    }
+
+    if (state.fastDeskMode === 'replace' && !existingWorkerDev) {
+      showToast('ЗАМЕНА НЕВОЗМОЖНА', 'За этим сотрудником сейчас не числится сканер. Используйте режим «Выдать».', 'err');
+      $('issWorker').focus();
+      return;
+    }
+
     if (existingWorkerDev) {
       const pending = {
         worker,
@@ -2032,11 +2077,7 @@ async function submitIssue() {
         originalIssuedAt: existingWorkerDev.issued_at,
         originalShift: existingWorkerDev.shift
       };
-      if (state.autoSwap) {
-        state.pendingSwap = pending;
-        await confirmSwap();
-        return;
-      }
+      // Замена всегда требует отдельного подтверждения оператора.
       state.pendingSwap = pending;
       const hoursOnHands = existingWorkerDev.issued_at ? hoursSince(existingWorkerDev.issued_at) : 0;
       $('swapWorker').innerText = worker;
@@ -3040,8 +3081,6 @@ function showDiag() {
     const n = countResult.count;
     const queueCountText = countResult.error ? '⚠ недоступно' : String(n);
     const lastBk = localStorage.getItem('sklad_last_backup_date') || '—';
-    const autoSwapTxt = state.autoSwap ? 'ВКЛ (мгновенная замена в 1 пик)' : 'ВЫКЛ (с окном подтверждения)';
-    const autoSwapColor = state.autoSwap ? 'var(--emerald-text)' : 'var(--text-muted)';
     const dbOk = state.dbReady ? '✅ IndexedDB активна' : '⚠ Автономная память';
     const dbColor = state.dbReady ? 'var(--emerald-text)' : 'var(--amber-text)';
     $('diagContent').innerHTML = `
@@ -3050,22 +3089,14 @@ function showDiag() {
       <div>ВСЕГО СКАНЕРОВ В ПАРКЕ: <span style="color:var(--brand-text);">${state.devices.length}</span> шт.</div>
       <div>ПАКЕТОВ В ОЧЕРЕДИ SYNC: <span style="color:${countResult.error ? 'var(--rose-text)' : 'var(--brand-text)'};">${queueCountText}</span></div>
       <div>ТЕКУЩАЯ СМЕНА: <span style="color:var(--text-main);">${state.issueShift}</span> (${state.issueShiftAuto ? 'авто' : 'ручная'})</div>
-      <div>ЭКСПРЕСС-ЗАМЕНА: <span style="color:${autoSwapColor};">${autoSwapTxt}</span> <button type="button" class="btn-hud" id="btnToggleAutoSwapDiag" style="padding:2px 8px;font-size:10px;margin-left:8px;min-width:auto;">Переключить</button></div>
+      <div>ЗАМЕНА СКАНЕРА: <span style="color:var(--amber-text);">всегда с подтверждением оператора</span></div>
       <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--emerald-text);">${lastBk}</span></div>
       <div>СТАТУС СЕТИ / ОШИБКА: <span style="color:var(--rose-text);">${esc(state.lastError)}</span></div>
       ${countResult.error || n ? `<div style="margin-top:12px;border-top:1px solid var(--card-border);padding-top:8px;"><div style="font-size:11px;font-weight:800;color:var(--amber-text);margin-bottom:6px;">⚠ ОЧЕРЕДЬ ДОКАЧКИ:</div><div style="max-height:180px;overflow-y:auto;background:var(--input-bg);border-radius:6px;padding:6px 10px;">${preview}</div>${countResult.error ? '' : '<div style="margin-top:8px;"><button type="button" class="btn-hud" id="btnClearQueueDiag" style="border-color:rgba(244,63,94,.4);color:var(--rose-text);font-size:10px;min-width:auto;">🗑 Очистить очередь</button></div>'}</div>` : ''}
     `;
     openModal('diagModal');
-    $('btnToggleAutoSwapDiag')?.addEventListener('click', toggleAutoSwap);
     $('btnClearQueueDiag')?.addEventListener('click', clearStuckQueue);
   });
-}
-
-function toggleAutoSwap() {
-  state.autoSwap = !state.autoSwap;
-  try { localStorage.setItem(AUTO_SWAP_KEY, state.autoSwap ? 'true' : 'false'); } catch(e) {}
-  showToast('РЕЖИМ ЗАМЕНЫ СКАНЕРА', state.autoSwap ? 'Включена мгновенная замена без лишних окон' : 'Включено окно подтверждения замены', 'warn');
-  closeModal('diagModal');
 }
 
 function openDeleteModal() {
@@ -3190,6 +3221,10 @@ function setupDelegation() {
   $('btnDownloadJsonBackup')?.addEventListener('click', downloadJsonBackup);
   $('btnRefreshBackupList')?.addEventListener('click', renderBackupList);
 
+  $('fastDeskModeBar')?.addEventListener('click', e => {
+    const button = e.target.closest('[data-fast-mode]');
+    if (button) setFastDeskMode(button.dataset.fastMode);
+  });
   $('tabModeReturn')?.addEventListener('click', () => setRightMode('return'));
   $('tabModeDefect')?.addEventListener('click', () => setRightMode('defect'));
   $('defBtn')?.addEventListener('click', submitDefectForm);
@@ -3462,9 +3497,9 @@ document.addEventListener('keydown', e => {
   if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'd') { e.preventDefault(); openDeleteModal(); return; }
   if ($('swapModal').classList.contains('show') && e.key === 'Enter') { e.preventDefault(); confirmSwap(); return; }
 
-  if (e.key === 'F1') { e.preventDefault(); $('issWorker').focus(); }
-  else if (e.key === 'F2') { e.preventDefault(); setRightMode('return'); }
-  else if (e.key === 'F3') { e.preventDefault(); setRightMode('defect'); }
+  if (e.key === 'F1') { e.preventDefault(); setFastDeskMode('issue'); }
+  else if (e.key === 'F2') { e.preventDefault(); setFastDeskMode('return'); }
+  else if (e.key === 'F3') { e.preventDefault(); setFastDeskMode('return'); setRightMode('defect'); }
   else if (e.key === 'F4') { e.preventDefault(); toggleShift(); }
   else if (e.ctrlKey && e.key.toLowerCase() === 'k') { e.preventDefault(); $('searchTable').focus(); }
   else if (e.ctrlKey && e.key.toLowerCase() === 'e') { e.preventDefault(); exportExcel(); }
@@ -3507,6 +3542,7 @@ window.addEventListener('DOMContentLoaded', () => {
   applyTheme(state.theme, false);
   updateShiftPill();
   setupDelegation();
+  setFastDeskMode('issue', false);
   updateDebtBadge();
   focusActiveTerminalInput();
 });
