@@ -22,7 +22,20 @@
 <!-- ПОЛНОЭКРАННАЯ СВЕТОВАЯ ИНДИКАЦИЯ ОПЕРАЦИЙ ("В ОДИН ПИК") -->
 <div class="scan-flash-overlay" id="scanFlashOverlay"></div>
 
-<div class="app-shell">
+<nav class="sc-sidebar" aria-label="Основная навигация">
+  <a class="sc-side-brand" href="#commandCenter" aria-label="SCANNER CONTROL — вверх">
+    <span class="sc-side-mark">SC</span><span class="sc-side-brand-copy"><b>SCANNER</b><small>CONTROL</small></span>
+  </a>
+  <div class="sc-nav-caption">РАБОЧЕЕ ПРОСТРАНСТВО</div>
+  <a class="sc-nav-link active" href="#commandCenter"><span class="sc-nav-icon">▦</span><span>Обзор</span><kbd>01</kbd></a>
+  <a class="sc-nav-link" href="#fastDesk"><span class="sc-nav-icon">⌁</span><span>Fast Desk</span><kbd>02</kbd></a>
+  <a class="sc-nav-link" href="#assetRegistry"><span class="sc-nav-icon">▤</span><span>Оборудование</span><kbd>03</kbd></a>
+  <div class="sc-nav-divider"></div>
+  <div class="sc-nav-caption">СИСТЕМА</div>
+  <a class="sc-nav-link" href="#systemStatus"><span class="sc-nav-icon">◉</span><span>Состояние системы</span></a>
+  <div class="sc-sidebar-footer"><span class="sc-sidebar-status-dot"></span><span>Синхронизация контролируется</span></div>
+</nav>
+\n<div class="app-shell" id="appShell">
   <header class="hud-header">
     <div class="brand-zone">
       <div id="brandTag" class="brand-logo-box mono" title="SCANNER CONTROL">SC</div>
@@ -75,7 +88,7 @@
     </div>
   </div>
 
-  <section class="command-heading" aria-label="Панель управления">
+  <section class="command-heading" id="commandCenter" aria-label="Панель управления">
     <div class="command-heading-copy">
       <span class="command-eyebrow">SCANNER CONTROL / OPERATIONS</span>
       <h2>Центр управления парком</h2>
@@ -166,7 +179,7 @@
   </section>
 
   <!-- ПОЛОСА ТЕЛЕМЕТРИИ ПАРКА И LIVE-ТИКЕР ОПЕРАЦИЙ -->
-  <div class="telemetry-strip">
+  <div class="telemetry-strip" id="systemStatus">
     <div class="telemetry-bar-zone" title="Баланс парка сканеров: Зелёный — свободно, Синий — в смене, Жёлтый — в ремонте, Красный — просрочено">
       <span class="telemetry-label">📡 Баланс парка:</span>
       <div class="cap-track">
@@ -187,7 +200,7 @@
   </section>
 
   <!-- ДВУХПОСТОВОЙ КОНВЕЙЕРНЫЙ ТЕРМИНАЛ -->
-  <section class="terminal-grid">
+  <section class="terminal-grid" id="fastDesk">
     <!-- ПОСТ 1: КОНВЕЙЕР ВЫДАЧИ -->
     <div class="deck-card issue-deck">
       <div class="deck-header">
@@ -275,7 +288,7 @@
   </section>
 
   <!-- ОПЕРАТИВНЫЙ РЕЕСТР ПАРКА СКАНЕРОВ -->
-  <section class="registry-deck">
+  <section class="registry-deck" id="assetRegistry">
     <div class="print-act-header">
       <h2>АКТ ПРИЁМА-ПЕРЕДАЧИ ПАРКА СКАНЕРОВ (СЦ WILDBERRIES)</h2>
       <p id="printActMeta">Сформирован: —</p>
