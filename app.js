@@ -1643,6 +1643,7 @@ function setFastDeskMode(mode, focus = true) {
     button.setAttribute('aria-selected', active ? 'true' : 'false');
   });
   const isReplace = next === 'replace';
+  $('issueDeckTitleText').innerText = isReplace ? 'ЗАМЕНА СКАНЕРА' : 'ВЫДАЧА СКАНЕРА';
   $('modelHint').innerText = isReplace
     ? 'ЗАМЕНА • сначала бейдж сотрудника, затем новый сканер'
     : 'F1 • Бейдж сотрудника ➔ Сканер';
