@@ -732,8 +732,8 @@ function saveDevice(dev, actionName, workerName) {
 
       devStore.put(dev);
 
-      // Коалесценция очереди: удаляем устаревшие неотправленные upsert для того же серийного номера,
-      // чтобы при восстановлении связи не отправлять дублирующие пакеты
+      // Состояние сканера можно объединять: оставляем только последнее upsert.
+      // События истории хранятся отдельно и никогда не удаляются этой коалесценцией.
       const qCursorReq = qStore.openCursor();
       qCursorReq.onsuccess = e => {
         const cur = e.target.result;
@@ -744,7 +744,15 @@ function saveDevice(dev, actionName, workerName) {
           }
           cur.continue();
         } else {
-          qStore.add({ type: 'upsert', dev: dev, action: actionName, worker: workerName || '', ts, moveId });
+          qStore.add({ type: 'upsert', dev: dev, ts, movementQueued: true });
+          qStore.add({
+            type: 'movement',
+            moveId,
+            serial: dev.serial,
+            action: actionName,
+            worker: workerName || '',
+            ts
+          });
         }
       };
 
@@ -1053,6 +1061,34 @@ async function syncNow() {
         continue;
       }
 
+      // Отдельная доставка события истории: событие удаляется из очереди
+      // только после подтверждённого ответа Supabase без ошибки.
+      if (it.type === 'movement') {
+        const fullMove = {
+          serial: it.serial,
+          action: it.action,
+          worker: it.worker || '',
+          created_at: it.ts
+        };
+        try {
+          const { error: moveErr } = await withTimeout(
+            cloud.from('movements').insert(fullMove),
+            NET_TIMEOUT_MS,
+            `move ${fullMove.serial}`
+          );
+          if (moveErr) {
+            state.lastError = 'movement: ' + moveErr.message;
+            failCount++;
+            continue;
+          }
+          await deleteQueueKey(key);
+        } catch(e) {
+          state.lastError = 'movement: ' + e.message;
+          failCount++;
+        }
+        continue;
+      }
+
       if (!it.dev || !it.dev.serial) { await deleteQueueKey(key); continue; }
       recentlySent.add(it.dev.serial);
 
@@ -1079,15 +1115,32 @@ async function syncNow() {
         } catch(e) { state.lastError = 'upsert: ' + e.message; failCount++; continue; }
       }
 
-      const fullMove = {
-        serial: it.dev.serial,
-        action: it.action,
-        worker: it.worker || (it.dev.holder || ''),
-        created_at: it.ts
-      };
-      try {
-        await withTimeout(cloud.from('movements').insert(fullMove), NET_TIMEOUT_MS, `move ${fullMove.serial}`);
-      } catch(e) { dbg('movements insert warning', e); }
+      // Совместимость со старыми пакетами очереди: у них ещё нет отдельного
+      // movement-пакета. Новые upsert помечены movementQueued и историю отправляют отдельно.
+      if (!it.movementQueued && it.action) {
+        const fullMove = {
+          serial: it.dev.serial,
+          action: it.action,
+          worker: it.worker || (it.dev.holder || ''),
+          created_at: it.ts
+        };
+        try {
+          const { error: moveErr } = await withTimeout(
+            cloud.from('movements').insert(fullMove),
+            NET_TIMEOUT_MS,
+            `legacy move ${fullMove.serial}`
+          );
+          if (moveErr) {
+            state.lastError = 'movement: ' + moveErr.message;
+            failCount++;
+            continue;
+          }
+        } catch(e) {
+          state.lastError = 'movement: ' + e.message;
+          failCount++;
+          continue;
+        }
+      }
 
       await deleteQueueKey(key);
     }
