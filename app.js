@@ -705,22 +705,10 @@ async function rotateMovesIfNeeded() {
 function saveDevice(dev, actionName, workerName) {
   return new Promise((resolve, reject) => {
     if (!dev || !dev.serial) return reject(new Error('Не указан серийный номер сканера'));
-    dev.model = detectScannerModel(dev.serial, dev.model);
-    if (dev.status === 'repair') {
-      state.repairMap[dev.serial] = dev.defect || 'Неисправен';
-      saveRepairMap();
-    } else if (state.repairMap[dev.serial]) {
-      delete state.repairMap[dev.serial];
-      saveRepairMap();
-    }
-
     if (!db || !state.dbReady) {
-      // Fallback в оперативной памяти
-      const idx = state.devices.findIndex(x => x.serial === dev.serial);
-      if (idx >= 0) state.devices[idx] = dev; else state.devices.push(dev);
-      renderTable();
-      return resolve();
+      return reject(new Error('Локальная база недоступна. Выдача, возврат и изменение статуса временно заблокированы.'));
     }
+    dev.model = detectScannerModel(dev.serial, dev.model);
 
     try {
       const ts = dev.last_move || nowIso();
@@ -761,6 +749,13 @@ function saveDevice(dev, actionName, workerName) {
       mStore.add({ serial: dev.serial, action: actionName, worker: workerName || '', created_at: ts, moveId });
 
       t.oncomplete = () => {
+        if (dev.status === 'repair') {
+          state.repairMap[dev.serial] = dev.defect || 'Неисправен';
+          saveRepairMap();
+        } else if (state.repairMap[dev.serial]) {
+          delete state.repairMap[dev.serial];
+          saveRepairMap();
+        }
         recentLocal.set(dev.serial, Date.now());
         if (recentLocal.size > 300) {
           const cutoff = Date.now() - RECENT_LOCAL_TTL;
@@ -2113,12 +2108,13 @@ async function confirmSwap() {
   const p = state.pendingSwap;
   if (!p) return;
   closeModal('swapModal');
+  let snapshot = null;
   try {
     const oldDev = state.devices.find(d => d.serial === p.oldSn);
     const newDev = state.devices.find(d => d.serial === p.newSn);
     const ts = nowIso();
     const inheritedIssuedAt = p.originalIssuedAt || ts;
-    const snapshot = {
+    snapshot = {
       oldDevSnapshot: oldDev ? JSON.parse(JSON.stringify(oldDev)) : null,
       newDevSnapshot: newDev ? JSON.parse(JSON.stringify(newDev)) : null,
       worker: p.worker,
@@ -2185,8 +2181,23 @@ async function confirmSwap() {
     beep('err');
     triggerScanFlash('err');
     showToast('ОШИБКА ЗАМЕНЫ', e.message || '?', 'err');
+    if (!db || !state.dbReady) {
+      state.devices = state.devices.filter(d => d.serial !== p.newSn);
+      if (snapshot?.oldDevSnapshot) {
+        const oldIdx = state.devices.findIndex(d => d.serial === p.oldSn);
+        if (oldIdx >= 0) state.devices[oldIdx] = snapshot.oldDevSnapshot;
+        else state.devices.push(snapshot.oldDevSnapshot);
+      }
+      if (snapshot?.newDevSnapshot) {
+        const newIdx = state.devices.findIndex(d => d.serial === p.newSn);
+        if (newIdx >= 0) state.devices[newIdx] = snapshot.newDevSnapshot;
+        else state.devices.push(snapshot.newDevSnapshot);
+      }
+      renderTable();
+    } else {
+      await loadLocal();
+    }
     state.pendingSwap = null;
-    await loadLocal();
   }
 }
 
@@ -2482,13 +2493,9 @@ async function toggleDeviceRepair(sn, customReason) {
     let updated;
     let actionLabel;
     if (isCurrentlyRepair) {
-      delete state.repairMap[sn];
-      saveRepairMap();
       updated = { ...dev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts, defect: '' };
       actionLabel = 'Возвращён из ремонта в резерв';
     } else {
-      state.repairMap[sn] = reason;
-      saveRepairMap();
       updated = { ...dev, status: 'repair', holder: '', shift: '—', issued_at: null, last_move: ts, defect: reason };
       actionLabel = `Переведён в ремонт: ${reason}`;
     }
