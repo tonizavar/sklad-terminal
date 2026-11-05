@@ -201,8 +201,19 @@
 
   <!-- ДВУХПОСТОВОЙ КОНВЕЙЕРНЫЙ ТЕРМИНАЛ -->
   <section class="terminal-grid" id="fastDesk">
+    <div class="fastdesk-modebar" id="fastDeskModeBar" role="tablist" aria-label="Режим операции">
+      <button type="button" class="fastdesk-mode active" data-fast-mode="issue" role="tab" aria-selected="true">
+        <span class="fastdesk-mode-icon">↗</span><span><b>ВЫДАТЬ</b><small>Новая выдача</small></span><kbd>F1</kbd>
+      </button>
+      <button type="button" class="fastdesk-mode" data-fast-mode="return" role="tab" aria-selected="false">
+        <span class="fastdesk-mode-icon">↙</span><span><b>ВЕРНУТЬ</b><small>Приём на склад</small></span><kbd>F2</kbd>
+      </button>
+      <button type="button" class="fastdesk-mode" data-fast-mode="replace" role="tab" aria-selected="false">
+        <span class="fastdesk-mode-icon">⇄</span><span><b>ЗАМЕНИТЬ</b><small>Только с подтверждением</small></span><kbd>—</kbd>
+      </button>
+    </div>
     <!-- ПОСТ 1: КОНВЕЙЕР ВЫДАЧИ -->
-    <div class="deck-card issue-deck">
+    <div class="deck-card issue-deck" id="issueDeck">
       <div class="deck-header">
         <span class="deck-title" style="color:var(--brand-text);">
           <span class="deck-step-badge">1</span> КОНВЕЙЕР ВЫДАЧИ СКАНЕРА
@@ -234,7 +245,7 @@
     </div>
 
     <!-- ПОСТ 2: ПРИЁМКА В 1 ШАГ & ПЕРЕВОД В БРАК -->
-    <div class="deck-card return-deck" id="rightDeckCard">
+    <div class="deck-card return-deck" id="rightDeckCard" hidden>
       <div class="deck-header">
         <span class="deck-title" id="rightDeckTitle" style="color:var(--emerald-text);">
           <span class="deck-step-badge" id="rightStepBadge">2</span>
