@@ -4,6 +4,14 @@
    Оборудование: Только сканеры штрихкода (Point Mobile / Zebra RS5100)
    ============================================================ */
 
+const DEMO_MODE = new URLSearchParams(window.location.search).get('demo') === '1';
+const DEMO_SCANNER_FLEET = [
+  { serial: 'DEMO-PM-001', model: 'Point Mobile', status: 'free', holder: '', shift: '—', issued_at: null, last_move: new Date().toISOString(), defect: '' },
+  { serial: 'DEMO-PM-002', model: 'Point Mobile', status: 'free', holder: '', shift: '—', issued_at: null, last_move: new Date().toISOString(), defect: '' },
+  { serial: 'DEMO-PM-003', model: 'Point Mobile', status: 'issued', holder: '7001001', shift: 'Дневная', issued_at: new Date(Date.now() - 45 * 60000).toISOString(), last_move: new Date().toISOString(), defect: '' },
+  { serial: 'DEMO-ZB-004', model: 'Zebra RS5100', status: 'repair', holder: '', shift: '—', issued_at: null, last_move: new Date().toISOString(), defect: 'ДЕМО: проверка аккумулятора' }
+];
+
 const SUPABASE_URL = "https://sgpkvnymkqwuhepkaoxw.supabase.co";
 const SUPABASE_KEY = "sb_publishable_dqlmOngeOHVYMFUG1s4kLw_N1Pxi9KW";
 const OVERDUE_H = 14;
@@ -12,17 +20,17 @@ const BACKUP_KEEP = 7;
 const BACKUP_MIN_INTERVAL = 6 * 60 * 60 * 1000;
 const RECENT_LOCAL_TTL = 60 * 1000;
 const OP_COOLDOWN_MS = 1200; // Анти-дубль защита от двойного пика сканера (1.2 сек)
-const THEME_STORAGE_KEY = 'sklad_exec_theme';
-const DRAFT_KEY = 'sklad_draft_iss';
+const THEME_STORAGE_KEY = DEMO_MODE ? 'sc_demo_exec_theme' : 'sklad_exec_theme';
+const DRAFT_KEY = DEMO_MODE ? 'sc_demo_draft_iss' : 'sklad_draft_iss';
 const DRAFT_TTL_MS = 5 * 60 * 1000;
 const SN_REGEX = /^[A-Z0-9\-_.]{2,60}$/;
 const MOVES_ROTATE_THRESHOLD = 6000;
 const MOVES_ROTATE_KEEP = 3000;
-const DEBT_REGISTRY_KEY = 'sklad_debtors_registry';
-const DEBT_RECORDED_KEY = 'sklad_debtors_recorded';
-const ALERTED_DEBTORS_KEY = 'sklad_alerted_debtors';
-const DEBT_ALERT_DISMISSED_KEY = 'sklad_debt_alert_dismissed';
-const REPAIR_MAP_KEY = 'sklad_repair_map_v10';
+const DEBT_REGISTRY_KEY = DEMO_MODE ? 'sc_demo_debtors_registry' : 'sklad_debtors_registry';
+const DEBT_RECORDED_KEY = DEMO_MODE ? 'sc_demo_debtors_recorded' : 'sklad_debtors_recorded';
+const ALERTED_DEBTORS_KEY = DEMO_MODE ? 'sc_demo_alerted_debtors' : 'sklad_alerted_debtors';
+const DEBT_ALERT_DISMISSED_KEY = DEMO_MODE ? 'sc_demo_debt_alert_dismissed' : 'sklad_debt_alert_dismissed';
+const REPAIR_MAP_KEY = DEMO_MODE ? 'sc_demo_repair_map' : 'sklad_repair_map_v10';
 const NEW_OVERDUE_HIGHLIGHT_MS = 30000;
 const NET_TIMEOUT_MS = 15000;
 const SYNC_TIMEOUT_MS = 45000;
@@ -91,7 +99,7 @@ const state = {
 };
 
 try { const st = localStorage.getItem(THEME_STORAGE_KEY); if (st && THEMES.includes(st)) state.theme = st; } catch(e) {}
-try { state.workerShifts = JSON.parse(localStorage.getItem('sklad_worker_shifts') || '{}'); } catch(e) {}
+try { state.workerShifts = JSON.parse(localStorage.getItem(DEMO_MODE ? 'sc_demo_worker_shifts' : 'sklad_worker_shifts') || '{}'); } catch(e) {}
 try { state.repairMap = JSON.parse(localStorage.getItem(REPAIR_MAP_KEY) || '{}'); } catch(e) {}
 try { state.debtorsRegistry = JSON.parse(localStorage.getItem(DEBT_REGISTRY_KEY) || '{}'); } catch(e) {}
 try { state.debtorsRecorded = JSON.parse(localStorage.getItem(DEBT_RECORDED_KEY) || '{}'); } catch(e) {}
@@ -495,7 +503,7 @@ function rememberWorkerShift(worker, shift) {
   state.workerShifts[key] = shift;
   const keys = Object.keys(state.workerShifts);
   if (keys.length > 500) delete state.workerShifts[keys[0]];
-  try { localStorage.setItem('sklad_worker_shifts', JSON.stringify(state.workerShifts)); } catch(e) {}
+  try { localStorage.setItem(DEMO_MODE ? 'sc_demo_worker_shifts' : 'sklad_worker_shifts', JSON.stringify(state.workerShifts)); } catch(e) {}
 }
 async function toggleDeviceShift(sn) {
   const dev = state.devices.find(d => d.serial === sn);
@@ -579,13 +587,13 @@ function beep(type) {
 /* ===== БАЗА ДАННЫХ INDEXEDDB ⇄ SUPABASE (БЕЗ ГОНОК И ДУБЛЕЙ) ===== */
 let cloud = null;
 try {
-  if (typeof supabase !== 'undefined' && supabase.createClient) {
+  if (!DEMO_MODE && typeof supabase !== 'undefined' && supabase.createClient) {
     cloud = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
   }
 } catch(e) {}
 
 let db = null;
-const DB_REQ = indexedDB.open("SkladDB", 3);
+const DB_REQ = indexedDB.open(DEMO_MODE ? "SkladDemoDB" : "SkladDB", 3);
 DB_REQ.onupgradeneeded = e => {
   const d = e.target.result;
   if (!d.objectStoreNames.contains("devices")) d.createObjectStore("devices", { keyPath: "serial" });
@@ -598,19 +606,22 @@ DB_REQ.onsuccess = async e => {
   state.dbReady = true;
   bootText('Загрузка парка сканеров…');
   await loadLocal();
-  if (state.devices.length === 0 && Array.isArray(INITIAL_SCANNER_FLEET) && INITIAL_SCANNER_FLEET.length > 0) {
+  if (state.devices.length === 0 && (DEMO_MODE ? DEMO_SCANNER_FLEET : INITIAL_SCANNER_FLEET).length > 0) {
     await seedInitialFleetIfEmpty();
   }
   await rotateMovesIfNeeded();
   hideBoot();
   restoreDraft();
-  scheduleSync(600);
-  setTimeout(() => checkAutoBackup(), 6000);
+  if (DEMO_MODE) setSync(false, 'ДЕМО • ЛОКАЛЬНО');
+  else {
+    scheduleSync(600);
+    setTimeout(() => checkAutoBackup(), 6000);
+  }
 };
 DB_REQ.onerror = e => {
   state.dbReady = false;
   bootText('Переход в автономный режим памяти…');
-  state.devices = (INITIAL_SCANNER_FLEET || []).map(normalizeCloudDevice).filter(Boolean);
+  state.devices = (DEMO_MODE ? DEMO_SCANNER_FLEET : INITIAL_SCANNER_FLEET).map(normalizeCloudDevice).filter(Boolean);
   renderTable();
   setTimeout(hideBoot, 600);
 };
@@ -621,7 +632,7 @@ async function seedInitialFleetIfEmpty() {
     await new Promise(resolve => {
       const t = db.transaction("devices", "readwrite");
       const s = t.objectStore("devices");
-      INITIAL_SCANNER_FLEET.forEach(raw => {
+      (DEMO_MODE ? DEMO_SCANNER_FLEET : INITIAL_SCANNER_FLEET).forEach(raw => {
         const d = normalizeCloudDevice(raw);
         if (d) {
           if (raw.status === 'repair') {
@@ -638,7 +649,7 @@ async function seedInitialFleetIfEmpty() {
     });
     saveRepairMap();
     await loadLocal();
-    logMsg(`📦 Загружен базовый парк сканеров: ${state.devices.length} шт.`);
+    logMsg(`${DEMO_MODE ? '🧪 Загружен демонстрационный парк' : '📦 Загружен базовый парк сканеров'}: ${state.devices.length} шт.`);
   } catch(e) { dbg('seed error', e); }
 }
 
@@ -1289,6 +1300,7 @@ function setSync(ok, txt, busy = false) {
 
 let syncScheduledTimer = null;
 function scheduleSync(delay) {
+  if (DEMO_MODE) { setSync(false, 'ДЕМО • ЛОКАЛЬНО'); return; }
   clearTimeout(syncScheduledTimer);
   const d = typeof delay === 'number' ? delay : SYNC_BASE_INTERVAL;
   syncScheduledTimer = setTimeout(async () => {
@@ -3527,6 +3539,7 @@ setInterval(() => {
 setInterval(() => { renderTable(); checkDebtors(); alertNewDebtors(); }, 60000);
 
 window.addEventListener('DOMContentLoaded', () => {
+  if (DEMO_MODE) { document.body.classList.add('sc-demo-mode'); const demoBanner = $('demoModeBanner'); if (demoBanner) demoBanner.hidden = false; }
   try {
     const pref = JSON.parse(localStorage.getItem('sklad_shift_pref') || '{}');
     if (pref.auto === false && (pref.shift === 'Дневная' || pref.shift === 'Ночная')) {
@@ -3548,6 +3561,6 @@ window.addEventListener('DOMContentLoaded', () => {
   focusActiveTerminalInput();
 });
 
-window.addEventListener('online', () => { state.syncBackoff = 0; scheduleSync(500); });
+window.addEventListener('online', () => { state.syncBackoff = 0; if (!DEMO_MODE) scheduleSync(500); });
 window.addEventListener('offline', () => setSync(false, 'Офлайн (Локальная БД)'));
 window.addEventListener('beforeunload', () => { try { saveDraft(); } catch(e) {} });
