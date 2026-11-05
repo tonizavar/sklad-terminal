@@ -770,8 +770,10 @@ function saveDevice(dev, actionName, workerName) {
 }
 
 function readQueueWithKeys() {
-  return new Promise(resolve => {
-    if (!db) return resolve([]);
+  return new Promise((resolve, reject) => {
+    if (!db || !state.dbReady) {
+      return reject(new Error('Локальная база недоступна: очередь не прочитана'));
+    }
     try {
       const t = db.transaction('queue', 'readonly');
       const s = t.objectStore('queue');
@@ -782,21 +784,25 @@ function readQueueWithKeys() {
         if (cur) { out.push({ key: cur.primaryKey, value: cur.value }); cur.continue(); }
         else resolve(out);
       };
-      req.onerror = () => resolve([]);
-      t.onabort = () => resolve([]);
-      t.onerror = () => resolve([]);
-    } catch(e) { resolve([]); }
+      req.onerror = () => reject(req.error || new Error('Не удалось прочитать очередь синхронизации'));
+      t.onabort = () => reject(t.error || new Error('Чтение очереди прервано'));
+      t.onerror = () => reject(t.error || new Error('Ошибка чтения очереди синхронизации'));
+    } catch(e) { reject(e); }
   });
 }
 
 function deleteQueueKey(key) {
-  return new Promise(r => {
-    if (!db) return r();
+  return new Promise((resolve, reject) => {
+    if (!db || !state.dbReady) {
+      return reject(new Error('Локальная база недоступна: пакет не удалён из очереди'));
+    }
     try {
       const t = db.transaction('queue', 'readwrite');
       t.objectStore('queue').delete(key);
-      t.oncomplete = r; t.onerror = r; t.onabort = r;
-    } catch(e) { r(); }
+      t.oncomplete = resolve;
+      t.onerror = () => reject(t.error || new Error('Не удалось удалить пакет из очереди'));
+      t.onabort = () => reject(t.error || new Error('Удаление пакета из очереди прервано'));
+    } catch(e) { reject(e); }
   });
 }
 
@@ -1312,7 +1318,13 @@ async function forceSync() {
 }
 
 async function clearStuckQueue() {
-  const items = await readQueueWithKeys();
+  let items;
+  try {
+    items = await readQueueWithKeys();
+  } catch(e) {
+    showToast('ОШИБКА ЧТЕНИЯ', e.message || 'Очередь не прочитана; данные не изменены', 'err');
+    return;
+  }
   if (!items.length) { showToast('ОЧЕРЕДЬ ПУСТА', 'Нет пакетов для очистки', 'warn'); return; }
   const ok = await askConfirmDialog(
     'Очистка очереди синхронизации',
@@ -1320,14 +1332,28 @@ async function clearStuckQueue() {
     'Очистить очередь'
   );
   if (!ok) return;
-  for (const item of items) await deleteQueueKey(item.key);
-  showToast('ОЧЕРЕДЬ ОЧИЩЕНА', `Удалено пакетов: ${items.length}`, 'warn');
+  let deleted = 0;
+  try {
+    for (const item of items) {
+      await deleteQueueKey(item.key);
+      deleted++;
+    }
+  } catch(e) {
+    showToast('ОЧИСТКА НЕ ЗАВЕРШЕНА', `Удалено: ${deleted} из ${items.length}. Остальные пакеты сохранены. ${e.message || ''}`, 'err');
+    return;
+  }
+  showToast('ОЧЕРЕДЬ ОЧИЩЕНА', `Удалено пакетов: ${deleted}`, 'warn');
   closeModal('diagModal');
   setTimeout(() => scheduleSync(200), 200);
 }
 
 async function renderQueuePreview() {
-  const items = await readQueueWithKeys();
+  let items;
+  try {
+    items = await readQueueWithKeys();
+  } catch(e) {
+    return '<div style="color:var(--rose-text);padding:6px 0;">⚠ Не удалось прочитать очередь синхронизации. Состояние очереди неизвестно.</div>';
+  }
   if (!items.length) return '<div style="color:var(--text-muted);padding:6px 0;">Очередь синхронизации пуста (все пакеты доставлены)</div>';
   return items.slice(0, 30).map(item => {
     const it = item.value || {};
@@ -2997,19 +3023,22 @@ function processImport() {
 }
 
 function showDiag() {
-  const countReq = db
-    ? new Promise(r => {
+  const countReq = db && state.dbReady
+    ? new Promise(resolve => {
         try {
           const t = db.transaction('queue', 'readonly');
           const q = t.objectStore('queue').count();
-          q.onsuccess = () => r(q.result);
-          q.onerror = () => r(0);
-          t.onabort = () => r(0);
-        } catch(e) { r(0); }
+          q.onsuccess = () => resolve({ count: q.result, error: false });
+          q.onerror = () => resolve({ count: null, error: true });
+          t.onabort = () => resolve({ count: null, error: true });
+          t.onerror = () => resolve({ count: null, error: true });
+        } catch(e) { resolve({ count: null, error: true }); }
       })
-    : Promise.resolve(0);
+    : Promise.resolve({ count: null, error: true });
 
-  Promise.all([countReq, renderQueuePreview()]).then(([n, preview]) => {
+  Promise.all([countReq, renderQueuePreview()]).then(([countResult, preview]) => {
+    const n = countResult.count;
+    const queueCountText = countResult.error ? '⚠ недоступно' : String(n);
     const lastBk = localStorage.getItem('sklad_last_backup_date') || '—';
     const autoSwapTxt = state.autoSwap ? 'ВКЛ (мгновенная замена в 1 пик)' : 'ВЫКЛ (с окном подтверждения)';
     const autoSwapColor = state.autoSwap ? 'var(--emerald-text)' : 'var(--text-muted)';
@@ -3019,12 +3048,12 @@ function showDiag() {
       <div>ВЕРСИЯ ЯДРА: <span style="color:var(--brand-text);">v10.0 Enterprise (Только сканеры)</span></div>
       <div>ЛОКАЛЬНАЯ БД: <span style="color:${dbColor};">${dbOk}</span></div>
       <div>ВСЕГО СКАНЕРОВ В ПАРКЕ: <span style="color:var(--brand-text);">${state.devices.length}</span> шт.</div>
-      <div>ПАКЕТОВ В ОЧЕРЕДИ SYNC: <span style="color:var(--brand-text);">${n}</span></div>
+      <div>ПАКЕТОВ В ОЧЕРЕДИ SYNC: <span style="color:${countResult.error ? 'var(--rose-text)' : 'var(--brand-text)'};">${queueCountText}</span></div>
       <div>ТЕКУЩАЯ СМЕНА: <span style="color:var(--text-main);">${state.issueShift}</span> (${state.issueShiftAuto ? 'авто' : 'ручная'})</div>
       <div>ЭКСПРЕСС-ЗАМЕНА: <span style="color:${autoSwapColor};">${autoSwapTxt}</span> <button type="button" class="btn-hud" id="btnToggleAutoSwapDiag" style="padding:2px 8px;font-size:10px;margin-left:8px;min-width:auto;">Переключить</button></div>
       <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--emerald-text);">${lastBk}</span></div>
       <div>СТАТУС СЕТИ / ОШИБКА: <span style="color:var(--rose-text);">${esc(state.lastError)}</span></div>
-      ${n ? `<div style="margin-top:12px;border-top:1px solid var(--card-border);padding-top:8px;"><div style="font-size:11px;font-weight:800;color:var(--amber-text);margin-bottom:6px;">⚠ ОЧЕРЕДЬ ДОКАЧКИ:</div><div style="max-height:180px;overflow-y:auto;background:var(--input-bg);border-radius:6px;padding:6px 10px;">${preview}</div><div style="margin-top:8px;"><button type="button" class="btn-hud" id="btnClearQueueDiag" style="border-color:rgba(244,63,94,.4);color:var(--rose-text);font-size:10px;min-width:auto;">🗑 Очистить очередь</button></div></div>` : ''}
+      ${countResult.error || n ? `<div style="margin-top:12px;border-top:1px solid var(--card-border);padding-top:8px;"><div style="font-size:11px;font-weight:800;color:var(--amber-text);margin-bottom:6px;">⚠ ОЧЕРЕДЬ ДОКАЧКИ:</div><div style="max-height:180px;overflow-y:auto;background:var(--input-bg);border-radius:6px;padding:6px 10px;">${preview}</div>${countResult.error ? '' : '<div style="margin-top:8px;"><button type="button" class="btn-hud" id="btnClearQueueDiag" style="border-color:rgba(244,63,94,.4);color:var(--rose-text);font-size:10px;min-width:auto;">🗑 Очистить очередь</button></div>'}</div>` : ''}
     `;
     openModal('diagModal');
     $('btnToggleAutoSwapDiag')?.addEventListener('click', toggleAutoSwap);
