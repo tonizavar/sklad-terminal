@@ -819,7 +819,7 @@ async function deleteSerial(sn) {
       const cur = e.target.result;
       if (cur) {
         const v = cur.value;
-        if (v && v.type !== 'delete' && ((v.dev && v.dev.serial === sn) || (v.serial === sn && !v.dev))) qKeys.push(cur.primaryKey);
+        if (v && v.type !== 'delete' && v.type !== 'movement' && ((v.dev && v.dev.serial === sn) || (v.serial === sn && !v.dev))) qKeys.push(cur.primaryKey);
         cur.continue();
       }
     };
