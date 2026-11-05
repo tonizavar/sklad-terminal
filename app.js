@@ -1060,7 +1060,7 @@ async function syncNow() {
       const cleanDev = {
         serial: it.dev.serial,
         model: detectScannerModel(it.dev.serial, it.dev.model),
-        status: it.dev.status === 'issued' ? 'issued' : 'free',
+        status: ['issued', 'repair'].includes(it.dev.status) ? it.dev.status : 'free',
         holder: it.dev.status === 'issued' ? (it.dev.holder || null) : null,
         shift: it.dev.status === 'issued' ? (it.dev.shift || null) : null,
         issued_at: it.dev.status === 'issued' ? it.dev.issued_at : null,
