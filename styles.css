@@ -1056,3 +1056,9 @@ body { padding-left:0; }
   .fastdesk-mode { flex-direction:column; justify-content:center; text-align:center; }
   .fastdesk-mode > span:nth-child(2) { align-items:center; }
 }
+
+
+/* Isolated demo environment */
+.sc-demo-banner { position:sticky; top:0; z-index:10000; display:none; width:100%; padding:10px 14px; text-align:center; background:#6b3f0c; color:#fff2d8; border-bottom:1px solid #e49a35; font:800 11px 'JetBrains Mono',monospace; letter-spacing:.06em; }
+.sc-demo-mode .sc-demo-banner { display:block; }
+.sc-demo-mode #demoModeBanner[hidden] { display:none; }
