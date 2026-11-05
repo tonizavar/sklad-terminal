@@ -868,3 +868,76 @@ tbody tr:hover { background: rgba(244,119,24,.07) !important; }
   .section-heading p { text-align:left; }
   .command-heading-meta { align-self:flex-start; }
 }
+
+
+/* ============================================================
+   SCANNER CONTROL • COMMAND CENTER / EXECUTIVE PASS 02
+   Layout-only refinement. Existing app.js hooks remain intact.
+   ============================================================ */
+:root, [data-theme="carbon"] {
+  --brand-1: #f47718;
+  --brand-2: #ff9a3d;
+  --brand-text: #ffad66;
+  --brand-glow: rgba(244,119,24,.22);
+}
+@media (min-width: 1024px) {
+  html, body { height:auto !important; min-height:100%; overflow-y:auto !important; }
+  body { overflow-x:hidden !important; overflow-y:auto !important; }
+  .app-shell { height:auto !important; min-height:100vh; overflow:visible !important; }
+}
+.app-shell { gap:14px; }
+.hud-header { position:sticky; top:8px; z-index:100; }
+.command-heading { padding:16px 3px 3px; }
+.command-heading h2 { font-size:clamp(20px,1.55vw,26px); letter-spacing:-.045em; }
+.command-heading-copy { gap:7px; }
+.metrics-grid {
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:12px;
+  margin-top:4px;
+}
+.kpi-card {
+  min-width:0; min-height:104px; padding:16px;
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+}
+.kpi-info { min-width:0; }
+.kpi-val-row { gap:7px; align-items:baseline; flex-wrap:wrap; }
+.kpi-value { font-size:clamp(22px,1.8vw,30px); letter-spacing:-.045em; }
+.kpi-sub { font-size:10px; }
+.kpi-ring-wrap { flex:0 0 38px; width:38px; height:38px; }
+.kpi-ring-svg { width:38px; height:38px; }
+.kpi-ring-icon { font-size:13px; }
+.telemetry-strip {
+  display:grid; grid-template-columns:minmax(260px,.85fr) minmax(320px,1.15fr);
+  align-items:center; gap:18px; min-height:58px; padding:12px 16px;
+}
+.telemetry-label { font-size:10px; letter-spacing:.04em; }
+.cap-track { min-width:120px; }
+.live-ticker { min-width:0; }
+.section-heading { margin:18px 2px 9px; }
+.section-heading h2 { font-size:16px; }
+.terminal-grid { gap:14px; }
+.deck-card { min-width:0; }
+.registry-deck { margin-bottom:24px; }
+.btn-submit, .btn-hud, .mode-tab { transition:background .16s ease,border-color .16s ease,color .16s ease,transform .16s ease; }
+.btn-submit:focus-visible, .btn-hud:focus-visible, .mode-tab:focus-visible,
+.hud-input:focus-visible, .mf-chip:focus-visible {
+  outline:2px solid #ff9a3d; outline-offset:2px;
+}
+@media (max-width:1500px) and (min-width:1024px) {
+  .app-shell { padding-left:16px; padding-right:16px; }
+  .metrics-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .kpi-card { min-height:90px; }
+}
+@media (max-width:1023px) {
+  .hud-header { position:relative; top:auto; }
+  .metrics-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .telemetry-strip { grid-template-columns:1fr; }
+}
+@media (max-width:700px) {
+  .metrics-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .kpi-card { padding:11px; min-height:82px; }
+  .kpi-ring-wrap { display:none; }
+  .telemetry-strip { gap:10px; }
+  .command-heading { padding-top:8px; }
+}
