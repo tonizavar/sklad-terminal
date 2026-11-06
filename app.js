@@ -3565,3 +3565,25 @@ window.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('online', () => { state.syncBackoff = 0; if (!DEMO_MODE) scheduleSync(500); });
 window.addEventListener('offline', () => setSync(false, 'Офлайн (Локальная БД)'));
 window.addEventListener('beforeunload', () => { try { saveDraft(); } catch(e) {} });
+
+
+/* SCANNER CONTROL NEXT — единая панель быстрых операций */
+document.addEventListener('click', event => {
+  const actionButton = event.target.closest('[data-ops-action]');
+  if (!actionButton) return;
+  const action = actionButton.dataset.opsAction;
+  document.querySelectorAll('[data-ops-action]').forEach(button => {
+    const active = button === actionButton;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+  if (action === 'repair') {
+    setFastDeskMode('return', false);
+    setRightMode('defect');
+  } else {
+    setFastDeskMode(action, false);
+    if (action === 'return') setRightMode('return');
+  }
+  const focusTarget = action === 'return' ? 'retQuery' : action === 'repair' ? 'defSn' : 'issWorker';
+  document.getElementById(focusTarget)?.focus({ preventScroll: true });
+});
