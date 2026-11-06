@@ -3587,3 +3587,97 @@ document.addEventListener('click', event => {
   const focusTarget = action === 'return' ? 'retQuery' : action === 'repair' ? 'defSn' : 'issWorker';
   document.getElementById(focusTarget)?.focus({ preventScroll: true });
 });
+
+
+/* SCANNER CONTROL NEXT — единый интеллектуальный скан-пост.
+   Маршрутизирует сканер в существующие защищённые сценарии; не выполняет операцию автоматически. */
+(function initSmartScanRouter(){
+  const input = document.getElementById('smartScanInput');
+  const result = document.getElementById('smartScanResult');
+  if (!input || !result) return;
+
+  function report(kind, message) {
+    result.className = 'smart-scan-result' + (kind ? ' is-' + kind : '');
+    result.innerHTML = '<span class="smart-scan-state-dot"></span><span></span>';
+    result.lastElementChild.textContent = message;
+  }
+
+  function resolveDevice(raw) {
+    const query = hasCyr(raw) ? String(raw).trim().toUpperCase() : fixLayout(raw);
+    const normalized = query.replace(/\\s+/g, '');
+    const exact = state.devices.filter(d => String(d.serial || '').toUpperCase() === normalized);
+    if (exact.length === 1) return { device: exact[0], query: normalized };
+    const matches = state.devices.filter(d => String(d.serial || '').toUpperCase().endsWith(normalized));
+    if (matches.length === 1) return { device: matches[0], query: normalized };
+    if (matches.length > 1) return { ambiguous: matches, query: normalized };
+    return { unknown: true, query: normalized };
+  }
+
+  function routeScan() {
+    if (state.opLock) {
+      report('ambiguous', 'Операция ещё выполняется. Дождитесь завершения.');
+      return;
+    }
+    const raw = input.value.trim();
+    if (!raw) return;
+    const resolved = resolveDevice(raw);
+    if (resolved.ambiguous) {
+      report('ambiguous', 'Неоднозначный номер: найдено ' + resolved.ambiguous.length + ' устройств. Отсканируйте полный серийный номер.');
+      input.select();
+      return;
+    }
+    const serial = resolved.device ? resolved.device.serial : resolved.query;
+    if (!SN_REGEX.test(serial)) {
+      report('unknown', 'Штрихкод не распознан. Проверьте номер и повторите сканирование.');
+      input.select();
+      return;
+    }
+
+    if (!resolved.device) {
+      document.querySelector('[data-ops-action="issue"]')?.click();
+      $('issSn').value = serial;
+      $('issWorker').value = '';
+      updateIssBanner(serial);
+      report('unknown', 'Новый сканер · ' + serial + '. Проверьте номер, затем отсканируйте бейдж для регистрации и выдачи.');
+      $('issWorker').focus({ preventScroll: true });
+      return;
+    }
+
+    const device = resolved.device;
+    if (device.status === 'free') {
+      document.querySelector('[data-ops-action="issue"]')?.click();
+      $('issSn').value = device.serial;
+      updateIssBanner(device.serial);
+      report('free', 'СВОБОДЕН · ' + device.serial + ' · ' + (device.model || 'сканер') + '. Отсканируйте бейдж сотрудника для выдачи.');
+      $('issWorker').focus({ preventScroll: true });
+      return;
+    }
+
+    if (device.status === 'issued') {
+      document.querySelector('[data-ops-action="return"]')?.click();
+      $('retQuery').value = device.serial;
+      report('issued', 'УЖЕ ВЫДАН · ' + device.serial + ' · сотрудник: ' + (device.holder || 'не указан') + '. Нажмите Enter в поле приёмки для подтверждения возврата.');
+      $('retQuery').focus({ preventScroll: true });
+      return;
+    }
+
+    if (device.status === 'repair') {
+      document.querySelector('[data-ops-action="repair"]')?.click();
+      $('defSn').value = device.serial;
+      report('repair', 'В РЕМОНТЕ · ' + device.serial + ' · ' + (device.defect || 'причина не указана') + '. Проверьте состояние и выберите действие в панели ремонта.');
+      $('defReason').focus({ preventScroll: true });
+      return;
+    }
+
+    report('ambiguous', 'Неизвестное состояние устройства. Операция заблокирована до проверки.');
+  }
+
+  input.addEventListener('keydown', event => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    routeScan();
+  });
+  input.addEventListener('input', () => {
+    if (!input.value.trim()) report('', 'Готов к сканированию · действие определится автоматически');
+  });
+})();
