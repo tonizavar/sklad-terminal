@@ -3604,7 +3604,7 @@ document.addEventListener('click', event => {
 
   function resolveDevice(raw) {
     const query = hasCyr(raw) ? String(raw).trim().toUpperCase() : fixLayout(raw);
-    const normalized = query.replace(/\\s+/g, '');
+    const normalized = query.replace(/\s+/g, '');
     const exact = state.devices.filter(d => String(d.serial || '').toUpperCase() === normalized);
     if (exact.length === 1) return { device: exact[0], query: normalized };
     const matches = state.devices.filter(d => String(d.serial || '').toUpperCase().endsWith(normalized));
@@ -3647,6 +3647,7 @@ document.addEventListener('click', event => {
     if (device.status === 'free') {
       document.querySelector('[data-ops-action="issue"]')?.click();
       $('issSn').value = device.serial;
+      $('issWorker').value = '';
       updateIssBanner(device.serial);
       report('free', 'СВОБОДЕН · ' + device.serial + ' · ' + (device.model || 'сканер') + '. Отсканируйте бейдж сотрудника для выдачи.');
       $('issWorker').focus({ preventScroll: true });
