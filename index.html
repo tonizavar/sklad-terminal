@@ -203,6 +203,20 @@
 
   <!-- ДВУХПОСТОВОЙ КОНВЕЙЕРНЫЙ ТЕРМИНАЛ -->
   <section class="terminal-grid" id="fastDesk">
+    <div class="smart-scan-console" id="smartScanConsole">
+      <div class="smart-scan-heading">
+        <span class="smart-scan-pulse"></span>
+        <div><b>SMART SCAN</b><small>ИНТЕЛЛЕКТУАЛЬНОЕ РАСПОЗНАВАНИЕ</small></div>
+      </div>
+      <div class="smart-scan-entry">
+        <span class="smart-scan-icon">⌗</span>
+        <input id="smartScanInput" class="hud-input mono" autocomplete="off" spellcheck="false" placeholder="Отсканируйте серийный номер сканера…">
+        <span class="smart-scan-hint">ENTER</span>
+      </div>
+      <div class="smart-scan-result" id="smartScanResult" role="status" aria-live="polite">
+        <span class="smart-scan-state-dot"></span><span>Готов к сканированию · действие определится автоматически</span>
+      </div>
+    </div>
     <div class="ops-launcher" id="opsLauncher" aria-label="Быстрый выбор операции">
       <button type="button" class="ops-launch-card is-active" data-ops-action="issue" aria-pressed="true">
         <span class="ops-launch-icon">↗</span><span class="ops-launch-copy"><b>ВЫДАТЬ</b><small>Выдача сотруднику</small></span><span class="ops-launch-arrow">→</span>
