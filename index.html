@@ -203,6 +203,20 @@
 
   <!-- ДВУХПОСТОВОЙ КОНВЕЙЕРНЫЙ ТЕРМИНАЛ -->
   <section class="terminal-grid" id="fastDesk">
+    <div class="ops-launcher" id="opsLauncher" aria-label="Быстрый выбор операции">
+      <button type="button" class="ops-launch-card is-active" data-ops-action="issue" aria-pressed="true">
+        <span class="ops-launch-icon">↗</span><span class="ops-launch-copy"><b>ВЫДАТЬ</b><small>Выдача сотруднику</small></span><span class="ops-launch-arrow">→</span>
+      </button>
+      <button type="button" class="ops-launch-card" data-ops-action="return" aria-pressed="false">
+        <span class="ops-launch-icon">↙</span><span class="ops-launch-copy"><b>ПРИНЯТЬ</b><small>Возврат на склад</small></span><span class="ops-launch-arrow">→</span>
+      </button>
+      <button type="button" class="ops-launch-card" data-ops-action="replace" aria-pressed="false">
+        <span class="ops-launch-icon">⇄</span><span class="ops-launch-copy"><b>ЗАМЕНИТЬ</b><small>Обмен сканера</small></span><span class="ops-launch-arrow">→</span>
+      </button>
+      <button type="button" class="ops-launch-card" data-ops-action="repair" aria-pressed="false">
+        <span class="ops-launch-icon">⌁</span><span class="ops-launch-copy"><b>РЕМОНТ</b><small>Зафиксировать дефект</small></span><span class="ops-launch-arrow">→</span>
+      </button>
+    </div>
     <div class="fastdesk-modebar" id="fastDeskModeBar" role="tablist" aria-label="Режим операции">
       <button type="button" class="fastdesk-mode active" data-fast-mode="issue" role="tab" aria-selected="true">
         <span class="fastdesk-mode-icon">↗</span><span><b>ВЫДАТЬ</b><small>Новая выдача</small></span><kbd>F1</kbd>
