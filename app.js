@@ -4,7 +4,8 @@
    Оборудование: Только сканеры штрихкода (Point Mobile / Zebra RS5100)
    ============================================================ */
 
-const DEMO_MODE = new URLSearchParams(window.location.search).get('demo') === '1' || window.location.hostname === 'control-nkux0p0lx-tonizavar.vercel.app';
+const VERCEL_PREVIEW_HOST = window.location.hostname.endsWith('.vercel.app') && !['control-lyart-xi.vercel.app', 'control-tonizavar.vercel.app', 'control-1-lime.vercel.app', 'control-1-tonizavar.vercel.app'].includes(window.location.hostname);
+const DEMO_MODE = new URLSearchParams(window.location.search).get('demo') === '1' || VERCEL_PREVIEW_HOST;
 const DEMO_SCANNER_FLEET = [
   { serial: 'DEMO-PM-001', model: 'Point Mobile', status: 'free', holder: '', shift: '—', issued_at: null, last_move: new Date().toISOString(), defect: '' },
   { serial: 'DEMO-PM-002', model: 'Point Mobile', status: 'free', holder: '', shift: '—', issued_at: null, last_move: new Date().toISOString(), defect: '' },
