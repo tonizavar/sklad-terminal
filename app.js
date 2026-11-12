@@ -982,7 +982,9 @@ function normalizeCloudDevice(row) {
   const rawHolder = String(row.holder || row.worker || '').trim();
   let status = 'free';
   const s = String(row.status || '').toLowerCase().trim();
-  if (s === 'repair' || s === 'в ремонте' || s === 'брак' || state.repairMap[cleanSn]) {
+  // Локальный repairMap здесь НЕ применяем: облако — источник истины,
+  // иначе устаревшая локальная пометка брака «залипает» на этом терминале навсегда.
+  if (s === 'repair' || s === 'в ремонте' || s === 'брак') {
     status = 'repair';
   } else if (s === 'issued' || s === 'на руках' || s === 'выдан' || s === 'в работе') {
     status = 'issued';
@@ -1128,6 +1130,9 @@ async function syncNow() {
       // movement-пакета. Новые upsert помечены movementQueued и историю отправляют отдельно.
       if (!it.movementQueued && it.action) {
         const fullMove = {
+          // event_id обязателен: иначе при сетевом ретрае событие дублируется в истории
+          // (уникальный индекс movements_event_id_unique гасит повторы кодом 23505).
+          event_id: String(it.moveId || `legacy_${key}`),
           serial: it.dev.serial,
           action: it.action,
           worker: it.worker || (it.dev.holder || ''),
@@ -1140,9 +1145,12 @@ async function syncNow() {
             `legacy move ${fullMove.serial}`
           );
           if (moveErr) {
-            state.lastError = 'movement: ' + moveErr.message;
-            failCount++;
-            continue;
+            // 23505 = event_id уже существует: событие ранее было успешно доставлено.
+            if (moveErr.code !== '23505') {
+              state.lastError = 'movement: ' + moveErr.message;
+              failCount++;
+              continue;
+            }
           }
         } catch(e) {
           state.lastError = 'movement: ' + e.message;
@@ -1241,6 +1249,7 @@ async function applyPull(data, protectedSerials) {
 
   return new Promise(resolve => {
     let settled = false;
+    let repairMapDirty = false;
     const done = () => { if (!settled) { settled = true; resolve(); } };
     try {
       const t = db.transaction("devices", "readwrite");
@@ -1267,15 +1276,17 @@ async function applyPull(data, protectedSerials) {
               const t1 = Date.parse(ex.last_move), t2 = Date.parse(d.last_move);
               if (!isNaN(t1) && !isNaN(t2) && t1 > t2) return;
             }
-            if (state.repairMap[d.serial] && d.status !== 'issued') {
-              d.status = 'repair';
-              d.defect = state.repairMap[d.serial];
+            // Облако новее и говорит «не ремонт»: снимаем устаревшую локальную пометку брака,
+            // иначе сканер «залипает» в ремонте на этом терминале после возврата в строй на другом.
+            if (d.status !== 'repair' && state.repairMap[d.serial]) {
+              delete state.repairMap[d.serial];
+              repairMapDirty = true;
             }
             s.put(d);
           });
         } catch(e) { dbg('applyPull error', e); }
       };
-      t.oncomplete = () => { loadLocal().then(done).catch(done); };
+      t.oncomplete = () => { if (repairMapDirty) saveRepairMap(); loadLocal().then(done).catch(done); };
       t.onerror = () => done();
       t.onabort = () => done();
     } catch(e) { done(); }
@@ -1543,16 +1554,30 @@ async function restoreFromBackup(filename) {
         t.objectStore('queue').clear();
         t.oncomplete = res; t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
       });
+      const restoreTs = nowIso();
       await new Promise((res, rej) => {
-        const t = db.transaction('devices', 'readwrite');
+        const t = db.transaction(['devices', 'queue'], 'readwrite');
         const s = t.objectStore('devices');
-        devices.forEach(d => { if (d && d.serial) s.put(d); });
+        const q = t.objectStore('queue');
+        devices.forEach(d => {
+          if (!d || !d.serial) return;
+          s.put(d);
+          // КРИТИЧНО: восстановленный слепок ставим в очередь на выгрузку в облако.
+          // Иначе ближайший pull вернёт старое облачное состояние и молча откатит восстановление.
+          q.add({ type: 'upsert', dev: d, ts: restoreTs, movementQueued: true });
+        });
         t.oncomplete = res; t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
       });
+      // Реестр брака перестраиваем из слепка: устаревшие локальные пометки не должны
+      // «воскрешать» ремонт для сканеров, которые в копии исправны.
+      state.repairMap = {};
+      devices.forEach(d => { if (d && d.status === 'repair') state.repairMap[d.serial] = d.defect || 'На диагностике'; });
+      saveRepairMap();
     }
     await loadLocal();
+    scheduleSync(400);
     closeModal('backupModal');
-    showToast('ВОССТАНОВЛЕНО', `${devices.length} сканеров загружено`);
+    showToast('ВОССТАНОВЛЕНО', `${devices.length} сканеров загружено, выгрузка слепка в облако запущена`);
   } catch(e) { showToast('ОШИБКА', e.message || '?', 'err'); }
 }
 
@@ -2083,7 +2108,7 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
 
   state.justIssued = sn;
   renderTable();
-  setTimeout(() => { state.justIssued = null; }, 2200);
+  setTimeout(() => { state.justIssued = null; renderTable(); }, 2200);
 
   const actionName = inheritedIssuedAt
     ? (isNew ? 'Создан и выдан (время перенесено)' : 'Выдан (время перенесено)')
@@ -2133,6 +2158,7 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
 async function confirmSwap() {
   const p = state.pendingSwap;
   if (!p) return;
+  state.pendingSwap = null; // анти-дубль: повторный клик/Enter по окну замены выйдет сразу
   closeModal('swapModal');
   let snapshot = null;
   try {
@@ -2437,7 +2463,7 @@ async function doReturn(sn) {
     state.justReturned = sn;
     renderTable();
     updateIssBanner(fixLayout($('issSn').value));
-    setTimeout(() => { state.justReturned = null; }, 2200);
+    setTimeout(() => { state.justReturned = null; renderTable(); }, 2200);
 
     await saveDevice(updated, 'Возврат на склад', holder);
     beep('return');
@@ -3002,14 +3028,23 @@ function processImport() {
   }
 
   try {
-    const txm = db.transaction(["devices", "queue"], "readwrite");
+    const txm = db.transaction(["devices", "queue", "moves"], "readwrite");
     const ds = txm.objectStore("devices");
     const qs = txm.objectStore("queue");
+    const ms = txm.objectStore("moves");
+    const existing = new Set(state.devices.map(d => d.serial));
     valid.forEach(sn => {
-      if (state.devices.find(d => d.serial === sn)) { skipped++; return; }
+      if (existing.has(sn)) { skipped++; return; }
       const d = { serial: sn, model: detectScannerModel(sn), status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts, defect: '' };
+      // Тот же формат пакетов, что и в saveDevice: upsert с movementQueued + отдельное
+      // movement-событие с moveId (иначе событие уйдёт по legacy-пути без дедупликации).
+      const moveId = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+        ? crypto.randomUUID()
+        : `evt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}_${Math.random().toString(36).slice(2)}`;
       ds.put(d);
-      qs.add({ type: 'upsert', dev: d, action: 'Импорт в парк', worker: '', ts });
+      qs.add({ type: 'upsert', dev: d, ts, movementQueued: true });
+      qs.add({ type: 'movement', moveId, serial: sn, action: 'Импорт в парк', worker: '', ts });
+      ms.add({ serial: sn, action: 'Импорт в парк', worker: '', created_at: ts, moveId });
       added++;
     });
     txm.oncomplete = () => {
@@ -3019,6 +3054,8 @@ function processImport() {
       showToast('ИМПОРТ СКАНЕРОВ', `+${added} добавлено, пропущено ${skipped}`);
       loadLocal().then(() => scheduleSync(500)).catch(() => scheduleSync(500));
     };
+    txm.onerror = () => showToast('ОШИБКА ИМПОРТА', (txm.error && txm.error.message) || 'Запись в локальную БД не удалась', 'err');
+    txm.onabort = () => showToast('ОШИБКА ИМПОРТА', 'Транзакция записи прервана', 'err');
   } catch(e) { showToast('ОШИБКА ИМПОРТА', e.message, 'err'); }
 }
 
