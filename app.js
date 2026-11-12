@@ -3207,6 +3207,17 @@ function setupDelegation() {
   $('btnOpenBackup')?.addEventListener('click', openBackupModal);
   $('btnOpenImport')?.addEventListener('click', () => { openModal('impModal'); setTimeout(() => $('impText')?.focus(), 50); });
 
+  /* Меню «⋮»: открытие/закрытие, автозакрытие по клику на пункт или вне меню */
+  $('btnMenu')?.addEventListener('click', e => {
+    e.stopPropagation();
+    $('menuPop')?.classList.toggle('show');
+  });
+  document.addEventListener('click', e => {
+    const pop = $('menuPop');
+    if (!pop || !pop.classList.contains('show')) return;
+    if (!e.target.closest('.menu-wrap') || e.target.closest('.menu-item')) pop.classList.remove('show');
+  });
+
   $('btnDebtAlertShow')?.addEventListener('click', openDebtModal);
   $('btnDebtAlertClose')?.addEventListener('click', dismissDebtAlert);
   $('btnShowDebtsInTable')?.addEventListener('click', showAllDebtsInTable);
@@ -3402,13 +3413,15 @@ document.querySelectorAll('.kpi-card').forEach(s => {
     }
     if (f === 'shift_split') {
       state.filter = state.filter === 'day' ? 'night' : 'day';
-      $('shiftSplitLabel').innerText = state.filter === 'day' ? 'Фильтр: ДЕНЬ' : 'Фильтр: НОЧЬ';
+      const ssl = $('shiftSplitLabel');
+      if (ssl) ssl.innerText = state.filter === 'day' ? 'Фильтр: ДЕНЬ' : 'Фильтр: НОЧЬ';
       document.querySelectorAll('.kpi-card').forEach(x => x.classList.remove('active'));
       s.classList.add('active');
       renderTable();
       return;
     }
-    $('shiftSplitLabel').innerText = 'День / Ночь';
+    const sslReset = $('shiftSplitLabel');
+    if (sslReset) sslReset.innerText = 'День / Ночь';
     if (f === 'all' && state.filter === 'all' && $('searchTable').value) {
       $('searchTable').value = '';
       updateSearchWrap();

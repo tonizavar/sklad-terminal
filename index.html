@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#07040e" id="metaThemeColor">
-<title>Учёт Сканеров • WB WMS Enterprise v10.0</title>
+<title>Учёт Сканеров • WB WMS Enterprise v11.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -14,7 +14,7 @@
 <body>
 
 <div class="boot-overlay" id="bootOverlay">
-  <div class="boot-logo">SKLAD-TERMINAL v10.0</div>
+  <div class="boot-logo">SKLAD-TERMINAL v11.0</div>
   <div class="boot-spinner"></div>
   <div class="boot-text" id="bootText">Инициализация промышленного терминала сканеров…</div>
 </div>
@@ -29,19 +29,13 @@
       <div class="brand-title">
         <h1>
           Учёт Сканеров СЦ
-          <span class="version-pill">ENTERPRISE v10.0</span>
+          <span class="version-pill">ENTERPRISE v11.0</span>
           <span class="only-scanners-pill">ТОЛЬКО СКАНЕРЫ</span>
         </h1>
         <p>Конвейерная выдача и приёмка сканеров штрихкода «в 1 пик» • Облако + Офлайн IndexedDB</p>
       </div>
     </div>
     <div class="hud-actions">
-      <div class="theme-switcher" title="Выбор корпоративной темы (Alt+T)">
-        <button type="button" class="t-btn active" data-set-theme="berry">🔮 WB Berry</button>
-        <button type="button" class="t-btn" data-set-theme="sapphire">💎 Сапфир</button>
-        <button type="button" class="t-btn" data-set-theme="carbon">🌑 Карбон</button>
-        <button type="button" class="t-btn" data-set-theme="quartz">☀️ Светлая</button>
-      </div>
       <div id="shiftPill" class="shift-pill day" title="Клик — переключить смену День/Ночь (F4)">
         <span id="shiftIcon">☀</span>
         <span id="shiftLabel">ДЕНЬ</span>
@@ -55,11 +49,24 @@
       <button type="button" class="btn-hud btn-debt" id="debtBtn" title="Список должников и история просрочек (>14ч)">
         🚨 Должники <span class="debt-badge" id="debtBadge">0</span>
       </button>
-      <button type="button" class="btn-hud" id="btnCopySummary" title="Скопировать сводку смены для Telegram/руководства">📋 Сводка</button>
-      <button type="button" class="btn-hud" id="btnPrintAct" title="Печать Акта приёма-передачи смены (Ctrl+P)">🖨️ Акт смены</button>
-      <button type="button" class="btn-hud" id="btnExportCsv" title="Выгрузить отчёт за смену в CSV / Excel (Ctrl+E)">📊 CSV / Excel</button>
-      <button type="button" class="btn-hud" id="btnOpenBackup" title="Облачные резервные копии парка">💾 Бэкап</button>
-      <button type="button" class="btn-hud" id="btnOpenImport" title="Массовый импорт серийных номеров сканеров (Ctrl+I)">📥 Импорт</button>
+      <div class="menu-wrap">
+        <button type="button" class="btn-hud btn-menu" id="btnMenu" title="Отчёты, импорт, бэкап и оформление">⋮ Меню</button>
+        <div class="menu-pop" id="menuPop">
+          <div class="menu-sec">Отчёты и сервис</div>
+          <button type="button" class="menu-item" id="btnCopySummary" title="Скопировать сводку смены для Telegram/руководства">📋 Сводка смены</button>
+          <button type="button" class="menu-item" id="btnPrintAct" title="Печать Акта приёма-передачи смены (Ctrl+P)">🖨️ Акт смены</button>
+          <button type="button" class="menu-item" id="btnExportCsv" title="Выгрузить отчёт за смену в CSV / Excel (Ctrl+E)">📊 CSV / Excel</button>
+          <button type="button" class="menu-item" id="btnOpenBackup" title="Облачные резервные копии парка">💾 Бэкап</button>
+          <button type="button" class="menu-item" id="btnOpenImport" title="Массовый импорт серийных номеров сканеров (Ctrl+I)">📥 Импорт</button>
+          <div class="menu-sec">Оформление (Alt+T)</div>
+          <div class="theme-switcher menu-themes">
+            <button type="button" class="t-btn active" data-set-theme="berry">🔮 WB Berry</button>
+            <button type="button" class="t-btn" data-set-theme="sapphire">💎 Сапфир</button>
+            <button type="button" class="t-btn" data-set-theme="carbon">🌑 Карбон</button>
+            <button type="button" class="t-btn" data-set-theme="quartz">☀️ Светлая</button>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -75,76 +82,32 @@
     </div>
   </div>
 
-  <!-- РУКОВОДЯЩИЙ KPI-ДАШБОРД (6 КАРТОЧЕК С КОЛЬЦЕВЫМИ ИНДИКАТОРАМИ) -->
+  <!-- ОПЕРАТИВНЫЙ KPI-БЛОК (КРУПНЫЕ ЦИФРЫ, КЛИК = ФИЛЬТР РЕЕСТРА) -->
   <section class="metrics-grid">
     <div class="kpi-card active" data-filter="all" style="--kpi-color:var(--brand-1);" title="Показать весь парк сканеров">
-      <div class="kpi-info">
-        <span class="kpi-label">Всего в парке</span>
-        <div class="kpi-val-row"><span id="mTotal" class="kpi-value mono">0</span><span class="kpi-sub">сканеров</span></div>
-      </div>
-      <div class="kpi-ring-wrap">
-        <svg class="kpi-ring-svg" viewBox="0 0 36 36"><circle class="kpi-ring-bg" cx="18" cy="18" r="15"></circle><circle class="kpi-ring-fg" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="0"></circle></svg>
-        <span class="kpi-ring-icon">📦</span>
-      </div>
+      <span class="kpi-label">Всего в парке</span>
+      <div class="kpi-val-row"><span id="mTotal" class="kpi-value mono">0</span><span class="kpi-sub">сканеров</span></div>
     </div>
 
     <div class="kpi-card" data-filter="issued" style="--kpi-color:var(--brand-2);" title="Сканеры на руках у сотрудников в смене">
-      <div class="kpi-info">
-        <span class="kpi-label" style="color:var(--brand-text);">На руках (в смене)</span>
-        <div class="kpi-val-row"><span id="mIssued" class="kpi-value mono" style="color:var(--brand-text);">0</span><span id="mIssuedPct" class="kpi-sub">0%</span></div>
-      </div>
-      <div class="kpi-ring-wrap">
-        <svg class="kpi-ring-svg" viewBox="0 0 36 36"><circle class="kpi-ring-bg" cx="18" cy="18" r="15"></circle><circle id="ringIssued" class="kpi-ring-fg" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle></svg>
-        <span class="kpi-ring-icon">⚡</span>
-      </div>
+      <span class="kpi-label">На руках</span>
+      <div class="kpi-val-row"><span id="mIssued" class="kpi-value mono kpi-c-brand">0</span><span id="mIssuedPct" class="kpi-sub">0%</span></div>
+      <span class="kpi-foot">☀ <b id="mDay" class="mono">0</b> · 🌙 <b id="mNight" class="mono">0</b></span>
     </div>
 
     <div class="kpi-card" data-filter="free" style="--kpi-color:var(--emerald);" title="Свободные исправные сканеры в резерве на складе">
-      <div class="kpi-info">
-        <span class="kpi-label" style="color:var(--emerald-text);">Свободно в резерве</span>
-        <div class="kpi-val-row"><span id="mFree" class="kpi-value mono" style="color:var(--emerald-text);">0</span><span id="mFreePct" class="kpi-sub">0%</span></div>
-      </div>
-      <div class="kpi-ring-wrap">
-        <svg class="kpi-ring-svg" viewBox="0 0 36 36"><circle class="kpi-ring-bg" cx="18" cy="18" r="15"></circle><circle id="ringFree" class="kpi-ring-fg" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle></svg>
-        <span class="kpi-ring-icon">🟢</span>
-      </div>
+      <span class="kpi-label kpi-c-free">Свободно</span>
+      <div class="kpi-val-row"><span id="mFree" class="kpi-value mono kpi-c-free">0</span><span id="mFreePct" class="kpi-sub">0%</span></div>
     </div>
 
     <div class="kpi-card" data-filter="repair" style="--kpi-color:var(--amber);" title="Сканеры в ремонте / браке (заблокированы для выдачи)">
-      <div class="kpi-info">
-        <span class="kpi-label" style="color:var(--amber-text);">В ремонте / Брак</span>
-        <div class="kpi-val-row"><span id="mRepair" class="kpi-value mono" style="color:var(--amber-text);">0</span><span id="mRepairPct" class="kpi-sub">0%</span></div>
-      </div>
-      <div class="kpi-ring-wrap">
-        <svg class="kpi-ring-svg" viewBox="0 0 36 36"><circle class="kpi-ring-bg" cx="18" cy="18" r="15"></circle><circle id="ringRepair" class="kpi-ring-fg" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle></svg>
-        <span class="kpi-ring-icon">🛠</span>
-      </div>
+      <span class="kpi-label kpi-c-repair">В ремонте</span>
+      <div class="kpi-val-row"><span id="mRepair" class="kpi-value mono kpi-c-repair">0</span><span id="mRepairPct" class="kpi-sub">0%</span></div>
     </div>
 
-    <div class="kpi-card" data-filter="overdue" style="--kpi-color:var(--rose);" title="Не возвращены более 14 часов">
-      <div class="kpi-info">
-        <span class="kpi-label" style="color:var(--rose-text);">Просрочено (&gt;14ч)</span>
-        <div class="kpi-val-row"><span id="mOverdue" class="kpi-value mono" style="color:var(--rose-text);">0</span><span class="kpi-sub">контроль</span></div>
-      </div>
-      <div class="kpi-ring-wrap">
-        <svg class="kpi-ring-svg" viewBox="0 0 36 36"><circle class="kpi-ring-bg" cx="18" cy="18" r="15"></circle><circle id="ringOverdue" class="kpi-ring-fg" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="94.2"></circle></svg>
-        <span class="kpi-ring-icon">🚨</span>
-      </div>
-    </div>
-
-    <div class="kpi-card" data-filter="shift_split" style="--kpi-color:var(--purple);" title="Распределение активных сканеров по сменам (Клик: фильтр День / Ночь)">
-      <div class="kpi-info">
-        <span class="kpi-label" id="shiftSplitLabel" style="color:var(--purple-text);">День / Ночь</span>
-        <div class="kpi-val-row">
-          <span id="mDay" class="kpi-value mono" style="color:var(--amber-text);font-size:21px;">0</span>
-          <span style="color:var(--text-muted);font-weight:700;">/</span>
-          <span id="mNight" class="kpi-value mono" style="color:var(--purple-text);font-size:21px;">0</span>
-        </div>
-      </div>
-      <div class="kpi-ring-wrap">
-        <svg class="kpi-ring-svg" viewBox="0 0 36 36"><circle class="kpi-ring-bg" cx="18" cy="18" r="15"></circle><circle id="ringShiftSplit" class="kpi-ring-fg" cx="18" cy="18" r="15" stroke-dasharray="94.2" stroke-dashoffset="47.1"></circle></svg>
-        <span class="kpi-ring-icon">🌗</span>
-      </div>
+    <div class="kpi-card" data-filter="overdue" style="--kpi-color:var(--rose);" title="Не возвращены более 14 часов — клик покажет список">
+      <span class="kpi-label kpi-c-over">Просрочено</span>
+      <div class="kpi-val-row"><span id="mOverdue" class="kpi-value mono kpi-c-over">0</span><span class="kpi-sub">&gt;14 ч</span></div>
     </div>
   </section>
 
@@ -268,7 +231,7 @@
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <div class="reg-stats" id="regStats">Среднее время: — · Макс: —</div>
         <div class="search-wrap" id="searchWrap">
-          <input id="searchTable" class="hud-input mono" style="width:250px;padding:6.5px 28px 6.5px 12px;font-size:12px;" placeholder="Поиск по SN, хвосту, бейджу (Ctrl+K)…" spellcheck="false">
+          <input id="searchTable" class="hud-input mono search-input" placeholder="Поиск по SN, хвосту, бейджу (Ctrl+K)…" spellcheck="false">
           <button type="button" class="search-clear-btn" id="searchClearBtn" title="Очистить фильтр поиска">✕</button>
         </div>
       </div>
