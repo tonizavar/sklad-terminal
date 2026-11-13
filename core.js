@@ -1,6 +1,6 @@
 /* Pure domain helpers shared by the browser and regression tests. */
 (function (root) {
-  const serialPattern = /^[A-Z0-9_.-]{2,60}$/;
+  const serialPattern = /^(?:SN;)?[A-Z0-9_.-]{2,60}$/;
   function validateDevice(d) {
     if (!d || !serialPattern.test(d.serial) || !['free', 'issued', 'repair'].includes(d.status)) throw new Error('Некорректное состояние сканера');
     if (String(d.holder || '').length > 200 || String(d.defect || '').length > 2000) throw new Error('Слишком длинное описание');

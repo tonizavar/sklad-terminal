@@ -11,7 +11,7 @@ async function apply(id, changes) {
 const change=(id,sn,before,after)=>({serial:sn,before,after:after&&{...after,version:`${id}:${sn}`},action:'Test operation',worker:'TEST-WORKER',ts:'2026-11-13T06:00:00Z'});
 before(async()=>{
   db=new PGlite(); await db.exec('create role anon; create role authenticated;');
-  await db.exec(fs.readFileSync('supabase/migrations/20261113103823_harden_scanner_access.sql','utf8'));
+  for(const file of fs.readdirSync('supabase/migrations').filter(f=>f.endsWith('.sql')).sort()) await db.exec(fs.readFileSync('supabase/migrations/'+file,'utf8'));
   await db.query('insert into public.devices(serial,model,status,holder,version) values($1,$2,$3,$4,$5),($6,$2,$7,$8,$5)', ['TEST-A','Point Mobile','issued','TEST-WORKER','initial','TEST-B','free','']);
 });
 after(async()=>{await db.close()});
@@ -87,4 +87,10 @@ test('public RPC wrappers are invokers and private tables use RLS',async()=>{
   const functions=(await db.query("select p.proname,p.prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'scanner_%'")).rows;
   assert.ok(functions.length>=3);assert.ok(functions.every(f=>!f.prosecdef));
   const tables=(await db.query("select relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='scanner_private' and c.relname in ('operations','backups')")).rows;assert.ok(tables.every(t=>t.relrowsecurity));
+});
+
+test('legacy SN; serial can be updated atomically without renaming',async()=>{
+  await asClient();const id='legacy-prefix-operation';const sn='SN;TEST-LEGACY-001';
+  assert.equal((await apply(id,[change(id,sn,null,state(sn))])).status,'applied');
+  assert.equal((await db.query('select serial from public.devices where serial=$1',[sn])).rows[0].serial,sn);
 });

@@ -12,7 +12,7 @@ const AUTO_SWAP_KEY = 'sklad_auto_swap_v2';
 const THEME_STORAGE_KEY = 'sklad_exec_theme';
 const DRAFT_KEY = 'sklad_draft_iss';
 const DRAFT_TTL_MS = 5 * 60 * 1000;
-const SN_REGEX = /^[A-Z0-9\-_.]{2,60}$/;
+const SN_REGEX = /^(?:SN;)?[A-Z0-9\-_.]{2,60}$/;
 const MOVES_ROTATE_THRESHOLD = 6000;
 const MOVES_ROTATE_KEEP = 3000;
 const DEBT_REGISTRY_KEY = 'sklad_debtors_registry_v12';
@@ -699,7 +699,7 @@ function normalizeCloudDevice(row) {
   const sn = row.serial || row.sn || row.serial_number || row.id;
   if (!sn) return null;
   const cleanSn = String(sn).trim();
-  if (!/^[A-Za-z0-9\-_.]+$/.test(cleanSn)) return null;
+  if (!/^(?:SN;)?[A-Za-z0-9\-_.]+$/.test(cleanSn)) return null;
 
   // Исключаем любые не-сканерные записи (если когда-то в облаке были планшеты/рохли/рации)
   const rawModelStr = String(row.model || '').toUpperCase();

@@ -95,3 +95,10 @@ test('import refuses to claim success without durable local storage',async({page
  await page.evaluate(async()=>{state.dbReady=false;$('impText').value='TEST-NEW-DEVICE';await processImport();});
  await expect(page.locator('#tTitle')).toHaveText('ОШИБКА ИМПОРТА');await expect(page.locator('#mTotal')).toHaveText('2');
 });
+test('legacy SN; inventory remains visible and returnable',async({page})=>{
+ const {backend}=await setup(page);await login(page);
+ backend.devices.push({...fixture()[0],serial:'SN;TEST-LEGACY-001',status:'issued',holder:'TEST-LEGACY-WORKER',issued_at:new Date().toISOString()});
+ await page.evaluate(()=>syncNow());await expect(page.locator('#mTotal')).toHaveText('3');
+ await page.locator('#retQuery').fill('SN;TEST-LEGACY-001');await page.locator('#retQuery').press('Enter');await expect(page.locator('#tTitle')).toContainText('ПРИНЯТ');
+ await page.evaluate(()=>syncNow());expect(backend.devices.find(d=>d.serial==='SN;TEST-LEGACY-001').status).toBe('free');
+});

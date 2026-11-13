@@ -20,3 +20,7 @@ test('period report uses an exclusive end and limits query size', () => {
   assert.equal(reportMoves(rows,'2026-11-13T06:00:00Z','2026-11-13T18:00:00Z').length,1);
   assert.throws(()=>reportMoves([], '2026-01-01', '2026-03-01'));
 });
+test('legacy SN; prefix is accepted without normalizing away its identity', () => {
+  assert.equal(validateDevice({serial:'SN;TEST-LEGACY-001',status:'free'}).serial,'SN;TEST-LEGACY-001');
+  assert.throws(()=>validateDevice({serial:'OTHER;TEST-001',status:'free'}));
+});
