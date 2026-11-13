@@ -9,7 +9,7 @@ function exportExcel() {
 async function exportPeriodReport() {
   const btn = $('btnReportExport'); btn.disabled = true;
   try {
-    requireAccess();
+    requireReady();
     const start = new Date($('reportStart').value).toISOString(), end = new Date($('reportEnd').value).toISOString();
     SkladCore.reportMoves([], start, end);
     const rows = [];

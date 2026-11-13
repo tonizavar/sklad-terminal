@@ -701,10 +701,6 @@ tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
 
 /* v12: account boundaries, explicit sync state, keyboard support and mobile cards. */
 [hidden] { display: none !important; }
-.account-bar { display:flex; justify-content:flex-end; align-items:center; gap:12px; font-size:12px; min-height:24px; margin-bottom:6px; }
-.account-panel { position:fixed; inset:0; z-index:9000; display:grid; place-items:center; background:var(--bg-base); padding:20px; }
-.account-panel .modal-card { display:flex; flex-direction:column; gap:12px; width:min(100%,440px); }
-#loginError, #reportError { color:var(--rose-text); min-height:1em; }
 .sync-detail { display:block; max-width:290px; font-size:11px; line-height:1.5; color:var(--text-sub); }
 .pagination, .report-actions { display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap; padding-top:10px; }
 .pagination span { font-size:12px; }
@@ -714,7 +710,6 @@ button:disabled { opacity:.5; cursor:default; }
 #logStatus { display:block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 #reportModal .modal-card { display:flex; flex-direction:column; gap:10px; }
 @media(max-width:700px) {
-  .account-bar { justify-content:space-between; overflow-wrap:anywhere; }
   .app-shell { gap:12px; }
   .registry-deck { flex:none; min-height:0; padding:12px; }
   .reg-wrap { overflow:visible; border:0; }
@@ -736,4 +731,4 @@ button:disabled { opacity:.5; cursor:default; }
   *, *::before, *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
   .scan-flash-overlay { display:none !important; }
 }
-@media print { .account-bar, .pagination, .account-panel { display:none !important; } }
+@media print { .pagination { display:none !important; } }

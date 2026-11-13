@@ -1,18 +1,8 @@
--- Coordinated rollout: provision a first administrator before applying this migration.
--- No working devices or movement history are deleted. Old anon clients become read/write denied.
+-- Shared terminal mode requested by the owner: no login, no user roles.
+-- No working devices or history are deleted. Direct table writes are replaced by checked RPCs.
 create schema if not exists scanner_private;
 revoke all on schema scanner_private from public, anon, authenticated;
-grant usage on schema scanner_private to authenticated;
-create table if not exists scanner_private.members (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  role text not null check (role in ('operator','admin'))
-);
--- Refuse a rollout that would lock out every operator. Provision via the separate script first.
-do $$ begin
-  if not exists(select 1 from scanner_private.members m join auth.users u on u.id=m.user_id where m.role='admin') then
-    raise exception 'FIRST_ADMIN_REQUIRED: provision the first administrator before switching access';
-  end if;
-end $$;
+grant usage on schema scanner_private to anon, authenticated;
 create table if not exists scanner_private.operations (
   id text primary key, payload jsonb not null, result jsonb not null,
   created_at timestamptz not null default now()
@@ -21,8 +11,8 @@ alter table scanner_private.operations add column if not exists operator_id uuid
 create table if not exists scanner_private.backups (
   name text primary key, snapshot jsonb not null, created_at timestamptz not null default now()
 );
+alter table scanner_private.backups add column if not exists hidden_at timestamptz;
 revoke all on all tables in schema scanner_private from public, anon, authenticated;
-alter table scanner_private.members enable row level security;
 alter table scanner_private.operations enable row level security;
 alter table scanner_private.backups enable row level security;
 
@@ -53,13 +43,6 @@ create unique index if not exists movements_event_id_unique on public.movements(
 create index if not exists movements_serial_created_idx on public.movements(serial,created_at desc);
 create index if not exists movements_created_idx on public.movements(created_at);
 
-create or replace function scanner_private.current_role() returns text
-language sql stable security definer set search_path = '' as $$
-  select role from scanner_private.members where user_id = (select auth.uid());
-$$;
-revoke all on function scanner_private.current_role() from public, anon;
-grant execute on function scanner_private.current_role() to authenticated;
-
 alter table public.devices enable row level security;
 alter table public.movements enable row level security;
 -- Remove permissive old policies; otherwise PostgreSQL ORs them with the new policy.
@@ -69,47 +52,22 @@ do $$ declare p record; begin
   end loop;
 end $$;
 revoke all on public.devices,public.movements from public,anon,authenticated;
-grant select on public.devices,public.movements to authenticated;
-create policy scanner_device_read on public.devices for select to authenticated
-  using ((select scanner_private.current_role()) in ('operator','admin'));
-create policy scanner_history_read on public.movements for select to authenticated
-  using ((select scanner_private.current_role()) in ('operator','admin'));
+grant select on public.devices,public.movements to anon,authenticated;
+create policy scanner_device_read on public.devices for select to anon,authenticated using (true);
+create policy scanner_history_read on public.movements for select to anon,authenticated using (true);
 
--- Explicitly disable legacy shared-key endpoints, including direct RPC access.
-create or replace function public.scanner_access_allowed() returns boolean
-language sql stable security invoker set search_path = '' as $$
-  select (select scanner_private.current_role()) in ('operator','admin');
-$$;
-create or replace function public.scanner_check_access() returns boolean
-language plpgsql stable security invoker set search_path = '' as $$
-begin
-  if auth.uid() is null or coalesce(scanner_private.current_role(),'') not in ('operator','admin') then
-    raise sqlstate '42501' using message='SCANNER_ACCESS_REQUIRED';
-  end if;
-  return true;
-end $$;
-revoke all on function public.scanner_access_allowed(),public.scanner_check_access() from public,anon;
-grant execute on function public.scanner_access_allowed(),public.scanner_check_access() to authenticated;
-
-create or replace function public.scanner_session() returns jsonb
-language plpgsql stable security invoker set search_path = '' as $$
-begin
-  perform public.scanner_check_access();
-  return jsonb_build_object('role',scanner_private.current_role(),'user_id',auth.uid());
-end $$;
-revoke all on function public.scanner_session() from public,anon;
-grant execute on function public.scanner_session() to authenticated;
-
+-- Legacy key-gated RPCs are not used by the shared terminal.
+drop function if exists public.scanner_access_allowed();
+drop function if exists public.scanner_check_access();
 create or replace function scanner_private.apply_operation(p_id text,p_changes jsonb,p_terminal text) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
-  actor uuid := auth.uid(); actor_role text := scanner_private.current_role();
+  actor uuid := null; -- Operator identity is unavailable without login; record terminal_id instead.
   payload jsonb := jsonb_build_object('changes',p_changes,'terminal',p_terminal);
   previous scanner_private.operations%rowtype;
   c jsonb; d public.devices%rowtype; desired jsonb; expected jsonb; sn text;
   mismatches jsonb := '[]'; result jsonb; exists_now boolean;
 begin
-  if actor is null or coalesce(actor_role,'') not in ('operator','admin') then raise sqlstate '42501' using message='SCANNER_ACCESS_REQUIRED'; end if;
   if p_id is null or length(p_id) not between 8 and 200 or p_terminal is null or length(p_terminal) not between 8 and 100
     or jsonb_typeof(p_changes) is distinct from 'array' or jsonb_array_length(p_changes) not between 1 and 500 then
     raise exception 'Invalid operation';
@@ -127,7 +85,7 @@ begin
     if sn is null or sn !~ '^[A-Z0-9_.-]{2,60}$' then raise exception 'Invalid serial'; end if;
     if coalesce(length(c->>'action'),0) not between 1 and 2200 or coalesce(length(c->>'worker'),0)>200 then raise exception 'Invalid event'; end if;
     if desired is null or desired='null'::jsonb then
-      if actor_role <> 'admin' then raise sqlstate '42501' using message='ADMIN_REQUIRED'; end if;
+      null; -- Logical retirement remains available in shared mode.
     else
       if desired->>'serial' is distinct from sn or desired->>'version' is distinct from p_id || ':' || sn
         or desired->>'status' is null or desired->>'status' not in ('free','issued','repair')
@@ -138,7 +96,6 @@ begin
     end if;
     select * into d from public.devices where serial=sn for update;
     exists_now := found;
-    if actor_role <> 'admin' and ((not exists_now and desired is not null and desired <> 'null'::jsonb) or d.deleted_at is not null) then raise sqlstate '42501' using message='ADMIN_REQUIRED'; end if;
     -- Versions protect a scanner; this additional invariant protects the worker across different scanners.
     if desired is not null and desired <> 'null'::jsonb and desired->>'status'='issued' and (
       exists(select 1 from public.devices other
@@ -181,7 +138,7 @@ begin
   return result;
 end $$;
 revoke all on function scanner_private.apply_operation(text,jsonb,text) from public,anon;
-grant execute on function scanner_private.apply_operation(text,jsonb,text) to authenticated;
+grant execute on function scanner_private.apply_operation(text,jsonb,text) to anon, authenticated;
 -- Drop the old signature to avoid ambiguous RPC selection and shared-key mutations.
 drop function if exists public.scanner_apply(text,jsonb,jsonb);
 create or replace function public.scanner_apply(p_id text,p_changes jsonb,p_events jsonb default '[]',p_terminal text default null) returns jsonb
@@ -191,7 +148,7 @@ begin
   return scanner_private.apply_operation(p_id,p_changes,p_terminal);
 end $$;
 revoke all on function public.scanner_apply(text,jsonb,jsonb,text) from public,anon;
-grant execute on function public.scanner_apply(text,jsonb,jsonb,text) to authenticated;
+grant execute on function public.scanner_apply(text,jsonb,jsonb,text) to anon, authenticated;
 
 create or replace function scanner_private.create_backup() returns jsonb
 language plpgsql security definer set search_path = '' as $$
@@ -212,28 +169,32 @@ create or replace function scanner_private.backup_action(p_action text,p_name te
 language plpgsql security definer set search_path = '' as $$
 declare snapshot jsonb;
 begin
-  if auth.uid() is null or scanner_private.current_role() is distinct from 'admin' then raise sqlstate '42501' using message='ADMIN_REQUIRED'; end if;
-  if p_action='create' then return scanner_private.create_backup();
+  if p_action='create' then
+    perform pg_advisory_xact_lock(78134112002);
+    select jsonb_build_object('name',name,'total',jsonb_array_length(b.snapshot->'devices')) into snapshot
+      from scanner_private.backups b where created_at>now()-interval '15 minutes' and hidden_at is null order by created_at desc limit 1;
+    if found then return snapshot; end if;
+    return scanner_private.create_backup();
   elsif p_action='list' then
     return (select coalesce(jsonb_agg(info order by created_at desc),'[]') from (
-      select created_at,jsonb_build_object('name',name,'created_at',created_at,'metadata',jsonb_build_object('size',octet_length(snapshot::text))) info
-      from scanner_private.backups order by created_at desc limit 100) b);
+      select created_at,jsonb_build_object('name',name,'created_at',created_at,'metadata',jsonb_build_object('size',octet_length(saved.snapshot::text))) info
+      from scanner_private.backups saved where hidden_at is null order by created_at desc limit 100) b);
   elsif p_action='download' then
     select b.snapshot into snapshot from scanner_private.backups b where name=p_name;
     if not found then raise exception 'Backup not found'; end if;
     return snapshot;
   elsif p_action='delete' then
-    delete from scanner_private.backups where name=p_name;
+    update scanner_private.backups set hidden_at=now() where name=p_name;
     return '{}'::jsonb;
   end if;
   raise exception 'Invalid backup action';
 end $$;
 revoke all on function scanner_private.backup_action(text,text) from public,anon;
-grant execute on function scanner_private.backup_action(text,text) to authenticated;
+grant execute on function scanner_private.backup_action(text,text) to anon, authenticated;
 create or replace function public.scanner_backup(p_action text,p_name text default null) returns jsonb
 language sql security invoker set search_path = '' as $$ select scanner_private.backup_action(p_action,p_name); $$;
 revoke all on function public.scanner_backup(text,text) from public,anon;
-grant execute on function public.scanner_backup(text,text) to authenticated;
+grant execute on function public.scanner_backup(text,text) to anon, authenticated;
 
 -- pg_cron is an official Supabase extension. Tests on embedded Postgres skip it.
 do $$ begin
@@ -261,7 +222,6 @@ create or replace function scanner_private.pull_inventory(p_after bigint) return
 language plpgsql security definer set search_path = '' as $$
 declare cursor_value bigint;
 begin
-  if auth.uid() is null or coalesce(scanner_private.current_role(),'') not in ('operator','admin') then raise sqlstate '42501' using message='SCANNER_ACCESS_REQUIRED'; end if;
   if p_after is null or p_after<0 then raise exception 'Invalid cursor'; end if;
   perform pg_advisory_xact_lock(78134112001);
   select coalesce(max(revision),0) into cursor_value from public.devices;
@@ -272,8 +232,8 @@ begin
   ));
 end $$;
 revoke all on function scanner_private.pull_inventory(bigint) from public,anon;
-grant execute on function scanner_private.pull_inventory(bigint) to authenticated;
+grant execute on function scanner_private.pull_inventory(bigint) to anon, authenticated;
 create or replace function public.scanner_pull(p_after bigint default 0) returns jsonb
 language sql security invoker set search_path = '' as $$ select scanner_private.pull_inventory(p_after); $$;
 revoke all on function public.scanner_pull(bigint) from public,anon;
-grant execute on function public.scanner_pull(bigint) to authenticated;
+grant execute on function public.scanner_pull(bigint) to anon, authenticated;

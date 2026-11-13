@@ -10,13 +10,7 @@ async function setup(page,{role='admin',count=2}={}){
  await page.context().route('https://sgpkvnymkqwuhepkaoxw.supabase.co/**',async route=>{
   if(!backend.online)return route.abort();
   const req=route.request(),url=new URL(req.url());let body={};
-  if(url.pathname.includes('/auth/v1/token')){
-   const claims={sub:USER,role:'authenticated',exp:Math.floor(Date.now()/1000)+3600};
-   const token=['eyJhbGciOiJIUzI1NiJ9',Buffer.from(JSON.stringify(claims)).toString('base64url'),'signature'].join('.');
-   body={access_token:token,refresh_token:'test-refresh-token',token_type:'bearer',expires_in:3600,user:{id:USER,email:'operator@example.test',app_metadata:{},user_metadata:{}}};
-  }else if(url.pathname.includes('/auth/v1/logout'))body={};
-  else if(url.pathname.endsWith('/rpc/scanner_session')) body={role:backend.role,user_id:USER};
-  else if(url.pathname.endsWith('/rpc/scanner_pull'))body={cursor:1,full:true,devices:backend.devices};
+  if(url.pathname.endsWith('/rpc/scanner_pull'))body={cursor:1,full:true,devices:backend.devices};
   else if(url.pathname.endsWith('/rpc/scanner_apply')){
    const op=req.postDataJSON();backend.operations.push(op);
    const conflict=op.p_changes.filter(c=>{const before=backend.devices.find(d=>d.serial===c.serial);return (before?.version||null)!==(c.before?.version||null)});
@@ -29,12 +23,12 @@ async function setup(page,{role='admin',count=2}={}){
   await route.fulfill({json:body});
  });
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('/');await expect(page.locator('#accountPanel')).toBeVisible();
+ await page.goto('/');
  return {backend,errors};
 }
-async function login(page){await page.locator('#loginEmail').fill('operator@example.test');await page.locator('#loginPassword').fill('test-only-password');await page.locator('#loginBtn').click();await expect(page.locator('#accountPanel')).toBeHidden();await expect(page.locator('#syncText')).toHaveText('Подтверждено облаком');}
-test('clean boot requires login and never shows embedded employee data',async({page})=>{
- const {errors}=await setup(page);await expect(page.locator('#mTotal')).toHaveText('0');await expect(page.locator('#appContent')).toHaveAttribute('inert','');await login(page);await expect(page.locator('#mTotal')).toHaveText('2');expect(errors).toEqual([]);
+async function login(page){await expect(page.locator('#appContent')).not.toHaveAttribute('inert','');await expect(page.locator('#syncText')).toHaveText('Подтверждено облаком');}
+test('clean boot opens directly without login or embedded employee data',async({page})=>{
+ const {errors}=await setup(page);await login(page);await expect(page.locator('input[type=password]')).toHaveCount(0);await expect(page.locator('#mTotal')).toHaveText('2');expect(errors).toEqual([]);
 });
 test('repair is explicit: repeating the repair form never releases the scanner',async({page})=>{
  const {backend,errors}=await setup(page);await login(page);await page.locator('#tabModeDefect').click();await page.locator('#defSn').fill('TEST-A');await page.locator('#defReason').fill('TEST BATTERY FAILURE');await page.locator('#defBtn').click();await expect(page.locator('#mRepair')).toHaveText('1');
@@ -44,7 +38,7 @@ test('repair is explicit: repeating the repair form never releases the scanner',
 test('offline issue persists across reload, then sends with expected version',async({page})=>{
  const {backend,errors}=await setup(page);await login(page);backend.online=false;
  await page.locator('#issWorker').fill('TEST-WORKER');await page.locator('#issSn').fill('TEST-A');await page.locator('#btnIssue').click();await expect(page.locator('#mIssued')).toHaveText('1');await expect(page.locator('#syncDetail')).toContainText('ожидает: 1');
- backend.online=true;await page.reload();await expect(page.locator('#accountPanel')).toBeHidden();await expect(page.locator('#syncDetail')).toContainText('ожидает: 0');expect(backend.devices.find(d=>d.serial==='TEST-A').holder).toBe('TEST-WORKER');expect(backend.operations[0].p_changes[0].before.version).toBe('initial');expect(errors).toEqual([]);
+ backend.online=true;await page.reload();await expect(page.locator('input[type=password]')).toHaveCount(0);await expect(page.locator('#syncDetail')).toContainText('ожидает: 0');expect(backend.devices.find(d=>d.serial==='TEST-A').holder).toBe('TEST-WORKER');expect(backend.operations[0].p_changes[0].before.version).toBe('initial');expect(errors).toEqual([]);
 });
 test('remote conflict preserves local operation and prevents silent overwrite',async({page})=>{
  const {backend}=await setup(page);await login(page);backend.online=false;
@@ -55,8 +49,8 @@ test('remote conflict preserves local operation and prevents silent overwrite',a
 test('a verified empty server snapshot clears stale devices',async({page})=>{
  const {backend}=await setup(page);await login(page);backend.devices=[];await page.evaluate(()=>syncNow());await expect(page.locator('#mTotal')).toHaveText('0');await expect(page.locator('#syncText')).toHaveText('Подтверждено облаком');
 });
-test('operator has no administrative controls',async({page})=>{
- await setup(page,{role:'operator'});await login(page);await page.locator('#btnMenu').click();await expect(page.locator('#btnOpenBackup')).toBeHidden();await expect(page.locator('#btnOpenImport')).toBeHidden();expect(await page.evaluate(()=>{try{requireAccess(true);return false}catch{return true}})).toBe(true);
+test('maintenance is available without creating an administrator',async({page})=>{
+ await setup(page);await login(page);await page.locator('#btnMenu').click();await expect(page.locator('#btnOpenBackup')).toBeVisible();await expect(page.locator('#btnOpenImport')).toBeVisible();
 });
 test('pagination bounds DOM size and mobile cards expose status and actions',async({page})=>{
  const {errors}=await setup(page,{count:10000});await login(page);await expect(page.locator('#tbody tr')).toHaveCount(100);await expect(page.locator('#pageLabel')).toContainText('из 100');await page.locator('#nextPage').click();await expect(page.locator('#pageLabel')).toContainText('Страница 2');
@@ -65,14 +59,14 @@ test('pagination bounds DOM size and mobile cards expose status and actions',asy
 test('confirm dialog traps keyboard focus and escape cancels',async({page})=>{
  await setup(page);await login(page);await page.evaluate(()=>{window.testConfirm=askConfirmDialog('Test','Test message')});await expect(page.locator('#confirmDialogModal')).toBeVisible();await page.locator('#confirmDialogOkBtn').focus();await page.keyboard.press('Tab');await expect(page.locator('#confirmDialogCancelBtn')).toBeFocused();await page.keyboard.press('Escape');await expect(page.locator('#confirmDialogModal')).toBeHidden();expect(await page.evaluate(()=>window.testConfirm)).toBe(false);
 });
-test('offline application shell reloads with previously verified access',async({page,context})=>{
+test('offline application shell reloads without signing in',async({page,context})=>{
  await setup(page);await login(page);
  await page.evaluate(async()=>{await navigator.serviceWorker.ready;});
  await page.waitForFunction(()=>navigator.serviceWorker.controller!==null);
  // context offline is real browser network loss, including reload of static resources.
  await context.setOffline(true);
  await page.reload();
- await expect(page.locator('#accountPanel')).toBeHidden();
+ await expect(page.locator('input[type=password]')).toHaveCount(0);
  await expect(page.locator('#mTotal')).toHaveText('2');
  await expect(page.locator('#syncText')).toContainText('Офлайн');
 });
@@ -91,7 +85,7 @@ test('replacement of two scanners is sent as one operation',async({page})=>{
 test('stale writes in another tab fail before touching the queue',async({page,context})=>{
  const {backend}=await setup(page);await login(page);backend.online=false;
  await page.evaluate(()=>{window.oldSnapshot={...state.devices.find(d=>d.serial==='TEST-A')};});
- const tab=await context.newPage();backend.online=true;await tab.goto('/');await expect(tab.locator('#accountPanel')).toBeHidden();await expect(tab.locator('#syncText')).toHaveText('Подтверждено облаком');backend.online=false;
+ const tab=await context.newPage();backend.online=true;await tab.goto('/');await expect(tab.locator('input[type=password]')).toHaveCount(0);await expect(tab.locator('#syncText')).toHaveText('Подтверждено облаком');backend.online=false;
  await tab.locator('#issWorker').fill('TEST-WORKER');await tab.locator('#issSn').fill('TEST-A');await tab.locator('#btnIssue').click();await expect(tab.locator('#toast .t-undo')).toBeVisible();
  const result=await page.evaluate(async()=>{try{await saveDevice({...window.oldSnapshot,status:'repair',defect:'STALE'},'repair','');return 'bad'}catch(e){return e.message}});
  expect(result).toContain('другой вкладке');expect(await page.evaluate(async()=>(await readQueueWithKeys()).length)).toBe(1);

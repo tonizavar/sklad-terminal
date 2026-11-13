@@ -1,6 +1,6 @@
 /* Backup scheduling/retention runs on the server, independently of open browsers. */
 async function backupRpc(action, name = null) {
-  requireAccess(true);
+  requireReady();
   const { data, error } = await withTimeout(cloud.rpc('scanner_backup', { p_action: action, p_name: name }), NET_TIMEOUT_MS, 'бэкап');
   if (error) throw error;
   return data;
@@ -13,7 +13,7 @@ async function doBackup() {
   } catch (e) { showToast('ОШИБКА БЭКАПА', e.message, 'err'); }
 }
 async function downloadJsonBackup() {
-  requireAccess(true);
+  requireReady();
   const moves = db ? await requestResult(db.transaction('moves').objectStore('moves').getAll()) : [];
   downloadJson({ version: 12, created_at: nowIso(), devices: state.devices, movements: moves, queue: await readQueueWithKeys(), last_cloud_confirmation: state.lastSyncAt }, `sklad-local-${Date.now()}.json`);
   showToast('ЛОКАЛЬНЫЙ СНИМОК СКАЧАН', 'Включает локальное состояние и неотправленные операции');
@@ -27,7 +27,7 @@ async function renderBackupList() {
 }
 async function restoreFromBackup(filename) {
   try {
-    requireAccess(true);
+    requireReady();
     if ((await readQueueWithKeys()).length) throw new Error('Сначала отправьте или согласуйте неотправленные операции');
     const backup = await backupRpc('download', filename);
     if (!Array.isArray(backup.devices) || backup.devices.length > 500) throw new Error('Копия должна содержать не более 500 сканеров для одной атомарной операции');
@@ -49,10 +49,10 @@ async function restoreFromBackup(filename) {
 }
 async function deleteBackup(filename) {
   try {
-    requireAccess(true);
-    if (!await askConfirmDialog('Удаление резервной копии', `Удалить ${filename}?`)) return;
+    requireReady();
+    if (!await askConfirmDialog('Убрать копию из списка', `Убрать ${filename} из списка? Сам снимок сохранится на сервере до истечения срока хранения.`)) return;
     await backupRpc('delete', filename);
     await renderBackupList();
   } catch (e) { showToast('ОШИБКА', e.message, 'err'); }
 }
-function openBackupModal() { if (sessionAccess.role === 'admin') { openModal('backupModal'); renderBackupList(); } }
+function openBackupModal() { openModal('backupModal'); renderBackupList(); }

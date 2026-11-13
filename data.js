@@ -2,7 +2,7 @@
 let db = null;
 let cloud = null;
 let syncScheduledTimer = null;
-const sessionAccess = { user: null, role: null };
+const terminalContext = { id: null };
 const PAGE_SIZE = 100;
 let tabChannel;
 function transactionDone(tx) {
@@ -15,9 +15,8 @@ function transactionDone(tx) {
 function requestResult(req) {
   return new Promise((resolve, reject) => { req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error); });
 }
-function requireAccess(admin = false) {
-  if (!sessionAccess.user || !['operator', 'admin'].includes(sessionAccess.role)) throw new Error('Войдите в учётную запись терминала');
-  if (admin && sessionAccess.role !== 'admin') throw new Error('Действие доступно администратору');
+function requireReady() {
+  if (!terminalContext.id || !db || !state.dbReady) throw new Error('Локальная база недоступна. Операции временно заблокированы.');
 }
 async function initStorage() {
   const req = indexedDB.open('SkladDB', 4);
@@ -39,7 +38,7 @@ async function initStorage() {
     state.dbReady = true;
     if (typeof BroadcastChannel !== 'undefined') {
       tabChannel = new BroadcastChannel('sklad-v12');
-      tabChannel.onmessage = () => { if (sessionAccess.user) loadLocal().catch(reportLocalError); };
+      tabChannel.onmessage = () => { if (terminalContext.id) loadLocal().catch(reportLocalError); };
     }
     // A real server snapshot is required before fresh installations allow operations.
     const meta = await requestResult(db.transaction('meta').objectStore('meta').get('snapshot'));
@@ -54,7 +53,7 @@ async function initStorage() {
 }
 function reportLocalError(e) { state.lastError = e.message; showToast('ОШИБКА ХРАНЕНИЯ', e.message, 'err'); }
 async function loadLocal() {
-  if (!db || !sessionAccess.user) return;
+  if (!db || !terminalContext.id) return;
   const rows = await requestResult(db.transaction('devices').objectStore('devices').getAll());
   state.devices = rows.filter(d => !d.deleted_at).map(normalizeCloudDevice).filter(Boolean);
   state.tablePage = Math.min(state.tablePage || 0, Math.max(0, Math.ceil(state.devices.length / PAGE_SIZE) - 1));
@@ -90,12 +89,12 @@ async function deleteQueueKey(key) {
 }
 function saveDevice(dev, actionName, workerName) { return saveDeviceChanges([{ dev, actionName, workerName }]); }
 async function saveDeviceChanges(changes, options = {}) {
-  requireAccess(Boolean(options.admin));
+  requireReady();
   if (!db || !state.dbReady || !state.dataVerified) throw new Error('Дождитесь первой успешной загрузки данных из облака');
   if (!changes.length || changes.length > 500) throw new Error('Одна операция должна содержать от 1 до 500 сканеров');
   if (new Set(changes.map(c => c.dev.serial)).size !== changes.length) throw new Error('Повторный сканер в операции');
   const id = crypto.randomUUID(), at = nowIso();
-  const operation = { type: 'operation', id, actor: sessionAccess.user.id, terminal: terminalId(), serials: changes.map(c => c.dev.serial), changes: [], ts: at };
+  const operation = { type: 'operation', id, actor: terminalContext.id, terminal: terminalId(), serials: changes.map(c => c.dev.serial), changes: [], ts: at };
   const tx = db.transaction(['devices', 'queue', 'moves'], 'readwrite');
   const done = transactionDone(tx);
   const devices = tx.objectStore('devices'), queue = tx.objectStore('queue');
@@ -112,7 +111,7 @@ async function saveDeviceChanges(changes, options = {}) {
         operation.changes.push(change);
         if (after) devices.put(after);
         else devices.delete(c.dev.serial);
-        tx.objectStore('moves').add({ serial: c.dev.serial, action: c.actionName, worker: c.workerName || '', created_at: at, moveId: `${id}:${c.dev.serial}`, operator_id: operation.actor, terminal_id: operation.terminal });
+        tx.objectStore('moves').add({ serial: c.dev.serial, action: c.actionName, worker: c.workerName || '', created_at: at, moveId: `${id}:${c.dev.serial}`, operator_id: null, terminal_id: operation.terminal });
         if (operation.changes.length === changes.length) queue.add(operation);
       } catch (e) { failure = e; tx.abort(); }
     };
@@ -130,7 +129,7 @@ async function saveDeviceChanges(changes, options = {}) {
   scheduleSync(150);
 }
 async function deleteSerial(sn) {
-  requireAccess(true);
+  requireReady();
   const dev = state.devices.find(d => d.serial === sn);
   if (dev) await saveDeviceChanges([{ dev, remove: true, actionName: 'Списание сканера', workerName: dev.holder }], { admin: true });
 }
@@ -149,27 +148,17 @@ async function setQueueConflict(key, message) {
   await done;
 }
 async function syncNow() {
-  if (state.syncing || !db || !cloud || !sessionAccess.user) return false;
+  if (state.syncing || !db || !cloud || !terminalContext.id) return false;
   if (!navigator.onLine) { setSync(false, 'Офлайн — сохранение локально'); return false; }
   state.syncing = true;
   setSync(true, 'Синхронизация…', true);
   try {
-    // Verifies both authentication and site membership, even for an empty database.
-    const { data: role, error: accessError } = await withTimeout(cloud.rpc('scanner_session'), NET_TIMEOUT_MS, 'доступ');
-    if (accessError) { if (accessError.code === '42501' || accessError.code === 'PGRST301') sessionAccess.role = null; throw accessError; }
-    if (!['operator', 'admin'].includes(role?.role)) throw new Error('Учётная запись не имеет доступа к терминалу');
-    sessionAccess.role = role.role;
-    refreshAccountUI();
     const run = async () => {
       const queue = await readQueueWithKeys();
       for (const { key, value: op } of queue) {
         if (op.conflict) break;
         if (op.type !== 'operation') {
           await setQueueConflict(key, 'Очередь старой версии: скачайте её и согласуйте с администратором');
-          break;
-        }
-        if (op.actor !== sessionAccess.user.id) {
-          await setQueueConflict(key, 'Операция другого оператора. Войдите под исходной учётной записью.');
           break;
         }
         const { data, error } = await withTimeout(cloud.rpc('scanner_apply', { p_id: op.id, p_changes: op.changes, p_events: [], p_terminal: op.terminal }), NET_TIMEOUT_MS, 'операция');
@@ -247,7 +236,7 @@ function setSync(ok, txt, busy = false) {
 }
 function scheduleSync(delay = SYNC_BASE_INTERVAL) {
   clearTimeout(syncScheduledTimer);
-  if (!sessionAccess.user) return;
+  if (!terminalContext.id) return;
   syncScheduledTimer = setTimeout(async () => {
     const ok = await syncNow();
     state.syncBackoff = ok ? 0 : Math.min((state.syncBackoff || 0) + 1, 5);
@@ -262,11 +251,11 @@ async function renderQueuePreview() {
   } catch (e) { return esc(e.message); }
 }
 async function downloadQueue() {
-  requireAccess();
+  requireReady();
   downloadJson({ exported_at: nowIso(), queue: await readQueueWithKeys() }, 'sklad-pending-operations.json');
 }
 async function resolveQueueFromCloud() {
-  requireAccess(true);
+  requireReady();
   const queue = await readQueueWithKeys();
   if (!queue.length) return;
   const ok = await askConfirmDialog('Согласование с облаком', `В очереди ${queue.length} операций. Они будут сохранены в локальный архив конфликтов; рабочее состояние будет загружено из облака. Сначала скачайте очередь. Применяйте после сверки фактической выдачи.`, 'Принять облачное состояние');
@@ -283,7 +272,7 @@ async function resolveQueueFromCloud() {
   scheduleSync(100);
 }
 async function hardReset() {
-  requireAccess(true);
+  requireReady();
   if ((await readQueueWithKeys()).length) { showToast('СБРОС ОСТАНОВЛЕН', 'Сначала согласуйте неотправленные операции', 'warn'); return; }
   if (!await askConfirmDialog('Перезагрузка кэша', 'Загрузить актуальное состояние из облака? Локальный журнал будет сохранён.')) return;
   const data = await pullAllDevices({ full: true });

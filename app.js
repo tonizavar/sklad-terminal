@@ -350,7 +350,7 @@ function refreshScrollLock() {
 
 /* ===== АВТОФОКУС КОНВЕЙЕРА (SMART FOCUS GUARD) ===== */
 function focusActiveTerminalInput() {
-  if (!sessionAccess.user || !sessionAccess.role) return;
+  if (!terminalContext.id) return;
   const anyModal = document.querySelector('.modal-overlay.show');
   const drawer = $('auditDrawer') && $('auditDrawer').classList.contains('open');
   if (anyModal || drawer) return;
@@ -590,7 +590,7 @@ function saveDebtStorage() {
 }
 
 function checkDebtors() {
-  if (!state.dataVerified || !sessionAccess.user) return;
+  if (!state.dataVerified || !terminalContext.id) return;
   let changed = false;
   state.devices.forEach(d => {
     if (d.status !== 'issued' || !d.holder || !d.issued_at) return;
@@ -1066,7 +1066,7 @@ function handleWorkerInput() {
 
 /* ===== ВЫДАЧА СКАНЕРА С ЗАЩИТОЙ ОТ ОШИБОК ОПЕРАТОРА ===== */
 async function submitIssue() {
-  if (!sessionAccess.user || !state.dataVerified) { showToast('ТРЕБУЕТСЯ ЗАГРУЗКА', 'Войдите и дождитесь подтверждения облака', 'warn'); return; }
+  if (!terminalContext.id || !state.dataVerified) { showToast('ТРЕБУЕТСЯ ЗАГРУЗКА', 'Дождитесь первой успешной загрузки из облака', 'warn'); return; }
   if (state.opLock) return;
   const rawSn = $('issSn').value.trim();
   const worker = $('issWorker').value.trim();
@@ -1238,7 +1238,7 @@ async function submitIssue() {
 
 async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
   const isNew = !dev;
-  if (isNew) requireAccess(true);
+
   const ts = nowIso();
   const issuedAt = inheritedIssuedAt || ts;
   const updated = {
@@ -2116,7 +2116,7 @@ async function openAudit(sn) {
     const d = h.created_at || h.at;
     const t = d ? new Date(d).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
     const actColor = isRet ? 'var(--emerald-text)' : 'var(--brand-text)';
-    return `<div class="timeline-item ${isRet ? 'return' : ''}"><div class="timeline-dot"></div><div class="timeline-time">${t}</div><div class="timeline-action" style="color:${actColor};">${esc(h.action)}</div><div class="timeline-actor">👤 ${esc(h.worker || 'Склад')} · оператор ${esc(h.operator_id || 'старая запись')} · терминал ${esc(h.terminal_id || '—')}</div></div>`;
+    return `<div class="timeline-item ${isRet ? 'return' : ''}"><div class="timeline-dot"></div><div class="timeline-time">${t}</div><div class="timeline-action" style="color:${actColor};">${esc(h.action)}</div><div class="timeline-actor">👤 ${esc(h.worker || 'Склад')} · оператор ${esc(h.operator_id || (h.terminal_id ? 'общий режим' : 'старая запись'))} · терминал ${esc(h.terminal_id || '—')}</div></div>`;
   }).join('');
 }
 
@@ -2173,7 +2173,7 @@ function printShiftAct() {
 
 async function processImport() {
   try {
-    requireAccess(true);
+    requireReady();
     if (!db || !state.dbReady) throw new Error('Локальная база недоступна. Импорт не выполнен.');
     const raw = [...new Set($('impText').value.split(/\r?\n/).map(fixLayout).filter(Boolean))];
     if (!raw.length) return;
@@ -2234,7 +2234,7 @@ function toggleAutoSwap() {
 }
 
 function openDeleteModal() {
-  if (sessionAccess.role !== 'admin') return;
+
   $('delSearch').value = '';
   renderDeleteList();
   openModal('delModal');
@@ -2340,7 +2340,7 @@ function setupDelegation() {
     if (e.target.id === 'shiftBadge') resetShiftToAuto(e);
     else toggleShift();
   });
-  $('syncStatus')?.addEventListener('click', () => { if (sessionAccess.user) showDiag(); });
+  $('syncStatus')?.addEventListener('click', () => { if (terminalContext.id) showDiag(); });
   $('debtBtn')?.addEventListener('click', openDebtModal);
   $('btnCopySummary')?.addEventListener('click', copyTelegramSummary);
   $('btnPrintAct')?.addEventListener('click', printShiftAct);
@@ -2593,7 +2593,7 @@ $('brandTag').addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', e => {
-  if (!sessionAccess.user || !sessionAccess.role) return;
+  if (!terminalContext.id) return;
   if ($('confirmDialogModal').classList.contains('show')) {
     if (e.key === 'Enter') { e.preventDefault(); resolveConfirmDialog(true); return; }
     if (e.key === 'Escape') { e.preventDefault(); resolveConfirmDialog(false); return; }
@@ -2696,7 +2696,7 @@ window.addEventListener('DOMContentLoaded', () => {
   updateShiftPill();
   setupDelegation();
   updateDebtBadge();
-  initStorage().then(initAccount).catch(reportLocalError);
+  initStorage().then(initTerminal).catch(reportLocalError);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e => dbg('offline shell', e.message));
 });
 

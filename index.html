@@ -14,18 +14,6 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="account-bar"><span id="accountName"></span><button type="button" id="logoutBtn" class="btn-hud" hidden>Выйти</button></div>
-<section id="accountPanel" class="account-panel" aria-labelledby="accountTitle" hidden>
-  <form id="loginForm" class="modal-card">
-    <h2 id="accountTitle">Вход в складской терминал</h2>
-    <p>Используйте учётную запись, которой администратор предоставил доступ.</p>
-    <label for="loginEmail">Email</label><input id="loginEmail" type="email" class="hud-input" required autocomplete="username">
-    <label for="loginPassword">Пароль</label><input id="loginPassword" type="password" class="hud-input" required autocomplete="current-password">
-    <p id="loginError" role="alert"></p>
-    <button id="loginBtn" type="submit" class="btn-submit btn-issue">Войти</button>
-  </form>
-</section>
-
 <div class="boot-overlay" id="bootOverlay">
   <div class="boot-logo">SKLAD-TERMINAL v12.0</div>
   <div class="boot-spinner"></div>
@@ -70,8 +58,8 @@
           <button type="button" class="menu-item" id="btnCopySummary" title="Скопировать сводку смены для Telegram/руководства">📋 Сводка смены</button>
           <button type="button" class="menu-item" id="btnPrintAct" title="Печать Акта приёма-передачи смены (Ctrl+P)">🖨️ Акт смены</button>
           <button type="button" class="menu-item" id="btnExportCsv" title="Выбрать период отчёта (Ctrl+E)">📊 Отчёт по операциям</button>
-          <button type="button" class="menu-item" id="btnOpenBackup" data-admin-only title="Серверные резервные копии парка">💾 Бэкап</button>
-          <button type="button" class="menu-item" id="btnOpenImport" data-admin-only title="Массовый импорт серийных номеров сканеров (Ctrl+I)">📥 Импорт</button>
+          <button type="button" class="menu-item" id="btnOpenBackup" title="Серверные резервные копии парка">💾 Бэкап</button>
+          <button type="button" class="menu-item" id="btnOpenImport" title="Массовый импорт серийных номеров сканеров (Ctrl+I)">📥 Импорт</button>
           <div class="menu-sec">Оформление (Alt+T)</div>
           <div class="theme-switcher menu-themes">
             <button type="button" class="t-btn active" data-set-theme="berry">🔮 WB Berry</button>
@@ -402,11 +390,11 @@
 <div id="diagModal" class="modal-overlay">
   <div class="modal-card" style="max-width:560px;">
     <h3 style="font-size:14px;margin-bottom:10px;color:var(--brand-text);">⚡ ТЕЛЕМЕТРИЯ СИНХРОНИЗАЦИИ SUPABASE ⇄ INDEXEDDB</h3>
-    <button type="button" class="btn-hud" id="btnDownloadQueue">Скачать очередь</button><button type="button" class="btn-hud" id="btnResolveQueue" data-admin-only>Согласовать с облаком</button>
+    <button type="button" class="btn-hud" id="btnDownloadQueue">Скачать очередь</button><button type="button" class="btn-hud" id="btnResolveQueue">Согласовать с облаком</button>
     <div id="diagContent" class="mono" style="font-size:12px;line-height:1.8;color:var(--text-sub);margin-bottom:14px;"></div>
     <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
       <button type="button" class="btn-hud" data-close-modal="diagModal">Закрыть</button>
-      <button type="button" class="btn-hud" id="btnHardReset" data-admin-only style="border-color:rgba(244,63,94,.4);color:var(--rose-text);">🔥 Сброс кэша</button>
+      <button type="button" class="btn-hud" id="btnHardReset" style="border-color:rgba(244,63,94,.4);color:var(--rose-text);">🔥 Сброс кэша</button>
       <button type="button" class="btn-submit btn-issue" id="btnForceSync" style="width:auto;padding:6px 14px;">Форсировать sync</button>
     </div>
   </div>
@@ -447,7 +435,7 @@
 </div></div>
 <script src="core.js"></script>
 <script src="data.js"></script>
-<script src="auth.js"></script>
+<script src="connection.js"></script>
 <script src="backups.js"></script>
 <script src="reports.js"></script>
 <script src="ui.js"></script>
