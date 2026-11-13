@@ -6,7 +6,7 @@ const workspaceViews = {
   terminal: { title: 'Рабочий терминал', eyebrow: 'ПОСТ ВЫДАЧИ И ПРИЁМКИ', description: 'Сканируйте бейдж, затем устройство. Выдача сохранится автоматически.' },
   fleet: { title: 'Парк сканеров', eyebrow: 'ОБОРУДОВАНИЕ И СОТРУДНИКИ', description: 'Найдите устройство, проверьте статус или откройте историю выдач.' },
   ownerAudit:{title:'Действия сотрудников',eyebrow:'ЖУРНАЛ СОЗДАТЕЛЯ',description:'Кто, когда и что изменил. Фильтр по ID сотрудника и периоду.'},
-  operators:{title:'Операторы и PIN',eyebrow:'УПРАВЛЕНИЕ ДОСТУПОМ',description:'Сотрудники создают PIN при первом входе. Здесь можно управлять их доступом.'},
+  operators:{title:'Сотрудники',eyebrow:'УПРАВЛЕНИЕ ДОСТУПОМ',description:'Сотрудники появляются после первого входа по ID. Здесь можно управлять их доступом.'},
   activity: { title: 'История операций', eyebrow: 'ЖУРНАЛ РАБОЧЕГО ПОСТА', description: 'Выдачи, возвраты и ремонт — в одной последовательности событий.' }
 };
 function setWorkspaceView(view, { focus = false } = {}) {
@@ -14,6 +14,7 @@ function setWorkspaceView(view, { focus = false } = {}) {
   if(['ownerAudit','operators'].includes(view))requireOperator(true);
   if (view !== 'terminal' && document.body.classList.contains('focus-mode')) toggleFocusMode(false);
   workspaceView = view;
+  $('menuPop').classList.remove('show');
   const info = workspaceViews[view];
   $('workspaceTitle').replaceChildren(document.createTextNode(info.title));
   const dot = document.createElement('span'); dot.className = 'title-dot'; dot.textContent = '.';
