@@ -60,3 +60,25 @@ test('logical backups contain audit and author metadata without PIN hashes or se
  await token(owner.token);const backup=(await rpc("select public.scanner_backup('create') as data"));
  const snapshot=await rpc("select public.scanner_backup('download',$1) as data",[backup.name]);assert.ok(Array.isArray(snapshot.audit_events));assert.ok(Array.isArray(snapshot.operators));assert.ok(!JSON.stringify(snapshot).includes('pin_hash'));assert.ok(!JSON.stringify(snapshot).includes(owner.token));
 });
+
+test('ID-only sessions auto-enroll ordinary employees and keep actual operator attribution',async()=>{
+ await token(null);
+ const declared=await rpc('select public.scanner_operator_id_login($1,$2) as data',['ID-ONLY-STAFF',TERMINAL]);
+ assert.equal(declared.status,'ok');assert.equal(declared.profile.role,'operator');assert.equal(declared.profile.identity_mode,'declared_id');
+ const creator=await rpc('select public.scanner_operator_id_login($1,$2) as data',[OWNER,TERMINAL]);assert.equal(creator.profile.role,'owner');
+ await token(creator.token);
+ const create='id-only-create';const c=change(create,'ID-ONLY-DEVICE',null,{model:'Point Mobile',status:'free',holder:'',issued_at:null,defect:''});
+ assert.equal((await apply(creator,create,[c])).status,'applied');
+ const before=(await db.query("select * from public.devices where serial='ID-ONLY-DEVICE'")).rows[0];
+ await token(declared.token);const id='id-only-issue';
+ const issue=change(id,'ID-ONLY-DEVICE',before,{...before,status:'issued',holder:'ID-ONLY-RECIPIENT',issued_at:new Date().toISOString()});
+ assert.equal((await apply(declared,id,[issue])).status,'applied');
+ const move=(await db.query("select operator_employee_id,worker from public.movements where serial='ID-ONLY-DEVICE' order by id desc limit 1")).rows[0];
+ assert.equal(move.operator_employee_id,'ID-ONLY-STAFF');assert.equal(move.worker,'ID-ONLY-RECIPIENT');
+ await assert.rejects(db.query('select public.scanner_owner_audit()'),/OWNER_REQUIRED/);
+ await token(creator.token);const rows=await rpc('select public.scanner_owner_audit($1) as data',['ID-ONLY-STAFF']);
+ assert.ok(rows.some(e=>e.action==='issue'&&e.details.before.status==='free'&&e.details.after.holder==='ID-ONLY-RECIPIENT'));
+ await rpc("select public.scanner_operator_manage('disable','ID-ONLY-STAFF') as data");
+ assert.equal((await rpc('select public.scanner_operator_id_login($1,$2) as data',['ID-ONLY-STAFF',TERMINAL])).status,'disabled');
+ assert.equal((await rpc('select public.scanner_operator_id_login($1,$2) as data',['BAD ID',TERMINAL])).status,'invalid');
+});

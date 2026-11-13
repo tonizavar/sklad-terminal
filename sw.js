@@ -1,5 +1,5 @@
 /* Only static application files are cached. API responses/credentials never enter CacheStorage. */
-const CACHE = 'sklad-static-v15-1';
+const CACHE = 'sklad-static-classic-id-1';
 const FILES = ['index.html','styles.css','themes.css','themes.js','core.js','data.js','connection.js','backups.js','reports.js','ui.js','app.js','workspace.js','operators.js','vendor/supabase-2.119.0.js'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES))));
 self.addEventListener('activate', event => event.waitUntil(Promise.all([
