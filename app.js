@@ -26,7 +26,6 @@ const DEBT_ALERT_DISMISSED_KEY = 'sklad_debt_alert_dismissed';
 const REPAIR_MAP_KEY = 'sklad_repair_map_v10';
 const NEW_OVERDUE_HIGHLIGHT_MS = 30000;
 const NET_TIMEOUT_MS = 15000;
-const SYNC_TIMEOUT_MS = 45000;
 const SYNC_BASE_INTERVAL = 20000;
 const SYNC_MAX_INTERVAL = 300000;
 const SYNC_JITTER = 0.25;
@@ -75,7 +74,6 @@ const state = {
   auditSn: null,
   lastDropQuery: null,
   lastRetDropQuery: null,
-  syncToken: 0,
   syncBackoff: 0,
   issDropNavigated: false,
   opLock: false, // Глобальный мьютекс активной транзакции
@@ -250,10 +248,15 @@ function debounce(fn, ms) {
 }
 function withTimeout(promise, ms, label) {
   let timer;
+  const controller = typeof promise.abortSignal === 'function' ? new AbortController() : null;
+  const request = controller ? promise.abortSignal(controller.signal) : promise;
   const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(new Error(`⏱ Таймаут: ${label} (${ms}мс)`)), ms);
+    timer = setTimeout(() => {
+      reject(new Error(`⏱ Таймаут: ${label} (${ms}мс)`));
+      controller?.abort();
+    }, ms);
   });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+  return Promise.race([request, timeout]).finally(() => clearTimeout(timer));
 }
 function pluralN(n, one, few, many) {
   const m10 = n % 10, m100 = n % 100;
@@ -703,60 +706,52 @@ async function rotateMovesIfNeeded() {
 
 /* ===== АТОМАРНОЕ СОХРАНЕНИЕ С КОАЛЕСЦЕНЦИЕЙ ОЧЕРЕДИ (БЕЗ ДУБЛЕЙ) ===== */
 function saveDevice(dev, actionName, workerName) {
+  return saveDeviceChanges([{ dev, actionName, workerName }]);
+}
+
+function saveDeviceChanges(changes) {
   return new Promise((resolve, reject) => {
-    if (!dev || !dev.serial) return reject(new Error('Не указан серийный номер сканера'));
+    if (changes.some(({ dev }) => !dev?.serial)) return reject(new Error('Не указан серийный номер сканера'));
     if (!db || !state.dbReady) {
       return reject(new Error('Локальная база недоступна. Выдача, возврат и изменение статуса временно заблокированы.'));
     }
-    dev.model = detectScannerModel(dev.serial, dev.model);
-
     try {
-      const ts = dev.last_move || nowIso();
-      const moveId = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
-        ? crypto.randomUUID()
-        : `evt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}_${Math.random().toString(36).slice(2)}`;
-      const t = db.transaction(["devices", "queue", "moves"], "readwrite");
-      const devStore = t.objectStore("devices");
-      const qStore = t.objectStore("queue");
-      const mStore = t.objectStore("moves");
+      const t = db.transaction(['devices', 'queue', 'moves'], 'readwrite');
+      const devStore = t.objectStore('devices');
+      const qStore = t.objectStore('queue');
+      const mStore = t.objectStore('moves');
+      const serials = new Set(changes.map(({ dev }) => dev.serial));
 
-      devStore.put(dev);
+      const cursor = qStore.openCursor();
+      cursor.onsuccess = () => {
+        const entry = cursor.result;
+        if (entry) {
+          if (entry.value?.type === 'upsert' && serials.has(entry.value.dev?.serial)) entry.delete();
+          entry.continue();
+          return;
+        }
 
-      // Состояние сканера можно объединять: оставляем только последнее upsert.
-      // События истории хранятся отдельно и никогда не удаляются этой коалесценцией.
-      const qCursorReq = qStore.openCursor();
-      qCursorReq.onsuccess = e => {
-        const cur = e.target.result;
-        if (cur) {
-          const val = cur.value;
-          if (val && val.type === 'upsert' && val.dev && val.dev.serial === dev.serial) {
-            cur.delete();
-          }
-          cur.continue();
-        } else {
-          qStore.add({ type: 'upsert', dev: dev, ts, movementQueued: true });
-          qStore.add({
-            type: 'movement',
-            moveId,
-            serial: dev.serial,
-            action: actionName,
-            worker: workerName || '',
-            ts
-          });
+        for (const { dev, actionName, workerName } of changes) {
+          const record = { ...dev, model: detectScannerModel(dev.serial, dev.model) };
+          const ts = record.last_move || nowIso();
+          const moveId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+            ? crypto.randomUUID()
+            : `evt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}_${Math.random().toString(36).slice(2)}`;
+          const movement = { serial: record.serial, action: actionName, worker: workerName || '', moveId };
+          devStore.put(record);
+          qStore.add({ type: 'upsert', dev: record, ts, movementQueued: true });
+          qStore.add({ ...movement, type: 'movement', ts });
+          mStore.add({ ...movement, created_at: ts });
         }
       };
 
-      mStore.add({ serial: dev.serial, action: actionName, worker: workerName || '', created_at: ts, moveId });
-
       t.oncomplete = () => {
-        if (dev.status === 'repair') {
-          state.repairMap[dev.serial] = dev.defect || 'Неисправен';
-          saveRepairMap();
-        } else if (state.repairMap[dev.serial]) {
-          delete state.repairMap[dev.serial];
-          saveRepairMap();
+        for (const { dev } of changes) {
+          if (dev.status === 'repair') state.repairMap[dev.serial] = dev.defect || 'Неисправен';
+          else delete state.repairMap[dev.serial];
+          recentLocal.set(dev.serial, Date.now());
         }
-        recentLocal.set(dev.serial, Date.now());
+        saveRepairMap();
         if (recentLocal.size > 300) {
           const cutoff = Date.now() - RECENT_LOCAL_TTL;
           for (const [k, v] of recentLocal) if (v < cutoff) recentLocal.delete(k);
@@ -1028,26 +1023,15 @@ async function syncNow() {
     setSync(false, 'БД инициализируется');
     return false;
   }
-  const token = ++state.syncToken;
   state.syncing = true;
   setSync(true, 'Синхронизация…', true);
-  const alive = () => token === state.syncToken;
-  let anyFailure = false;
-  const watchdog = setTimeout(() => {
-    if (!alive()) return;
-    state.syncing = false;
-    state.lastError = 'Таймаут ответа облака (переход в офлайн-буфер)';
-    setSync(false, 'Офлайн-буфер');
-  }, SYNC_TIMEOUT_MS);
 
   try {
     const items = await readQueueWithKeys();
-    if (!alive()) { clearTimeout(watchdog); return false; }
     const recentlySent = new Set();
     let failCount = 0;
 
     for (const item of items) {
-      if (!alive()) { clearTimeout(watchdog); return false; }
       const it = item.value;
       const key = item.key;
       if (!it) { await deleteQueueKey(key); continue; }
@@ -1162,9 +1146,7 @@ async function syncNow() {
       await deleteQueueKey(key);
     }
 
-    if (!alive()) { clearTimeout(watchdog); return false; }
     const allData = await pullAllDevices();
-    if (!alive()) { clearTimeout(watchdog); return false; }
     if (allData === null) {
       setSync(false, 'Автономный режим');
       return false;
@@ -1173,21 +1155,17 @@ async function syncNow() {
     if (norm.length > 0) {
       await applyPull(norm, recentlySent);
     }
-    if (!alive()) { clearTimeout(watchdog); return false; }
     setTimeout(() => { checkDebtors(); alertNewDebtors(); }, 80);
-    anyFailure = failCount > 0;
-    state.lastError = anyFailure ? `В очереди докачки: ${failCount}` : '—';
+    const anyFailure = failCount > 0;
+    if (!anyFailure) state.lastError = '—';
     setSync(true, anyFailure ? `Онлайн (очередь: ${failCount})` : 'Онлайн • Синхронизировано');
     return !anyFailure;
   } catch(e) {
-    if (alive()) {
-      state.lastError = e.message || 'Обрыв сети';
-      setSync(false, 'Офлайн (автодокачка)');
-    }
+    state.lastError = e.message || 'Обрыв сети';
+    setSync(false, 'Офлайн (автодокачка)');
     return false;
   } finally {
-    clearTimeout(watchdog);
-    if (alive()) state.syncing = false;
+    state.syncing = false;
   }
 }
 
@@ -1198,7 +1176,7 @@ async function pullAllDevices() {
   try {
     while (true) {
       const { data, error } = await withTimeout(
-        cloud.from('devices').select('*').range(from, from + pageSize - 1),
+        cloud.from('devices').select('*').order('serial').range(from, from + pageSize - 1),
         NET_TIMEOUT_MS,
         'pull devices'
       );
@@ -1321,41 +1299,39 @@ function scheduleSync(delay) {
 
 async function forceSync() {
   closeModal('diagModal');
-  state.syncToken++;
-  state.syncing = false;
+  if (state.syncing) return;
   state.syncBackoff = 0;
   await syncNow();
   scheduleSync(SYNC_BASE_INTERVAL);
 }
 
-async function clearStuckQueue() {
-  let items;
-  try {
-    items = await readQueueWithKeys();
-  } catch(e) {
-    showToast('ОШИБКА ЧТЕНИЯ', e.message || 'Очередь не прочитана; данные не изменены', 'err');
-    return;
-  }
-  if (!items.length) { showToast('ОЧЕРЕДЬ ПУСТА', 'Нет пакетов для очистки', 'warn'); return; }
-  const ok = await askConfirmDialog(
-    'Очистка очереди синхронизации',
-    `Удалить неотправленные пакеты (${items.length} шт.) из очереди?\nЛокальная база и облако не пострадают.`,
-    'Очистить очередь'
-  );
-  if (!ok) return;
-  let deleted = 0;
-  try {
-    for (const item of items) {
-      await deleteQueueKey(item.key);
-      deleted++;
-    }
-  } catch(e) {
-    showToast('ОЧИСТКА НЕ ЗАВЕРШЕНА', `Удалено: ${deleted} из ${items.length}. Остальные пакеты сохранены. ${e.message || ''}`, 'err');
-    return;
-  }
-  showToast('ОЧЕРЕДЬ ОЧИЩЕНА', `Удалено пакетов: ${deleted}`, 'warn');
-  closeModal('diagModal');
-  setTimeout(() => scheduleSync(200), 200);
+async function retryQueuedSync() {
+  showToast('ОЧЕРЕДЬ СОХРАНЕНА', 'Повторите синхронизацию. Очередь содержит операции, которые ещё не подтверждены облаком.', 'warn');
+  await forceSync();
+}
+
+function updateLocalFleet(stores, update) {
+  return new Promise((resolve, reject) => {
+    if (!db || !state.dbReady) return reject(new Error('Локальная база недоступна'));
+    const transaction = db.transaction(['queue', ...stores], 'readwrite');
+    const count = transaction.objectStore('queue').count();
+    let failure;
+    count.onsuccess = () => {
+      if (count.result) {
+        failure = new Error(`В очереди ${count.result} пакетов. Дождитесь синхронизации и повторите действие.`);
+        transaction.abort();
+        return;
+      }
+      try {
+        update(transaction);
+      } catch (error) {
+        failure = error;
+        transaction.abort();
+      }
+    };
+    transaction.oncomplete = resolve;
+    transaction.onabort = () => reject(failure || transaction.error || new Error('Обновление локальной базы прервано'));
+  });
 }
 
 async function renderQueuePreview() {
@@ -1380,18 +1356,16 @@ async function renderQueuePreview() {
 async function hardReset() {
   const ok = await askConfirmDialog(
     'Сброс локального кэша и перезагрузка парка',
-    'Локальный кэш и очередь будут перезагружены из облака Supabase (или эталонного резерва СЦ).\nПродолжить?',
+    'Локальный кэш будет перезагружен из облака Supabase (или эталонного резерва СЦ). При наличии неотправленных операций сброс будет остановлен.\nПродолжить?',
     'Выполнить сброс'
   );
   if (!ok) return;
   try {
-    localStorage.removeItem(DRAFT_KEY);
-    if (db) {
-      const stores = ['devices', 'queue', 'moves'];
-      const t = db.transaction(stores, 'readwrite');
-      stores.forEach(s => t.objectStore(s).clear());
-      await new Promise(r => { t.oncomplete = r; t.onerror = r; t.onabort = r; });
-    }
+    await updateLocalFleet(['devices', 'moves'], transaction => {
+      transaction.objectStore('devices').clear();
+      transaction.objectStore('moves').clear();
+    });
+    clearDraft();
     state.devices = [];
     recentLocal.clear();
     await seedInitialFleetIfEmpty();
@@ -1542,42 +1516,29 @@ async function restoreFromBackup(filename) {
     if (!devices.length) throw new Error('Копия не содержит валидных сканеров');
     const ok = await askConfirmDialog(
       'Восстановление из резервной копии',
-      `Восстановить парк из копии "${filename}" (${devices.length} сканеров)?\nТекущие данные будут синхронизированы с выбранным слепком.`,
+      `Восстановить парк из копии "${filename}" (${devices.length} сканеров)?\nЗаписи из копии заменят состояние соответствующих сканеров. Остальные сканеры сохранятся в облаке.`,
       'Восстановить парк'
     );
     if (!ok) return;
     showToast('ВОССТАНОВЛЕНИЕ', 'Загрузка данных…', 'warn');
-    if (db) {
-      await new Promise((res, rej) => {
-        const t = db.transaction(['devices', 'queue'], 'readwrite');
-        t.objectStore('devices').clear();
-        t.objectStore('queue').clear();
-        t.oncomplete = res; t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
-      });
-      const restoreTs = nowIso();
-      await new Promise((res, rej) => {
-        const t = db.transaction(['devices', 'queue'], 'readwrite');
-        const s = t.objectStore('devices');
-        const q = t.objectStore('queue');
-        devices.forEach(d => {
-          if (!d || !d.serial) return;
-          s.put(d);
-          // КРИТИЧНО: восстановленный слепок ставим в очередь на выгрузку в облако.
-          // Иначе ближайший pull вернёт старое облачное состояние и молча откатит восстановление.
-          q.add({ type: 'upsert', dev: d, ts: restoreTs, movementQueued: true });
-        });
-        t.oncomplete = res; t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
-      });
-      // Реестр брака перестраиваем из слепка: устаревшие локальные пометки не должны
-      // «воскрешать» ремонт для сканеров, которые в копии исправны.
-      state.repairMap = {};
-      devices.forEach(d => { if (d && d.status === 'repair') state.repairMap[d.serial] = d.defect || 'На диагностике'; });
-      saveRepairMap();
-    }
+    const restoreTs = nowIso();
+    await updateLocalFleet(['devices'], transaction => {
+      const devicesStore = transaction.objectStore('devices');
+      const queue = transaction.objectStore('queue');
+      devicesStore.clear();
+      for (const device of devices) {
+        const record = { ...device, last_move: restoreTs };
+        devicesStore.put(record);
+        queue.add({ type: 'upsert', dev: record, ts: restoreTs, movementQueued: true });
+      }
+    });
+    state.repairMap = {};
+    devices.forEach(d => { if (d.status === 'repair') state.repairMap[d.serial] = d.defect || 'На диагностике'; });
+    saveRepairMap();
     await loadLocal();
     scheduleSync(400);
     closeModal('backupModal');
-    showToast('ВОССТАНОВЛЕНО', `${devices.length} сканеров загружено, выгрузка слепка в облако запущена`);
+    showToast('КОПИЯ ЗАГРУЖЕНА ЛОКАЛЬНО', `${devices.length} сканеров. Дождитесь статуса «Синхронизировано».`);
   } catch(e) { showToast('ОШИБКА', e.message || '?', 'err'); }
 }
 
@@ -2173,11 +2134,6 @@ async function confirmSwap() {
       newSn: p.newSn,
       oldSn: p.oldSn
     };
-    if (oldDev) {
-      const oIdx = state.devices.findIndex(d => d.serial === p.oldSn);
-      if (oIdx >= 0) state.devices[oIdx] = { ...oldDev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts };
-    }
-    const nIdx = state.devices.findIndex(d => d.serial === p.newSn);
     const newRecord = {
       serial: p.newSn,
       model: newDev ? detectScannerModel(p.newSn, newDev.model) : detectScannerModel(p.newSn),
@@ -2188,19 +2144,17 @@ async function confirmSwap() {
       shift: p.shift,
       defect: ''
     };
-    if (nIdx >= 0) state.devices[nIdx] = newRecord;
-    else state.devices.push(newRecord);
-    renderTable();
-
-    if (oldDev) {
-      await saveDevice({ ...oldDev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts }, 'Возврат (замена)', p.worker);
+    if (!oldDev || oldDev.status !== 'issued' || String(oldDev.holder || '').toUpperCase() !== p.worker.toUpperCase() || (newDev && newDev.status !== 'free')) {
+      throw new Error('Статус сканеров изменился. Повторите замену.');
     }
-    await saveDevice(newRecord, p.isNew ? 'Создан и выдан (замена)' : 'Выдача (замена)', p.worker);
+    await saveDeviceChanges([
+      { dev: { ...oldDev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts }, actionName: 'Возврат (замена)', workerName: p.worker },
+      { dev: newRecord, actionName: p.isNew ? 'Создан и выдан (замена)' : 'Выдача (замена)', workerName: p.worker }
+    ]);
     rememberWorkerShift(p.worker, p.shift);
     beep('swap');
     triggerScanFlash('ok');
     pushTickerEvent('t-swp', p.newSn, p.worker);
-    const hoursOnHands = hoursSince(inheritedIssuedAt);
     showUndoToast(
       `ЗАМЕНА СКАНЕРА: ${p.oldSn.slice(-4)} ➔ ${p.newSn.slice(-4)}`,
       `Сотрудник ${p.worker} · старый принят, новый выдан`,
@@ -2209,8 +2163,13 @@ async function confirmSwap() {
         const t = nowIso();
         try {
           if (!snapshot.newDevSnapshot) await deleteSerial(snapshot.newSn);
-          else await saveDevice({ ...snapshot.newDevSnapshot, last_move: t }, 'Отмена замены (новый)', snapshot.worker);
-          if (snapshot.oldDevSnapshot) await saveDevice({ ...snapshot.oldDevSnapshot, last_move: t }, 'Отмена замены (старый)', snapshot.worker);
+          const changes = [
+            { dev: { ...snapshot.oldDevSnapshot, last_move: t }, actionName: 'Отмена замены (старый)', workerName: snapshot.worker }
+          ];
+          if (snapshot.newDevSnapshot) {
+            changes.unshift({ dev: { ...snapshot.newDevSnapshot, last_move: t }, actionName: 'Отмена замены (новый)', workerName: snapshot.worker });
+          }
+          await saveDeviceChanges(changes);
           beep('return');
           showToast('ЗАМЕНА ОТМЕНЕНА', 'Восстановлено прежнее состояние');
         } catch(e) { showToast('ОШИБКА', e.message || '?', 'err'); }
@@ -3090,11 +3049,11 @@ function showDiag() {
       <div>ЭКСПРЕСС-ЗАМЕНА: <span style="color:${autoSwapColor};">${autoSwapTxt}</span> <button type="button" class="btn-hud" id="btnToggleAutoSwapDiag" style="padding:2px 8px;font-size:10px;margin-left:8px;min-width:auto;">Переключить</button></div>
       <div>ПОСЛЕДНИЙ БЭКАП: <span style="color:var(--emerald-text);">${lastBk}</span></div>
       <div>СТАТУС СЕТИ / ОШИБКА: <span style="color:var(--rose-text);">${esc(state.lastError)}</span></div>
-      ${countResult.error || n ? `<div style="margin-top:12px;border-top:1px solid var(--card-border);padding-top:8px;"><div style="font-size:11px;font-weight:800;color:var(--amber-text);margin-bottom:6px;">⚠ ОЧЕРЕДЬ ДОКАЧКИ:</div><div style="max-height:180px;overflow-y:auto;background:var(--input-bg);border-radius:6px;padding:6px 10px;">${preview}</div>${countResult.error ? '' : '<div style="margin-top:8px;"><button type="button" class="btn-hud" id="btnClearQueueDiag" style="border-color:rgba(244,63,94,.4);color:var(--rose-text);font-size:10px;min-width:auto;">🗑 Очистить очередь</button></div>'}</div>` : ''}
+      ${countResult.error || n ? `<div style="margin-top:12px;border-top:1px solid var(--card-border);padding-top:8px;"><div style="font-size:11px;font-weight:800;color:var(--amber-text);margin-bottom:6px;">⚠ ОЧЕРЕДЬ ДОКАЧКИ:</div><div style="max-height:180px;overflow-y:auto;background:var(--input-bg);border-radius:6px;padding:6px 10px;">${preview}</div>${countResult.error ? '' : '<div style="margin-top:8px;"><button type="button" class="btn-hud" id="btnRetryQueueDiag" style="border-color:rgba(244,63,94,.4);color:var(--rose-text);font-size:10px;min-width:auto;">↻ Повторить синхронизацию</button></div>'}</div>` : ''}
     `;
     openModal('diagModal');
     $('btnToggleAutoSwapDiag')?.addEventListener('click', toggleAutoSwap);
-    $('btnClearQueueDiag')?.addEventListener('click', clearStuckQueue);
+    $('btnRetryQueueDiag')?.addEventListener('click', retryQueuedSync);
   });
 }
 
