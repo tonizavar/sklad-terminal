@@ -12,16 +12,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="vendor/supabase-2.119.0.js"></script>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="themes.css">
 </head>
 <body>
 <section id="operatorPanel" class="operator-panel" role="dialog" aria-modal="true" aria-labelledby="operatorPanelTitle">
  <form id="operatorLoginForm" class="operator-login-card" data-setup="false">
-  <div class="eyebrow">SKLAD / РАБОЧИЙ ПОСТ</div><h1 id="operatorPanelTitle">Кто работает за постом?</h1>
+  <div class="operator-card-top"><div class="eyebrow">SKLAD / РАБОЧИЙ ПОСТ</div><button type="button" class="btn-hud operator-theme-button" data-open-themes>Темы</button></div><h1 id="operatorPanelTitle">Кто работает за постом?</h1>
   <p id="operatorPanelHint">Укажите свой ID и личный PIN. Получатель сканера указывается отдельно при выдаче.</p>
+  <div class="operator-access-tabs" id="operatorAccessTabs" aria-label="Способ входа"><button type="button" data-operator-mode="login" aria-pressed="true">Вход</button><button type="button" data-operator-mode="register" aria-pressed="false">Первый вход</button></div>
   <label for="operatorEmployeeId">Ваш ID сотрудника</label><input id="operatorEmployeeId" class="hud-input mono" required maxlength="45" autocomplete="username" placeholder="Введите или сканируйте ID">
   <label for="operatorPin">Личный PIN · 6–12 цифр</label><input id="operatorPin" class="hud-input mono" type="password" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" required autocomplete="current-password">
-  <div id="operatorSetupFields" hidden><label for="operatorPinConfirm">Повторите PIN</label><input id="operatorPinConfirm" class="hud-input mono" type="password" inputmode="numeric" minlength="6" maxlength="12" autocomplete="new-password"><label for="operatorSetupKey">Одноразовый ключ создателя</label><input id="operatorSetupKey" class="hud-input mono" type="password" autocomplete="off"></div>
+  <div id="operatorSetupFields" hidden><label for="operatorPinConfirm">Повторите PIN</label><input id="operatorPinConfirm" class="hud-input mono" type="password" inputmode="numeric" minlength="6" maxlength="12" autocomplete="new-password"><div id="operatorOwnerKeyFields" hidden><label for="operatorSetupKey">Одноразовый ключ создателя</label><input id="operatorSetupKey" class="hud-input mono" type="password" autocomplete="off"></div></div>
   <p id="operatorMessage" role="alert"></p><button id="operatorLoginBtn" type="submit" class="btn-submit">Начать работу</button>
+  <button type="button" id="operatorOwnerSetup" class="operator-owner-link" hidden>Первоначальная настройка создателя</button>
  </form>
 </section>
 <div class="boot-overlay" id="bootOverlay">
@@ -50,7 +53,7 @@
         <span class="dot-ping"></span>
         <span id="syncText">Онлайн</span>
       </div>      <span id="syncDetail" class="sync-detail" role="status" aria-live="polite">Данные ещё не получены</span></div>
-  <div class="sidebar-footer"><span>SKLAD TERMINAL</span><span>14.0</span></div>
+  <div class="sidebar-footer"><span>SKLAD TERMINAL</span><span>15.0</span></div>
 </aside>
 
 <main class="app-shell" id="appContent" inert>
@@ -81,12 +84,7 @@
           <button type="button" class="menu-item" id="btnOpenBackup" data-owner-only hidden title="Серверные резервные копии парка">💾 Бэкап</button>
           <button type="button" class="menu-item" id="btnOpenImport" data-owner-only hidden title="Массовый импорт серийных номеров сканеров (Ctrl+I)">📥 Импорт</button>
           <div class="menu-sec">Оформление (Alt+T)</div>
-          <div class="theme-switcher menu-themes">
-            <button type="button" class="t-btn active" data-set-theme="berry">Графит</button>
-            <button type="button" class="t-btn" data-set-theme="sapphire">Синий</button>
-            <button type="button" class="t-btn" data-set-theme="carbon">Контрастный</button>
-            <button type="button" class="t-btn" data-set-theme="quartz">Светлый</button>
-          </div>
+          <button type="button" class="menu-item" data-open-themes>Выбрать тему · 12 вариантов</button>
         </div>
       </div>
     </div>
@@ -303,7 +301,7 @@
       </div>
     </div>
 <section id="ownerAuditWorkspace" class="activity-workspace" hidden>
- <div class="activity-toolbar"><div><h2>Действия сотрудников</h2><p>ID оператора проверен PIN. Время получения записи фиксирует сервер.</p></div><button type="button" class="btn-hud" id="ownerAuditExport">Скачать CSV</button></div>
+ <div class="activity-toolbar"><div><h2>Действия сотрудников</h2><p>Действия привязаны к ID входа по PIN. Время получения записи фиксирует сервер.</p></div><button type="button" class="btn-hud" id="ownerAuditExport">Скачать CSV</button></div>
  <div class="owner-filters"><label>ID оператора<input id="ownerAuditEmployee" class="hud-input mono" maxlength="45" placeholder="Все сотрудники"></label><label>С начала<input id="ownerAuditFrom" class="hud-input" type="datetime-local"></label><label>До<input id="ownerAuditTo" class="hud-input" type="datetime-local"></label><button type="button" class="btn-hud" id="refreshOwnerAudit">Показать</button></div>
  <p id="ownerAuditError" role="alert"></p><div id="ownerAuditList"></div><button type="button" class="btn-hud" id="nextOwnerAudit" disabled>Ещё 100 записей</button>
 </section>
@@ -475,6 +473,8 @@
 <div class="report-actions"><button type="button" id="btnReportExport" class="btn-hud">Скачать операции CSV</button><button type="button" id="btnFleetExport" class="btn-hud">Текущий парк CSV</button><button type="button" class="btn-hud" data-close-modal="reportModal">Закрыть</button></div>
 </div></div>
 <div id="commandModal" class="modal-overlay"><div class="modal-card command-card"><div class="command-heading"><h3>Быстрые команды</h3><button type="button" class="btn-hud" data-close-modal="commandModal">Esc</button></div><label class="sr-only" for="commandSearch">Поиск команды</label><input id="commandSearch" class="hud-input" placeholder="Что нужно сделать?" autocomplete="off"><div id="commandList"></div><p class="command-foot">↑ ↓ выбрать · Enter выполнить · Esc закрыть</p></div></div>
+<div id="themeModal" class="modal-overlay"><div class="modal-card theme-picker"><div class="theme-picker-head"><div><h3>Оформление рабочего места</h3><p>12 разных настроений для вашего терминала. Выберите удобное для глаз.</p></div><button type="button" class="btn-hud" data-close-modal="themeModal" aria-label="Закрыть выбор темы">Закрыть</button></div><div class="theme-filters" aria-label="Фильтр тем"><button type="button" class="btn-hud" data-theme-filter="all" aria-pressed="true">Все 12</button><button type="button" class="btn-hud" data-theme-filter="dark" aria-pressed="false">Тёмные</button><button type="button" class="btn-hud" data-theme-filter="light" aria-pressed="false">Светлые</button></div><div id="themeGrid" class="theme-grid"></div><p id="themeCurrent" class="theme-current" role="status" aria-live="polite"></p></div></div>
+<script src="themes.js"></script>
 <script src="core.js"></script>
 <script src="operators.js"></script>
 <script src="data.js"></script>

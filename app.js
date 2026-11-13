@@ -24,19 +24,9 @@ const NEW_OVERDUE_HIGHLIGHT_MS = 30000;
 const NET_TIMEOUT_MS = 15000;
 const SYNC_BASE_INTERVAL = 20000;
 const SYNC_MAX_INTERVAL = 300000;
-const THEMES = ['berry', 'sapphire', 'carbon', 'quartz'];
-const THEME_NAMES = {
-  berry: 'Графит',
-  sapphire: 'Синий',
-  carbon: 'Контрастный',
-  quartz: 'Светлый'
-};
-const THEME_META_COLORS = {
-  berry: '#121416',
-  sapphire: '#060812',
-  carbon: '#090a0d',
-  quartz: '#eef2f6'
-};
+const THEMES = THEME_CATALOG.map(theme => theme.id);
+const THEME_NAMES = Object.fromEntries(THEME_CATALOG.map(theme => [theme.id,theme.name]));
+const THEME_META_COLORS = Object.fromEntries(THEME_CATALOG.map(theme => [theme.id,theme.background]));
 
 const DEBUG = false;
 function dbg(...args) { if (DEBUG) console.log('[DBG]', ...args); }
@@ -140,7 +130,8 @@ function applyTheme(themeName, notify = false) {
   document.documentElement.setAttribute('data-theme', t);
   const meta = $('metaThemeColor');
   if (meta) meta.setAttribute('content', THEME_META_COLORS[t] || '#07040e');
-  document.querySelectorAll('[data-set-theme]').forEach(btn => btn.classList.toggle('active', btn.dataset.setTheme === t));
+  document.querySelectorAll('[data-set-theme]').forEach(btn => { btn.classList.toggle('active', btn.dataset.setTheme === t); btn.setAttribute('aria-pressed',String(btn.dataset.setTheme === t)); });
+  if($('themeCurrent'))$('themeCurrent').textContent=`Выбрана тема: ${THEME_NAMES[t]}. Выбор сохранён на этом компьютере.`;
   try { localStorage.setItem(THEME_STORAGE_KEY, t); } catch(e) {}
   if (notify) showToast('СТИЛЬ ИНТЕРФЕЙСА', THEME_NAMES[t]);
 }
@@ -2315,6 +2306,7 @@ function showToast(title, desc, kind = 'ok') {
 
 /* ===== ДЕЛЕГИРОВАНИЕ СОБЫТИЙ И ГОРЯЧИЕ КЛАВИШИ ===== */
 function setupDelegation() {
+  initThemePicker();
   document.querySelectorAll('[data-set-theme]').forEach(btn => {
     btn.addEventListener('click', () => applyTheme(btn.dataset.setTheme, true));
   });

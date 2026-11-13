@@ -13,7 +13,8 @@ async function setup(page,{role='owner',count=2,configured=true}={}){
   if(!backend.online)return route.abort();
   const req=route.request(),url=new URL(req.url());let body={};
   const profile={employee_id:backend.role==='owner'?'TEST-OWNER':'TEST-STAFF',display_name:'Тестовый сотрудник',role:backend.role,session_id:'00000000-0000-4000-8000-000000000001',expires_at:new Date(Date.now()+3600000).toISOString(),terminal_id:'test-terminal'};
-  if(url.pathname.endsWith('/rpc/scanner_operator_status'))body={configured:backend.configured,setup_ready:true};
+  if(url.pathname.endsWith('/rpc/scanner_operator_register')){const args=req.postDataJSON();backend.registration=args;body=backend.registrationStatus?{status:backend.registrationStatus}:{status:'ok',token:'a'.repeat(64),profile:{...profile,employee_id:args.p_employee_id,role:'operator'}};}
+  else if(url.pathname.endsWith('/rpc/scanner_operator_status'))body={configured:backend.configured,setup_ready:true};
   else if(url.pathname.endsWith('/rpc/scanner_operator_login')||url.pathname.endsWith('/rpc/scanner_operator_setup'))body=req.postDataJSON().p_pin===TEST_PIN?{status:'ok',token:'a'.repeat(64),profile}:{status:'invalid'};
   else if(url.pathname.endsWith('/rpc/scanner_operator_session'))body={profile};
   else if(url.pathname.endsWith('/rpc/scanner_operator_logout'))body={status:'ok'};
@@ -186,11 +187,32 @@ test('operator access review uses only synthetic accounts and audit records',asy
 
 test('first owner sets a PIN once and can later use the normal login form',async({page})=>{
  const {errors}=await setup(page,{configured:false});
- await expect(page.locator('#operatorPanelTitle')).toHaveText('Настройка создателя');
+ await page.locator('#operatorOwnerSetup').click();await expect(page.locator('#operatorPanelTitle')).toHaveText('Настройка создателя');
  await page.goto('/#setup=SYNTHETIC-SETUP-ONLY');await expect(page.locator('#operatorSetupKey')).toHaveValue('SYNTHETIC-SETUP-ONLY');expect(new URL(page.url()).hash).toBe('');await page.locator('#operatorEmployeeId').fill('TEST-OWNER');
  await page.locator('#operatorPin').fill(TEST_PIN);await page.locator('#operatorPinConfirm').fill('111111');await page.locator('#operatorLoginBtn').click();
  await expect(page.locator('#operatorMessage')).toContainText('не совпадает');
  await page.locator('#operatorPinConfirm').fill(TEST_PIN);await page.locator('#operatorLoginBtn').click();await expect(page.locator('#operatorPanel')).toBeHidden();
  await page.locator('#operatorLogout').click();await expect(page.locator('#operatorSetupFields')).toBeHidden();
  await page.locator('#operatorEmployeeId').fill('TEST-OWNER');await page.locator('#operatorPin').fill(TEST_PIN);await page.locator('#operatorLoginBtn').click();await expect(page.locator('#operatorPanel')).toBeHidden();expect(errors).toEqual([]);
+});
+
+test('employee first entry confirms a self-chosen PIN and grants ordinary access',async({page})=>{
+ const {backend,errors}=await setup(page);await page.locator('[data-operator-mode="register"]').click();await page.locator('#operatorEmployeeId').fill('TEST-SELF');await page.locator('#operatorPin').fill(TEST_PIN);await page.locator('#operatorPinConfirm').fill('111111');await page.locator('#operatorLoginBtn').click();
+ await expect(page.locator('#operatorMessage')).toContainText('не совпадает');expect(backend.registration).toBeUndefined();await page.locator('#operatorPinConfirm').fill(TEST_PIN);await page.locator('#operatorLoginBtn').click();await expect(page.locator('#operatorPanel')).toBeHidden();expect(backend.registration.p_employee_id).toBe('TEST-SELF');await expect(page.locator('#operatorBadgeText')).toContainText('TEST-SELF');await expect(page.locator('[data-view="ownerAudit"]')).toBeHidden();await expect(page.locator('#operatorPin')).toHaveValue('');await expect(page.locator('#operatorPinConfirm')).toHaveValue('');expect(errors).toEqual([]);
+});
+test('existing employee ID cannot be overwritten through first entry',async({page})=>{
+ const {backend}=await setup(page);backend.registrationStatus='exists';await page.locator('[data-operator-mode="register"]').click();await page.locator('#operatorEmployeeId').fill('TEST-EXISTS');await page.locator('#operatorPin').fill(TEST_PIN);await page.locator('#operatorPinConfirm').fill(TEST_PIN);await page.locator('#operatorLoginBtn').click();await expect(page.locator('#operatorMessage')).toContainText('уже зарегистрирован');await expect(page.locator('#operatorPanel')).toBeVisible();await page.locator('[data-operator-mode="login"]').click();await expect(page.locator('#operatorSetupFields')).toBeHidden();
+});
+test('all twelve distinct themes work before login and persist after reload',async({page})=>{
+ const {errors}=await setup(page);await page.locator('#operatorPanel [data-open-themes]').click();await expect(page.locator('#themeModal')).toBeVisible();await expect(page.locator('.theme-card')).toHaveCount(12);const backgrounds=new Set();
+ for(const id of ['berry','sapphire','carbon','quartz','forest','aurora','paper','ocean','rose','cobalt','copper','mint']){await page.locator(`[data-set-theme="${id}"]`).click();await expect(page.locator('html')).toHaveAttribute('data-theme',id);backgrounds.add(await page.evaluate(()=>getComputedStyle(document.body).backgroundColor));await expect(page.locator(`[data-set-theme="${id}"]`)).toHaveAttribute('aria-pressed','true');}
+ expect(backgrounds.size).toBe(12);await page.locator('[data-theme-filter="light"]').click();await expect(page.locator('.theme-card:visible')).toHaveCount(5);await page.locator('[data-theme-filter="dark"]').click();await expect(page.locator('.theme-card:visible')).toHaveCount(7);await page.keyboard.press('Escape');await expect(page.locator('#themeModal')).toBeHidden();await page.reload();await expect(page.locator('html')).toHaveAttribute('data-theme','mint');expect(errors).toEqual([]);
+});
+test('theme choice preserves the current scan and is usable on a narrow screen',async({page})=>{
+ await setup(page);await login(page);await page.locator('#issWorker').fill('TEST-RECIPIENT');await page.locator('#btnMenu').click();await page.locator('#menuPop [data-open-themes]').click();await page.locator('[data-set-theme="paper"]').click();await page.keyboard.press('Escape');await expect(page.locator('#issWorker')).toHaveValue('TEST-RECIPIENT');await page.setViewportSize({width:390,height:844});await page.locator('#btnMenu').click();await page.locator('#menuPop [data-open-themes]').click();await expect(page.locator('#themeModal')).toBeVisible();expect(await page.evaluate(()=>document.body.scrollWidth)).toBe(390);await page.locator('[data-set-theme="ocean"]').click();await expect(page.locator('html')).toHaveAttribute('data-theme','ocean');
+});
+test('theme review captures synthetic screens with different palettes and geometry',async({page})=>{
+ await page.setViewportSize({width:1440,height:1000});await setup(page);await login(page);
+ for(const id of ['forest','paper','cobalt','rose']){await page.evaluate(id=>applyTheme(id,false),id);await page.screenshot({path:`test-results/theme-${id}.png`,fullPage:false});}
+ await page.locator('#btnMenu').click();await page.locator('#menuPop [data-open-themes]').click();await page.screenshot({path:'test-results/theme-gallery.png',fullPage:false});
 });
