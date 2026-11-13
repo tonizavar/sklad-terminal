@@ -187,7 +187,7 @@ test('operator access review uses only synthetic accounts and audit records',asy
 test('first owner sets a PIN once and can later use the normal login form',async({page})=>{
  const {errors}=await setup(page,{configured:false});
  await expect(page.locator('#operatorPanelTitle')).toHaveText('Настройка создателя');
- await page.locator('#operatorEmployeeId').fill('TEST-OWNER');await page.locator('#operatorSetupKey').fill('SYNTHETIC-SETUP-ONLY');
+ await page.goto('/#setup=SYNTHETIC-SETUP-ONLY');await expect(page.locator('#operatorSetupKey')).toHaveValue('SYNTHETIC-SETUP-ONLY');expect(new URL(page.url()).hash).toBe('');await page.locator('#operatorEmployeeId').fill('TEST-OWNER');
  await page.locator('#operatorPin').fill(TEST_PIN);await page.locator('#operatorPinConfirm').fill('111111');await page.locator('#operatorLoginBtn').click();
  await expect(page.locator('#operatorMessage')).toContainText('не совпадает');
  await page.locator('#operatorPinConfirm').fill(TEST_PIN);await page.locator('#operatorLoginBtn').click();await expect(page.locator('#operatorPanel')).toBeHidden();

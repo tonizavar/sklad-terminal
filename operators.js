@@ -56,10 +56,14 @@ async function acceptOperatorSession(data) {
   operatorContext.timer=setTimeout(()=>lockOperator('Время сессии истекло. Введите ID и PIN снова.'),Math.max(0,Date.parse(data.profile.expires_at)-Date.now()));
   updateOperatorUI();await loadLocal();await syncNow();scheduleSync();focusActiveTerminalInput();
 }
-async function initOperatorAccess() {
+function readOperatorSetupFragment() {
   const fragment=new URLSearchParams(location.hash.slice(1));
   operatorSetupToken=fragment.get('setup')||'';
   if(operatorSetupToken){history.replaceState(null,'',location.pathname+location.search);$('operatorSetupKey').value=operatorSetupToken;}
+}
+async function initOperatorAccess() {
+  readOperatorSetupFragment();
+  window.addEventListener('hashchange',readOperatorSetupFragment);
   $('operatorLoginForm').addEventListener('submit',async event=>{
     event.preventDefault();const button=$('operatorLoginBtn');button.disabled=true;$('operatorMessage').textContent='';
     try{
