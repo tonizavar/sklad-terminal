@@ -16,6 +16,7 @@ function requestResult(req) {
   return new Promise((resolve, reject) => { req.onsuccess = () => resolve(req.result); req.onerror = () => reject(req.error); });
 }
 function requireReady() {
+  requireOperator();
   if (!terminalContext.id || !db || !state.dbReady) throw new Error('Локальная база недоступна. Операции временно заблокированы.');
 }
 async function initStorage() {
@@ -38,7 +39,7 @@ async function initStorage() {
     state.dbReady = true;
     if (typeof BroadcastChannel !== 'undefined') {
       tabChannel = new BroadcastChannel('sklad-v12');
-      tabChannel.onmessage = () => { if (terminalContext.id) loadLocal().catch(reportLocalError); };
+      tabChannel.onmessage = event => { if(event.data?.type==='operator_logout' && event.data.session===operatorContext.profile?.session_id) lockOperator('Сеанс завершён в другой вкладке.'); else if(terminalContext.id && operatorActive())loadLocal().catch(reportLocalError); };
     }
     // A real server snapshot is required before fresh installations allow operations.
     const meta = await requestResult(db.transaction('meta').objectStore('meta').get('snapshot'));
@@ -53,7 +54,7 @@ async function initStorage() {
 }
 function reportLocalError(e) { state.lastError = e.message; showToast('ОШИБКА ХРАНЕНИЯ', e.message, 'err'); }
 async function loadLocal() {
-  if (!db || !terminalContext.id) return;
+  if (!db || !terminalContext.id || !operatorActive()) return;
   const rows = await requestResult(db.transaction('devices').objectStore('devices').getAll());
   state.devices = rows.filter(d => !d.deleted_at).map(normalizeCloudDevice).filter(Boolean);
   state.tablePage = Math.min(state.tablePage || 0, Math.max(0, Math.ceil(state.devices.length / PAGE_SIZE) - 1));
@@ -88,48 +89,45 @@ async function deleteQueueKey(key) {
   tx.objectStore('queue').delete(key); await done;
 }
 function saveDevice(dev, actionName, workerName) { return saveDeviceChanges([{ dev, actionName, workerName }]); }
-async function saveDeviceChanges(changes, options = {}) {
-  requireReady();
-  if (!db || !state.dbReady || !state.dataVerified) throw new Error('Дождитесь первой успешной загрузки данных из облака');
-  if (!changes.length || changes.length > 500) throw new Error('Одна операция должна содержать от 1 до 500 сканеров');
-  if (new Set(changes.map(c => c.dev.serial)).size !== changes.length) throw new Error('Повторный сканер в операции');
-  const id = crypto.randomUUID(), at = nowIso();
-  const operation = { type: 'operation', id, actor: terminalContext.id, terminal: terminalId(), serials: changes.map(c => c.dev.serial), changes: [], ts: at };
-  const tx = db.transaction(['devices', 'queue', 'moves'], 'readwrite');
-  const done = transactionDone(tx);
-  const devices = tx.objectStore('devices'), queue = tx.objectStore('queue');
-  let failure;
-  for (const c of changes) {
-    const req = devices.get(c.dev.serial);
-    req.onsuccess = () => {
-      try {
-        const before = req.result || null;
-        const expected = state.undoExpectedVersions?.has(c.dev.serial) ? state.undoExpectedVersions.get(c.dev.serial) : c.dev.version;
-        if ((before?.version || null) !== (expected || null)) throw new Error('Данные изменились в другой вкладке. Повторите операцию.');
-        const after = c.remove ? null : SkladCore.validateDevice({ ...c.dev, version: `${id}:${c.dev.serial}`, last_move: at, deleted_at: null });
-        const change = { serial: c.dev.serial, before, after, action: c.actionName, worker: c.workerName || '', ts: at };
-        operation.changes.push(change);
-        if (after) devices.put(after);
-        else devices.delete(c.dev.serial);
-        tx.objectStore('moves').add({ serial: c.dev.serial, action: c.actionName, worker: c.workerName || '', created_at: at, moveId: `${id}:${c.dev.serial}`, operator_id: null, terminal_id: operation.terminal });
-        if (operation.changes.length === changes.length) queue.add(operation);
-      } catch (e) { failure = e; tx.abort(); }
-    };
-  }
-  try { await done; } catch (e) { throw failure || e; }
-  state.lastSavedSerials = operation.serials;
-  state.repairMap = {}; // v10 shadow state must never override a committed record.
-  try { localStorage.removeItem(REPAIR_MAP_KEY); } catch (_) {}
-  for (const change of operation.changes) {
-    state.devices = state.devices.filter(d => d.serial !== change.serial);
-    if (change.after) state.devices.push(change.after);
-  }
-  await loadLocal().catch(reportLocalError);
-  tabChannel?.postMessage('changed');
-  scheduleSync(150);
+async function saveDeviceChanges(changes, options={}) {
+  requireReady();const profile=requireOperator(Boolean(options.admin));
+  if(!state.dataVerified)throw new Error('Дождитесь первой успешной загрузки данных из облака');
+  if(!changes.length||changes.length>500||new Set(changes.map(c=>c.dev.serial)).size!==changes.length)throw new Error('Некорректный список сканеров');
+  const captured={profile:{...profile},key:operatorContext.key};operatorContext.saving++;
+  try{
+    const id=crypto.randomUUID(),at=nowIso();
+    const read=db.transaction('devices');
+    const originals=await Promise.all(changes.map(c=>requestResult(read.objectStore('devices').get(c.dev.serial))));
+    const operation={type:'operation',id,actor:profile.employee_id,operator_employee_id:profile.employee_id,terminal:terminalId(),serials:changes.map(c=>c.dev.serial),changes:[],ts:at};
+    for(let i=0;i<changes.length;i++){
+      const c=changes[i],before=originals[i]||null;
+      if(profile.role!=='owner' && (!before||before.deleted_at||c.remove))throw new Error('Регистрация и списание доступны создателю');
+      const expected=state.undoExpectedVersions?.has(c.dev.serial)?state.undoExpectedVersions.get(c.dev.serial):c.dev.version;
+      if((before?.version||null)!==(expected||null))throw new Error('Данные изменились в другой вкладке. Повторите операцию.');
+      const after=c.remove?null:SkladCore.validateDevice({...c.dev,version:`${id}:${c.dev.serial}`,last_move:at,deleted_at:null});
+      operation.changes.push({serial:c.dev.serial,before,after,action:c.actionName,worker:c.workerName||'',ts:at});
+    }
+    operation.proof=await signOperatorOperation(operation,captured);
+    if(operatorContext.profile?.session_id!==profile.session_id)throw new Error('Оператор изменился. Повторите операцию.');
+    const tx=db.transaction(['devices','queue','moves'],'readwrite'),done=transactionDone(tx);let failure,remaining=operation.changes.length;
+    for(const change of operation.changes){
+      const req=tx.objectStore('devices').get(change.serial);
+      req.onsuccess=()=>{try{
+        if((req.result?.version||null)!==(change.before?.version||null))throw new Error('Данные изменились в другой вкладке. Повторите операцию.');
+        if(change.after)tx.objectStore('devices').put(change.after);else tx.objectStore('devices').delete(change.serial);
+        tx.objectStore('moves').add({serial:change.serial,action:change.action,worker:change.worker,created_at:at,moveId:`${id}:${change.serial}`,operator_employee_id:profile.employee_id,operator_session_id:profile.session_id,operator_id:null,terminal_id:operation.terminal});
+        if(--remaining===0)tx.objectStore('queue').add(operation);
+      }catch(error){failure=error;tx.abort();}};
+    }
+    try{await done;}catch(error){throw failure||error;}
+    state.lastSavedSerials=operation.serials;state.repairMap={};
+    try{localStorage.removeItem(REPAIR_MAP_KEY);}catch(_){}
+    for(const c of operation.changes){state.devices=state.devices.filter(d=>d.serial!==c.serial);if(c.after)state.devices.push(c.after);}
+    await loadLocal().catch(reportLocalError);tabChannel?.postMessage('changed');scheduleSync(150);
+  }finally{operatorContext.saving--;}
 }
 async function deleteSerial(sn) {
-  requireReady();
+  requireReady();requireOperator(true);
   const dev = state.devices.find(d => d.serial === sn);
   if (dev) await saveDeviceChanges([{ dev, remove: true, actionName: 'Списание сканера', workerName: dev.holder }], { admin: true });
 }
@@ -137,7 +135,7 @@ async function updateQueueStatus() {
   if (!db) return;
   const queue = await readQueueWithKeys();
   state.pendingCount = queue.length;
-  state.conflictCount = queue.filter(x => x.value.conflict || x.value.type !== 'operation').length;
+  state.conflictCount = queue.filter(x => x.value.conflict || !['operation','operator_action'].includes(x.value.type)).length;
   const at = state.lastSyncAt ? new Date(state.lastSyncAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : 'ещё не было';
   $('syncDetail').textContent = `Локально сохранено · ожидает: ${queue.length} · конфликтов: ${state.conflictCount} · облако: ${at}`;
 }
@@ -157,12 +155,16 @@ async function syncNow() {
       const queue = await readQueueWithKeys();
       for (const { key, value: op } of queue) {
         if (op.conflict) break;
-        if (op.type !== 'operation') {
+        if (!['operation','operator_action'].includes(op.type) || !op.proof) {
           await setQueueConflict(key, 'Очередь старой версии: скачайте её и согласуйте с администратором');
           break;
         }
-        const { data, error } = await withTimeout(cloud.rpc('scanner_apply', { p_id: op.id, p_changes: op.changes, p_events: [], p_terminal: op.terminal }), NET_TIMEOUT_MS, 'операция');
-        if (error) throw error;
+        if(op.type==='operator_action'){
+          const {data,error}=await withTimeout(cloud.rpc('scanner_record_signed_action',{p_session:op.proof.session,p_payload:op.proof.payload,p_signature:op.proof.signature}),NET_TIMEOUT_MS,'журнал');
+          if(error){if(error.code==='42501'){await setQueueConflict(key,error.message);if(op.proof.session===operatorContext.profile?.session_id)lockOperator('Доступ изменён. Введите ID и PIN снова.');break;}throw error;}if(data?.status!=='applied')throw new Error('Запись журнала не подтверждена');await deleteQueueKey(key);continue;
+        }
+        const { data, error } = await withTimeout(cloud.rpc('scanner_apply', {p_id:op.id,p_changes:op.changes,p_events:[],p_terminal:op.terminal,p_session:op.proof.session,p_payload:op.proof.payload,p_signature:op.proof.signature}), NET_TIMEOUT_MS, 'операция');
+        if(error){if(error.code==='42501'){await setQueueConflict(key,error.message);if(op.proof.session===operatorContext.profile?.session_id)lockOperator('Доступ изменён. Введите ID и PIN снова.');break;}throw error;}
         if (data?.status === 'conflict') {
           await setQueueConflict(key, `Состояние изменено другим терминалом: ${(data.serials || []).join(', ')}`);
           break; // Preserve dependent operations and every local event.
@@ -170,6 +172,7 @@ async function syncNow() {
         if (data?.status !== 'applied') throw new Error('Сервер не подтвердил операцию');
         await deleteQueueKey(key);
       }
+      if(!operatorActive()){setSync(false,'Укажите ID оператора и PIN');await updateQueueStatus();return false;}
       const data = await pullAllDevices();
       if (data === null) throw new Error(state.lastError || 'Не удалось получить парк');
       await applyPull(data);
@@ -181,6 +184,7 @@ async function syncNow() {
     // Cross-tab exclusion prevents duplicate uploads, not just a per-tab boolean.
     return navigator.locks ? await navigator.locks.request('sklad-sync', { ifAvailable: true }, lock => lock ? run() : false) : await run();
   } catch (e) {
+    if(e.code==='42501' && /LOGIN_REQUIRED/.test(e.message))lockOperator('Введите ID и PIN снова.');
     state.lastError = e.message || 'Ошибка синхронизации';
     setSync(false, 'Нет подтверждения облака');
     await updateQueueStatus();
@@ -255,11 +259,12 @@ async function downloadQueue() {
   downloadJson({ exported_at: nowIso(), queue: await readQueueWithKeys() }, 'sklad-pending-operations.json');
 }
 async function resolveQueueFromCloud() {
-  requireReady();
+  requireReady();requireOperator(true);
   const queue = await readQueueWithKeys();
   if (!queue.length) return;
   const ok = await askConfirmDialog('Согласование с облаком', `В очереди ${queue.length} операций. Они будут сохранены в локальный архив конфликтов; рабочее состояние будет загружено из облака. Сначала скачайте очередь. Применяйте после сверки фактической выдачи.`, 'Принять облачное состояние');
   if (!ok) return;
+  await recordOperatorAction('queue_reconciliation',{reviewed_packets:queue.length});
   const data = await pullAllDevices({ full: true });
   if (data === null) throw new Error('Облако недоступно');
   const tx = db.transaction(['queue', 'meta'], 'readwrite'), done = transactionDone(tx);
@@ -272,9 +277,10 @@ async function resolveQueueFromCloud() {
   scheduleSync(100);
 }
 async function hardReset() {
-  requireReady();
+  requireReady();requireOperator(true);
   if ((await readQueueWithKeys()).length) { showToast('СБРОС ОСТАНОВЛЕН', 'Сначала согласуйте неотправленные операции', 'warn'); return; }
   if (!await askConfirmDialog('Перезагрузка кэша', 'Загрузить актуальное состояние из облака? Локальный журнал будет сохранён.')) return;
+  await recordOperatorAction('cache_refresh');
   const data = await pullAllDevices({ full: true });
   if (data !== null) { await applyPull(data); closeModal('diagModal'); }
 }

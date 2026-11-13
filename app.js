@@ -26,13 +26,13 @@ const SYNC_BASE_INTERVAL = 20000;
 const SYNC_MAX_INTERVAL = 300000;
 const THEMES = ['berry', 'sapphire', 'carbon', 'quartz'];
 const THEME_NAMES = {
-  berry: '🔮 WB Berry (Корпоративная)',
-  sapphire: '💎 Сапфир (Executive Dark)',
-  carbon: '🌑 Карбон (Высокий контраст)',
-  quartz: '☀️ Светлая (Дневной пост)'
+  berry: 'Графит',
+  sapphire: 'Синий',
+  carbon: 'Контрастный',
+  quartz: 'Светлый'
 };
 const THEME_META_COLORS = {
-  berry: '#07040e',
+  berry: '#121416',
   sapphire: '#060812',
   carbon: '#090a0d',
   quartz: '#eef2f6'
@@ -350,7 +350,7 @@ function refreshScrollLock() {
 
 /* ===== АВТОФОКУС КОНВЕЙЕРА (SMART FOCUS GUARD) ===== */
 function focusActiveTerminalInput() {
-  if (!terminalContext.id) return;
+  if (!terminalContext.id || !operatorActive()) return;
   const anyModal = document.querySelector('.modal-overlay.show');
   const drawer = $('auditDrawer') && $('auditDrawer').classList.contains('open');
   if (anyModal || drawer) return;
@@ -533,6 +533,7 @@ async function toggleDeviceShift(sn) {
 /* ===== АУДИО- И ВИБРО-ИНДИКАЦИЯ ОПЕРАТОРА ===== */
 let audioCtx = null;
 function beep(type) {
+  if (state.soundMuted) return;
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -818,7 +819,7 @@ function setRightMode(mode) {
   if (state.rightMode === 'defect') {
     card.classList.add('defect-mode');
     titleEl.style.color = 'var(--amber-text)';
-    titleText.innerText = 'ПЕРЕВОД СКАНЕРА В БРАК / РЕМОНТ';
+    titleText.innerText = 'Отправить в ремонт';
     tabRet.className = 'mode-tab';
     tabDef.className = 'mode-tab active-def';
     paneRet.style.display = 'none';
@@ -827,7 +828,7 @@ function setRightMode(mode) {
   } else {
     card.classList.remove('defect-mode');
     titleEl.style.color = 'var(--emerald-text)';
-    titleText.innerText = 'ПРИЁМКА В 1 ПИК';
+    titleText.innerText = 'Принять сканер';
     tabRet.className = 'mode-tab active-ret';
     tabDef.className = 'mode-tab';
     paneRet.style.display = 'flex';
@@ -846,7 +847,7 @@ function updateIssBanner(fixedQuery) {
     banner.className = 'sn-live-banner';
     banner.innerHTML = '';
     inp.classList.remove('warn-busy');
-    $('modelHint').innerText = "F1 • Бейдж ➔ Сканер ➔ Авто-выдача";
+    $('modelHint').innerText = "F1 · Выдача";
     return;
   }
   const exact = state.devices.find(d => d.serial.toUpperCase() === q);
@@ -1238,6 +1239,7 @@ async function submitIssue() {
 
 async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
   const isNew = !dev;
+  if(isNew)requireOperator(true);
 
   const ts = nowIso();
   const issuedAt = inheritedIssuedAt || ts;
@@ -2116,7 +2118,7 @@ async function openAudit(sn) {
     const d = h.created_at || h.at;
     const t = d ? new Date(d).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
     const actColor = isRet ? 'var(--emerald-text)' : 'var(--brand-text)';
-    return `<div class="timeline-item ${isRet ? 'return' : ''}"><div class="timeline-dot"></div><div class="timeline-time">${t}</div><div class="timeline-action" style="color:${actColor};">${esc(h.action)}</div><div class="timeline-actor">👤 ${esc(h.worker || 'Склад')} · оператор ${esc(h.operator_id || (h.terminal_id ? 'общий режим' : 'старая запись'))} · терминал ${esc(h.terminal_id || '—')}</div></div>`;
+    return `<div class="timeline-item ${isRet ? 'return' : ''}"><div class="timeline-dot"></div><div class="timeline-time">${t}</div><div class="timeline-action" style="color:${actColor};">${esc(h.action)}</div><div class="timeline-actor">👤 ${esc(h.worker || 'Склад')} · оператор ${esc(h.operator_employee_id || 'автор не указан')} · терминал ${esc(h.terminal_id || '—')}</div></div>`;
   }).join('');
 }
 
@@ -2130,7 +2132,8 @@ function closeAuditDrawer() {
 
 /* ===== ВЫГРУЗКА ТЕКУЩЕГО ПАРКА (CSV/EXCEL) И ПЕЧАТЬ АКТА ===== */
 function csvSafe(v) { return SkladCore.csvSafe(v); }
-function exportFleetSnapshot() {
+async function exportFleetSnapshot() {
+  await recordOperatorAction('fleet_export',{devices:state.devices.length});
   let csv = '\uFEFFСерийный номер;Модель сканера;Статус;Сотрудник (Бейдж);Смена;Время на руках;Выдан;Активность;Примечание\n';
   state.devices.forEach(d => {
     const stLabel = d.status === 'issued' ? 'В работе' : (d.status === 'repair' ? 'В ремонте' : 'На складе');
@@ -2156,7 +2159,8 @@ function exportFleetSnapshot() {
   showToast('ОТЧЁТ ВЫГРУЖЕН (CSV / EXCEL)', `Экспортировано ${state.devices.length} сканеров`);
 }
 
-function printShiftAct() {
+async function printShiftAct() {
+  await recordOperatorAction('print_act',{devices:state.devices.length});
   const dt = new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   const total = state.devices.length;
   const issued = state.devices.filter(d => d.status === 'issued').length;
@@ -2173,7 +2177,7 @@ function printShiftAct() {
 
 async function processImport() {
   try {
-    requireReady();
+    requireReady();requireOperator(true);
     if (!db || !state.dbReady) throw new Error('Локальная база недоступна. Импорт не выполнен.');
     const raw = [...new Set($('impText').value.split(/\r?\n/).map(fixLayout).filter(Boolean))];
     if (!raw.length) return;
@@ -2234,6 +2238,7 @@ function toggleAutoSwap() {
 }
 
 function openDeleteModal() {
+  if(operatorContext.profile?.role!=='owner'){showToast('НУЖЕН ДОСТУП СОЗДАТЕЛЯ','Списание недоступно оператору','warn');return;}
 
   $('delSearch').value = '';
   renderDeleteList();
@@ -2593,7 +2598,7 @@ $('brandTag').addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', e => {
-  if (!terminalContext.id) return;
+  if (!terminalContext.id || !operatorActive()) return;
   if ($('confirmDialogModal').classList.contains('show')) {
     if (e.key === 'Enter') { e.preventDefault(); resolveConfirmDialog(true); return; }
     if (e.key === 'Escape') { e.preventDefault(); resolveConfirmDialog(false); return; }

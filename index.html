@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#07040e" id="metaThemeColor">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://sgpkvnymkqwuhepkaoxw.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'">
 <meta name="referrer" content="no-referrer">
-<title>Учёт Сканеров • WB WMS v12.0</title>
+<title>SKLAD / Рабочий терминал</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -14,8 +14,18 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<section id="operatorPanel" class="operator-panel" role="dialog" aria-modal="true" aria-labelledby="operatorPanelTitle">
+ <form id="operatorLoginForm" class="operator-login-card" data-setup="false">
+  <div class="eyebrow">SKLAD / РАБОЧИЙ ПОСТ</div><h1 id="operatorPanelTitle">Кто работает за постом?</h1>
+  <p id="operatorPanelHint">Укажите свой ID и личный PIN. Получатель сканера указывается отдельно при выдаче.</p>
+  <label for="operatorEmployeeId">Ваш ID сотрудника</label><input id="operatorEmployeeId" class="hud-input mono" required maxlength="45" autocomplete="username" placeholder="Введите или сканируйте ID">
+  <label for="operatorPin">Личный PIN · 6–12 цифр</label><input id="operatorPin" class="hud-input mono" type="password" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" required autocomplete="current-password">
+  <div id="operatorSetupFields" hidden><label for="operatorPinConfirm">Повторите PIN</label><input id="operatorPinConfirm" class="hud-input mono" type="password" inputmode="numeric" minlength="6" maxlength="12" autocomplete="new-password"><label for="operatorSetupKey">Одноразовый ключ создателя</label><input id="operatorSetupKey" class="hud-input mono" type="password" autocomplete="off"></div>
+  <p id="operatorMessage" role="alert"></p><button id="operatorLoginBtn" type="submit" class="btn-submit">Начать работу</button>
+ </form>
+</section>
 <div class="boot-overlay" id="bootOverlay">
-  <div class="boot-logo">SKLAD-TERMINAL v12.0</div>
+  <div class="boot-logo">SKLAD / TERMINAL</div>
   <div class="boot-spinner"></div>
   <div class="boot-text" id="bootText">Инициализация промышленного терминала сканеров…</div>
 </div>
@@ -23,54 +33,69 @@
 <!-- ПОЛНОЭКРАННАЯ СВЕТОВАЯ ИНДИКАЦИЯ ОПЕРАЦИЙ ("В ОДИН ПИК") -->
 <div class="scan-flash-overlay" id="scanFlashOverlay"></div>
 
-<div class="app-shell" id="appContent" inert>
+<aside class="workspace-sidebar" aria-label="Навигация терминала">
+  <div class="workspace-brand" aria-label="SKLAD — рабочий терминал"><button type="button" id="brandTag" class="brand-logo-box" aria-label="Сервис списания: тройное нажатие"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V4h4m8 0h4v4M4 16v4h4m8 0h4v-4M8 8v8m4-8v8m4-8v8"/></svg></button><span>SKLAD<span class="brand-caption">ОПЕРАТОРСКАЯ</span></span></div>
+  <div class="sidebar-caption">РАБОЧЕЕ МЕСТО</div>
+  <nav class="workspace-nav">
+    <button type="button" class="nav-item active" data-view="terminal" aria-current="page"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V4h4m8 0h4v4M4 16v4h4m8 0h4v-4M8 8v8m4-8v8m4-8v8"/></svg><span>Терминал</span><kbd>F1</kbd></button>
+    <button type="button" class="nav-item" data-view="fleet"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg><span>Парк сканеров</span></button>
+    <button type="button" class="nav-item" data-view="activity"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11a8 8 0 1 1 2 6M4 5v6h6m2-4v5l3 2"/></svg><span>История операций</span></button>
+  </nav>
+  <button type="button" class="command-launcher" id="commandLauncher"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 9H6a2 2 0 1 1 2-2v10a2 2 0 1 1-2-2h12a2 2 0 1 1-2 2V7a2 2 0 1 1 2 2H8"/></svg><span>Быстрые команды<small>Ctrl + Space</small></span></button>
+  <button type="button" class="nav-item" data-view="ownerAudit" data-owner-only hidden>Журнал сотрудников</button>
+  <button type="button" class="nav-item" data-view="operators" data-owner-only hidden>Операторы и PIN</button>
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-note"><span class="sidebar-note-dot"></span>Работает и без интернета<small>Операции сохраняются на этом посту</small></div>
+  <div class="sidebar-sync"><div class="sidebar-caption">СОСТОЯНИЕ ПОСТА</div>      <div id="syncStatus" class="pill-badge pill-online" title="Статус синхронизации БД и очереди">
+        <span class="dot-ping"></span>
+        <span id="syncText">Онлайн</span>
+      </div>      <span id="syncDetail" class="sync-detail" role="status" aria-live="polite">Данные ещё не получены</span></div>
+  <div class="sidebar-footer"><span>SKLAD TERMINAL</span><span>14.0</span></div>
+</aside>
+
+<main class="app-shell" id="appContent" inert>
   <header class="hud-header">
-    <div class="brand-zone">
-      <div id="brandTag" class="brand-logo-box mono" title="Тройной клик — сервисное меню удаления сканеров">WB</div>
-      <div class="brand-title">
-        <h1>
-          Учёт Сканеров СЦ
-          <span class="version-pill">v12.0</span>
-          <span class="only-scanners-pill">ТОЛЬКО СКАНЕРЫ</span>
-        </h1>
-        <p>Конвейерная выдача и приёмка сканеров штрихкода «в 1 пик» • Облако + Офлайн IndexedDB</p>
-      </div>
-    </div>
+    <div class="breadcrumb"><span>Операции</span><span class="breadcrumb-slash">/</span><strong id="workspaceBreadcrumb">Рабочий терминал</strong></div>
     <div class="hud-actions">
+      <div class="operator-badge" id="operatorBadge" hidden><span id="operatorBadgeText"></span><button type="button" id="operatorLogout" class="btn-hud">Сменить оператора</button></div>
+      <button class="icon-button" id="soundToggle" type="button" aria-label="Выключить звуки" aria-pressed="false" title="Звуки операций"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 10 4 0 5-4v12l-5-4H4zM16 8a6 6 0 0 1 0 8"/></svg></button>
+      <button class="btn-hud focus-toggle" id="focusToggle" type="button" aria-pressed="false" title="Режим поста (F8)"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg><span>Режим поста</span><kbd>F8</kbd></button>
       <div id="shiftPill" class="shift-pill day" title="Клик — переключить смену День/Ночь (F4)">
         <span id="shiftIcon">☀</span>
         <span id="shiftLabel">ДЕНЬ</span>
         <span class="t" id="shiftTime">--:--</span>
         <span id="shiftBadge" class="badge-auto">AUTO</span>
       </div>
-      <div id="syncStatus" class="pill-badge pill-online" title="Статус синхронизации БД и очереди">
-        <span class="dot-ping"></span>
-        <span id="syncText">Онлайн</span>
-      </div>
-      <span id="syncDetail" class="sync-detail" role="status" aria-live="polite">Данные ещё не получены</span>
+
+
       <button type="button" class="btn-hud btn-debt" id="debtBtn" title="Список должников и история просрочек (>14ч)">
-        🚨 Должники <span class="debt-badge" id="debtBadge">0</span>
+        Просрочки <span class="debt-badge" id="debtBadge">0</span>
       </button>
       <div class="menu-wrap">
-        <button type="button" class="btn-hud btn-menu" id="btnMenu" title="Отчёты, импорт, бэкап и оформление">⋮ Меню</button>
+        <button type="button" class="btn-hud btn-menu" id="btnMenu" title="Отчёты, импорт, бэкап и оформление">Сервис</button>
         <div class="menu-pop" id="menuPop">
           <div class="menu-sec">Отчёты и сервис</div>
           <button type="button" class="menu-item" id="btnCopySummary" title="Скопировать сводку смены для Telegram/руководства">📋 Сводка смены</button>
           <button type="button" class="menu-item" id="btnPrintAct" title="Печать Акта приёма-передачи смены (Ctrl+P)">🖨️ Акт смены</button>
           <button type="button" class="menu-item" id="btnExportCsv" title="Выбрать период отчёта (Ctrl+E)">📊 Отчёт по операциям</button>
-          <button type="button" class="menu-item" id="btnOpenBackup" title="Серверные резервные копии парка">💾 Бэкап</button>
-          <button type="button" class="menu-item" id="btnOpenImport" title="Массовый импорт серийных номеров сканеров (Ctrl+I)">📥 Импорт</button>
+          <button type="button" class="menu-item" id="btnOpenBackup" data-owner-only hidden title="Серверные резервные копии парка">💾 Бэкап</button>
+          <button type="button" class="menu-item" id="btnOpenImport" data-owner-only hidden title="Массовый импорт серийных номеров сканеров (Ctrl+I)">📥 Импорт</button>
           <div class="menu-sec">Оформление (Alt+T)</div>
           <div class="theme-switcher menu-themes">
-            <button type="button" class="t-btn active" data-set-theme="berry">🔮 WB Berry</button>
-            <button type="button" class="t-btn" data-set-theme="sapphire">💎 Сапфир</button>
-            <button type="button" class="t-btn" data-set-theme="carbon">🌑 Карбон</button>
-            <button type="button" class="t-btn" data-set-theme="quartz">☀️ Светлая</button>
+            <button type="button" class="t-btn active" data-set-theme="berry">Графит</button>
+            <button type="button" class="t-btn" data-set-theme="sapphire">Синий</button>
+            <button type="button" class="t-btn" data-set-theme="carbon">Контрастный</button>
+            <button type="button" class="t-btn" data-set-theme="quartz">Светлый</button>
           </div>
         </div>
       </div>
     </div>
   </header>
+  <section class="workspace-heading">
+    <div><div class="eyebrow" id="workspaceEyebrow">ПОСТ ВЫДАЧИ И ПРИЁМКИ</div><h1 id="workspaceTitle">Рабочий терминал<span class="title-dot">.</span></h1><p id="workspaceDescription">Сканируйте бейдж, затем устройство. Выдача сохранится автоматически.</p></div>
+    <div class="terminal-ready"><span></span><div>Готов к сканированию<small id="scanFocusHint">Начните с бейджа сотрудника</small></div></div>
+  </section>
+
 
   <div class="debt-alert-bar" id="debtAlertBar">
     <div class="debt-alert-icon">🚨</div>
@@ -83,6 +108,90 @@
       <button type="button" class="debt-alert-close" id="btnDebtAlertClose" title="Скрыть уведомление на 30 минут">✕</button>
     </div>
   </div>
+
+  <!-- ДВУХПОСТОВОЙ КОНВЕЙЕРНЫЙ ТЕРМИНАЛ -->
+  <section class="terminal-grid" id="terminalWorkspace" aria-label="Выдача и приёмка">
+    <!-- ПОСТ 1: КОНВЕЙЕР ВЫДАЧИ -->
+    <div class="deck-card issue-deck">
+      <div class="deck-header">
+        <span class="deck-title" style="color:var(--brand-text);">
+          <span class="deck-step-badge"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg></span> Выдать сканер
+        </span>
+        <span id="modelHint" class="deck-badge-key"><kbd>F1</kbd> Выдача</span>
+      </div>
+      <form id="issueForm" autocomplete="off" style="display:flex;flex-direction:column;flex:1;">
+        <div class="conveyor-inputs-row">
+          <div class="hud-group">
+            <label class="hud-label" for="issWorker">
+              <span><b class="field-number">01</b> Бейдж сотрудника</span>
+              <span style="color:var(--brand-text);font-size:9.5px;">Шаг 1</span>
+            </label>
+            <input id="issWorker" class="hud-input mono" placeholder="Сканируйте бейдж…" autocomplete="off" spellcheck="false" maxlength="45">
+            <div id="workerDrop" class="drop-box"></div>
+          </div>
+          <div class="hud-group">
+            <label class="hud-label" for="issSn">
+              <span><b class="field-number">02</b> Серийный номер сканера</span>
+              <span style="color:var(--emerald-text);font-size:9.5px;">Шаг 2 (Авто-ОК)</span>
+            </label>
+            <input id="issSn" class="hud-input mono" placeholder="SN или хвост номера…" autocomplete="off" spellcheck="false">
+            <div id="issDrop" class="drop-box"></div>
+          </div>
+        </div>
+        <div id="issSnBanner" class="sn-live-banner"></div><div class="deck-help"><span class="mini-dot"></span> Выдача автоматически после сканирования SN</div>
+        <button type="submit" class="btn-submit btn-issue" id="btnIssue">Выдать сканер <span class="submit-shortcut">Enter ↵</span></button>
+      </form>
+    </div>
+
+    <!-- ПОСТ 2: ПРИЁМКА В 1 ШАГ & ПЕРЕВОД В БРАК -->
+    <div class="deck-card return-deck" id="rightDeckCard">
+      <div class="deck-header">
+        <span class="deck-title" id="rightDeckTitle" style="color:var(--emerald-text);">
+          <span class="deck-step-badge" id="rightStepBadge"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 7 8-4 8 4v10l-8 4-8-4zm0 0 8 4 8-4m-8 4v10"/></svg></span>
+          <span id="rightTitleText">Принять сканер</span>
+        </span>
+        <div class="mode-tabs">
+          <button type="button" class="mode-tab active-ret" id="tabModeReturn" title="Мгновенный возврат сканера на склад (F2)">Приёмка <kbd>F2</kbd></button>
+          <button type="button" class="mode-tab" id="tabModeDefect" title="Отметить поломку / отправить сканер в ремонт (F3)">Ремонт <kbd>F3</kbd></button>
+        </div>
+      </div>
+
+      <!-- Панель быстрой приёмки в 1 пик -->
+      <div id="returnPane" style="display:flex;flex-direction:column;flex:1;">
+        <div class="hud-group">
+          <label class="hud-label" for="retQuery">
+            <span>Сканер или бейдж сотрудника</span>
+            <span style="color:var(--emerald-text);font-size:9.5px;">Возврат в один шаг</span>
+          </label>
+          <input id="retQuery" class="hud-input mono" placeholder="Серийный номер или бейдж сотрудника…" autocomplete="off" spellcheck="false">
+          <div id="retDrop" class="drop-box"></div>
+        </div>
+        <div class="return-guidance"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V4h4m8 0h4v4M4 16v4h4m8 0h4v-4M8 8v8m4-8v8m4-8v8"/></svg><div>Один скан — и устройство на складе<small>Сотрудник и время выдачи найдутся автоматически</small></div></div>
+        <button type="button" class="btn-submit btn-return-action" id="retBtn">Принять на склад <span class="submit-shortcut">Enter ↵</span></button>
+      </div>
+
+      <!-- Панель перевода в Брак / Ремонт -->
+      <div id="defectPane" style="display:none;flex-direction:column;flex:1;">
+        <div class="conveyor-inputs-row">
+          <div class="hud-group">
+            <label class="hud-label" for="defSn">
+              <span>Серийный номер сканера:</span>
+              <span style="color:var(--amber-text);font-size:9.5px;">Скан брака</span>
+            </label>
+            <input id="defSn" class="hud-input mono" placeholder="Пикните неисправный сканер…" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="hud-group">
+            <label class="hud-label" for="defReason">
+              <span>Причина неисправности:</span>
+              <span style="color:var(--text-muted);font-size:9.5px;">Для акта ремонта</span>
+            </label>
+            <input id="defReason" maxlength="2000" class="hud-input" placeholder="Не читает ШК / АКБ / Разбит курок" value="Не сканирует / Требуется проверка АКБ" autocomplete="off">
+          </div>
+        </div>
+        <button type="button" class="btn-submit btn-return-action defect-btn" id="defBtn">Отправить в ремонт <span class="submit-shortcut">Enter ↵</span></button>
+      </div>
+    </div>
+  </section>
 
   <!-- ОПЕРАТИВНЫЙ KPI-БЛОК (КРУПНЫЕ ЦИФРЫ, КЛИК = ФИЛЬТР РЕЕСТРА) -->
   <section class="metrics-grid">
@@ -116,7 +225,7 @@
   <!-- ПОЛОСА ТЕЛЕМЕТРИИ ПАРКА И LIVE-ТИКЕР ОПЕРАЦИЙ -->
   <div class="telemetry-strip">
     <div class="telemetry-bar-zone" title="Баланс парка сканеров: Зелёный — свободно, Синий — в смене, Жёлтый — в ремонте, Красный — просрочено">
-      <span class="telemetry-label">📡 Баланс парка:</span>
+      <span class="telemetry-label">Баланс парка</span>
       <div class="cap-track">
         <div class="cap-seg cap-free" id="capFree" style="width:100%"></div>
         <div class="cap-seg cap-issued" id="capIssued" style="width:0%"></div>
@@ -125,95 +234,12 @@
       </div>
     </div>
     <div class="live-ticker" id="liveTicker">
-      <span style="font-size:10.5px; color:var(--text-muted); font-family:'JetBrains Mono', monospace;">⚡ Конвейер активен: ожидание пика сканера…</span>
+      <span style="font-size:10.5px; color:var(--text-muted); font-family:'JetBrains Mono', monospace;">Ожидание сканирования</span>
     </div>
   </div>
 
-  <!-- ДВУХПОСТОВОЙ КОНВЕЙЕРНЫЙ ТЕРМИНАЛ -->
-  <section class="terminal-grid">
-    <!-- ПОСТ 1: КОНВЕЙЕР ВЫДАЧИ -->
-    <div class="deck-card issue-deck">
-      <div class="deck-header">
-        <span class="deck-title" style="color:var(--brand-text);">
-          <span class="deck-step-badge">1</span> КОНВЕЙЕР ВЫДАЧИ СКАНЕРА
-        </span>
-        <span id="modelHint" class="deck-badge-key">F1 • Бейдж ➔ Сканер ➔ Авто-выдача</span>
-      </div>
-      <form id="issueForm" autocomplete="off" style="display:flex;flex-direction:column;flex:1;">
-        <div class="conveyor-inputs-row">
-          <div class="hud-group">
-            <label class="hud-label" for="issWorker">
-              <span>1. Бейдж сотрудника (ID / ФИО)</span>
-              <span style="color:var(--brand-text);font-size:9.5px;">Шаг 1</span>
-            </label>
-            <input id="issWorker" class="hud-input mono" placeholder="Пикните бейдж сотрудника…" autocomplete="off" spellcheck="false" maxlength="45">
-            <div id="workerDrop" class="drop-box"></div>
-          </div>
-          <div class="hud-group">
-            <label class="hud-label" for="issSn">
-              <span>2. Штрихкод сканера (SN / хвост 4 ц.)</span>
-              <span style="color:var(--emerald-text);font-size:9.5px;">Шаг 2 (Авто-ОК)</span>
-            </label>
-            <input id="issSn" class="hud-input mono" placeholder="Пикните сканер — выдача мгновенно…" autocomplete="off" spellcheck="false">
-            <div id="issDrop" class="drop-box"></div>
-          </div>
-        </div>
-        <div id="issSnBanner" class="sn-live-banner"></div>
-        <button type="submit" class="btn-submit btn-issue" id="btnIssue">ВЫДАТЬ СКАНЕР В СМЕНУ (АВТО ПО ПИКУ / ENTER)</button>
-      </form>
-    </div>
-
-    <!-- ПОСТ 2: ПРИЁМКА В 1 ШАГ & ПЕРЕВОД В БРАК -->
-    <div class="deck-card return-deck" id="rightDeckCard">
-      <div class="deck-header">
-        <span class="deck-title" id="rightDeckTitle" style="color:var(--emerald-text);">
-          <span class="deck-step-badge" id="rightStepBadge">2</span>
-          <span id="rightTitleText">ПРИЁМКА В 1 ПИК</span>
-        </span>
-        <div class="mode-tabs">
-          <button type="button" class="mode-tab active-ret" id="tabModeReturn" title="Мгновенный возврат сканера на склад (F2)">📥 Приёмка (F2)</button>
-          <button type="button" class="mode-tab" id="tabModeDefect" title="Отметить поломку / отправить сканер в ремонт (F3)">🛠 Брак / Ремонт (F3)</button>
-        </div>
-      </div>
-
-      <!-- Панель быстрой приёмки в 1 пик -->
-      <div id="returnPane" style="display:flex;flex-direction:column;flex:1;">
-        <div class="hud-group">
-          <label class="hud-label" for="retQuery">
-            <span>Сканируйте только сам сканер (или бейдж сотрудника):</span>
-            <span style="color:var(--emerald-text);font-size:9.5px;">1 пик = закрытие сессии</span>
-          </label>
-          <input id="retQuery" class="hud-input mono" placeholder="Пикните возвращаемый сканер — система сама найдёт сотрудника…" autocomplete="off" spellcheck="false">
-          <div id="retDrop" class="drop-box"></div>
-        </div>
-        <button type="button" class="btn-submit btn-return-action" id="retBtn">ПРИНЯТЬ СКАНЕР НА СКЛАД (ENTER)</button>
-      </div>
-
-      <!-- Панель перевода в Брак / Ремонт -->
-      <div id="defectPane" style="display:none;flex-direction:column;flex:1;">
-        <div class="conveyor-inputs-row">
-          <div class="hud-group">
-            <label class="hud-label" for="defSn">
-              <span>Серийный номер сканера:</span>
-              <span style="color:var(--amber-text);font-size:9.5px;">Скан брака</span>
-            </label>
-            <input id="defSn" class="hud-input mono" placeholder="Пикните неисправный сканер…" autocomplete="off" spellcheck="false">
-          </div>
-          <div class="hud-group">
-            <label class="hud-label" for="defReason">
-              <span>Причина неисправности:</span>
-              <span style="color:var(--text-muted);font-size:9.5px;">Для акта ремонта</span>
-            </label>
-            <input id="defReason" maxlength="2000" class="hud-input" placeholder="Не читает ШК / АКБ / Разбит курок" value="Не сканирует / Требуется проверка АКБ" autocomplete="off">
-          </div>
-        </div>
-        <button type="button" class="btn-submit btn-return-action defect-btn" id="defBtn">ОТПРАВИТЬ В РЕМОНТ (ENTER)</button>
-      </div>
-    </div>
-  </section>
-
   <!-- ОПЕРАТИВНЫЙ РЕЕСТР ПАРКА СКАНЕРОВ -->
-  <section class="registry-deck">
+  <section class="registry-deck" id="fleetRegistry" aria-label="Реестр сканеров">
     <div class="print-act-header">
       <h2>АКТ ПРИЁМА-ПЕРЕДАЧИ ПАРКА СКАНЕРОВ (СЦ WILDBERRIES)</h2>
       <p id="printActMeta">Сформирован: —</p>
@@ -222,7 +248,7 @@
     <div class="reg-head">
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
         <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-main);">
-          РЕЕСТР СКАНЕРОВ
+          Парк сканеров
         </div>
         <div class="model-filter-group" id="modelFilterBar">
           <button type="button" class="mf-chip active" data-mfilter="all">Все сканеры <span class="mf-cnt" id="mcAll">0</span></button>
@@ -233,7 +259,7 @@
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
         <div class="reg-stats" id="regStats">Среднее время: — · Макс: —</div>
         <div class="search-wrap" id="searchWrap">
-          <input id="searchTable" class="hud-input mono search-input" placeholder="Поиск по SN, хвосту, бейджу (Ctrl+K)…" spellcheck="false">
+          <input id="searchTable" class="hud-input mono search-input" placeholder="Найти сканер или сотрудника…" spellcheck="false">
           <button type="button" class="search-clear-btn" id="searchClearBtn" title="Очистить фильтр поиска">✕</button>
         </div>
       </div>
@@ -242,12 +268,12 @@
     <div class="reg-wrap">
       <table>
         <thead><tr>
-          <th class="sortable" data-sort="serial" style="width:200px;">СЕРИЙНЫЙ НОМЕР <span class="sort-ind" id="sort-serial"></span></th>
-          <th class="sortable" data-sort="model" style="width:155px;">МОДЕЛЬ СКАНЕРА <span class="sort-ind" id="sort-model"></span></th>
-          <th class="sortable" data-sort="status" style="width:230px;">СТАТУС И СМЕНА <span class="sort-ind" id="sort-status"></span></th>
-          <th class="sortable" data-sort="holder" style="width:210px;">СОТРУДНИК (БЕЙДЖ) <span class="sort-ind" id="sort-holder"></span></th>
-          <th class="sortable" data-sort="time" style="text-align:right;">ВРЕМЯ В СМЕНЕ / ПРИМЕЧАНИЕ <span class="sort-ind" id="sort-time"></span></th>
-          <th style="text-align:right;width:165px;">БЫСТРЫЕ ДЕЙСТВИЯ</th>
+          <th class="sortable" data-sort="serial">СКАНЕР <span class="sort-ind" id="sort-serial"></span></th>
+          <th class="sortable" data-sort="model">МОДЕЛЬ <span class="sort-ind" id="sort-model"></span></th>
+          <th class="sortable" data-sort="status">СТАТУС <span class="sort-ind" id="sort-status"></span></th>
+          <th class="sortable" data-sort="holder">СОТРУДНИК <span class="sort-ind" id="sort-holder"></span></th>
+          <th class="sortable" data-sort="time" style="text-align:right;">ВРЕМЯ / ПРИМЕЧАНИЕ <span class="sort-ind" id="sort-time"></span></th>
+          <th style="text-align:right;">ДЕЙСТВИЯ</th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table>
@@ -259,6 +285,11 @@
       <div>Принял смену (ФИО / Подпись): ___________________________</div>
     </div>
 
+  </section>
+<section id="activityWorkspace" class="activity-workspace" hidden aria-label="История операций">
+  <div class="activity-toolbar"><div><h2>Последние операции</h2><p>Подтверждённые события и локальные операции этого поста</p></div><button type="button" class="btn-hud" id="refreshActivity">Обновить</button></div>
+  <p id="activityStatus" role="status"></p><div id="activityList"></div>
+</section>
     <div class="hotkeys-bar">
       <span id="logStatus">[SYSTEM] Терминал готов к конвейерному сканированию</span>
       <div class="hk-list">
@@ -271,8 +302,18 @@
         <span id="sessionStats" style="color:var(--brand-text);font-weight:700;">Сессия: 📤 0 · 📥 0 · 🛠 0</span>
       </div>
     </div>
-  </section>
-</div>
+<section id="ownerAuditWorkspace" class="activity-workspace" hidden>
+ <div class="activity-toolbar"><div><h2>Действия сотрудников</h2><p>ID оператора проверен PIN. Время получения записи фиксирует сервер.</p></div><button type="button" class="btn-hud" id="ownerAuditExport">Скачать CSV</button></div>
+ <div class="owner-filters"><label>ID оператора<input id="ownerAuditEmployee" class="hud-input mono" maxlength="45" placeholder="Все сотрудники"></label><label>С начала<input id="ownerAuditFrom" class="hud-input" type="datetime-local"></label><label>До<input id="ownerAuditTo" class="hud-input" type="datetime-local"></label><button type="button" class="btn-hud" id="refreshOwnerAudit">Показать</button></div>
+ <p id="ownerAuditError" role="alert"></p><div id="ownerAuditList"></div><button type="button" class="btn-hud" id="nextOwnerAudit" disabled>Ещё 100 записей</button>
+</section>
+<section id="operatorsWorkspace" class="activity-workspace" hidden>
+ <div class="activity-toolbar"><div><h2>Операторы и личные PIN</h2><p>Создатель добавляет сотрудников. PIN в журнале и списке не отображается.</p></div></div>
+ <form id="ownerOperatorForm" data-action="create" class="owner-operator-form"><label>ID сотрудника<input class="hud-input mono" id="managedEmployeeId" maxlength="45" required autocomplete="off"></label><label>Имя (необязательно)<input class="hud-input" id="managedEmployeeName" maxlength="100" autocomplete="off"></label><label>Новый PIN · 6–12 цифр<input class="hud-input mono" id="managedEmployeePin" type="password" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" required autocomplete="new-password"></label><button type="submit" class="btn-hud" id="saveManagedOperator">Добавить сотрудника</button></form>
+ <p id="managedOperatorError" role="alert"></p><div id="operatorList"></div>
+</section>
+<footer class="workspace-footer"><span><span class="mini-dot"></span> Общий пост · без входа</span><span><kbd>F1</kbd> Выдача <kbd>F2</kbd> Приёмка <kbd>F8</kbd> Режим поста</span></footer>
+</main>
 
 <!-- КРУПНЫЙ ТОСТ-ИНДИКАТОР С КНОПКОЙ ОТМЕНЫ -->
 <div id="toast" role="status" aria-live="polite"><div class="t-icon" id="tIcon">✓</div><div class="t-body"><h4 id="tTitle">ВЫДАНО</h4><p id="tDesc"></p></div></div>
@@ -390,11 +431,11 @@
 <div id="diagModal" class="modal-overlay">
   <div class="modal-card" style="max-width:560px;">
     <h3 style="font-size:14px;margin-bottom:10px;color:var(--brand-text);">⚡ ТЕЛЕМЕТРИЯ СИНХРОНИЗАЦИИ SUPABASE ⇄ INDEXEDDB</h3>
-    <button type="button" class="btn-hud" id="btnDownloadQueue">Скачать очередь</button><button type="button" class="btn-hud" id="btnResolveQueue">Согласовать с облаком</button>
+    <button type="button" class="btn-hud" id="btnDownloadQueue">Скачать очередь</button><button type="button" class="btn-hud" id="btnResolveQueue" data-owner-only hidden>Согласовать с облаком</button>
     <div id="diagContent" class="mono" style="font-size:12px;line-height:1.8;color:var(--text-sub);margin-bottom:14px;"></div>
     <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
       <button type="button" class="btn-hud" data-close-modal="diagModal">Закрыть</button>
-      <button type="button" class="btn-hud" id="btnHardReset" style="border-color:rgba(244,63,94,.4);color:var(--rose-text);">🔥 Сброс кэша</button>
+      <button type="button" class="btn-hud" id="btnHardReset" data-owner-only hidden style="border-color:rgba(244,63,94,.4);color:var(--rose-text);">🔥 Сброс кэша</button>
       <button type="button" class="btn-submit btn-issue" id="btnForceSync" style="width:auto;padding:6px 14px;">Форсировать sync</button>
     </div>
   </div>
@@ -433,12 +474,15 @@
 <p id="reportError" role="alert"></p>
 <div class="report-actions"><button type="button" id="btnReportExport" class="btn-hud">Скачать операции CSV</button><button type="button" id="btnFleetExport" class="btn-hud">Текущий парк CSV</button><button type="button" class="btn-hud" data-close-modal="reportModal">Закрыть</button></div>
 </div></div>
+<div id="commandModal" class="modal-overlay"><div class="modal-card command-card"><div class="command-heading"><h3>Быстрые команды</h3><button type="button" class="btn-hud" data-close-modal="commandModal">Esc</button></div><label class="sr-only" for="commandSearch">Поиск команды</label><input id="commandSearch" class="hud-input" placeholder="Что нужно сделать?" autocomplete="off"><div id="commandList"></div><p class="command-foot">↑ ↓ выбрать · Enter выполнить · Esc закрыть</p></div></div>
 <script src="core.js"></script>
+<script src="operators.js"></script>
 <script src="data.js"></script>
 <script src="connection.js"></script>
 <script src="backups.js"></script>
 <script src="reports.js"></script>
 <script src="ui.js"></script>
 <script src="app.js"></script>
+<script src="workspace.js"></script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const { PGlite } = require('@electric-sql/pglite');
+const { pgcrypto } = require('@electric-sql/pglite/contrib/pgcrypto');
 const fs = require('node:fs');
 let db;
 async function asClient(role='anon') { await db.exec('reset role'); await db.exec(`set role ${role}`); }
@@ -10,7 +11,7 @@ async function apply(id, changes) {
 }
 const change=(id,sn,before,after)=>({serial:sn,before,after:after&&{...after,version:`${id}:${sn}`},action:'Test operation',worker:'TEST-WORKER',ts:'2026-11-13T06:00:00Z'});
 before(async()=>{
-  db=new PGlite(); await db.exec('create role anon; create role authenticated;');
+  db=new PGlite({extensions:{pgcrypto}}); await db.exec('create role anon; create role authenticated;');
   for(const file of fs.readdirSync('supabase/migrations').filter(f=>f.endsWith('.sql')).sort()) await db.exec(fs.readFileSync('supabase/migrations/'+file,'utf8'));
   await db.query('insert into public.devices(serial,model,status,holder,version) values($1,$2,$3,$4,$5),($6,$2,$7,$8,$5)', ['TEST-A','Point Mobile','issued','TEST-WORKER','initial','TEST-B','free','']);
 });
@@ -64,7 +65,7 @@ test('removing a backup from the list does not erase its snapshot',async()=>{
   await asClient(); const files=(await db.query("select public.scanner_backup('list') as b")).rows[0].b;
   await db.query("select public.scanner_backup('delete',$1)",[files[0].name]);
   assert.ok(!(await db.query("select public.scanner_backup('list') as b")).rows[0].b.some(f=>f.name===files[0].name));
-  assert.equal((await db.query("select public.scanner_backup('download',$1) as b",[files[0].name])).rows[0].b.version,12);
+  assert.equal((await db.query("select public.scanner_backup('download',$1) as b",[files[0].name])).rows[0].b.version,14);
 });
 test('delta cursor returns changed records, tombstones and resets after database rollback',async()=>{
   await asClient();const first=(await db.query('select public.scanner_pull(0) as result')).rows[0].result;
