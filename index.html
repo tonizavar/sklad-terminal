@@ -4,17 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#07040e" id="metaThemeColor">
-<title>Учёт Сканеров • WB WMS Enterprise v11.0</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://sgpkvnymkqwuhepkaoxw.supabase.co; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta name="referrer" content="no-referrer">
+<title>Учёт Сканеров • WB WMS v12.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="vendor/supabase-2.119.0.js"></script>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
 <div class="boot-overlay" id="bootOverlay">
-  <div class="boot-logo">SKLAD-TERMINAL v11.0</div>
+  <div class="boot-logo">SKLAD-TERMINAL v12.0</div>
   <div class="boot-spinner"></div>
   <div class="boot-text" id="bootText">Инициализация промышленного терминала сканеров…</div>
 </div>
@@ -22,14 +23,14 @@
 <!-- ПОЛНОЭКРАННАЯ СВЕТОВАЯ ИНДИКАЦИЯ ОПЕРАЦИЙ ("В ОДИН ПИК") -->
 <div class="scan-flash-overlay" id="scanFlashOverlay"></div>
 
-<div class="app-shell">
+<div class="app-shell" id="appContent" inert>
   <header class="hud-header">
     <div class="brand-zone">
       <div id="brandTag" class="brand-logo-box mono" title="Тройной клик — сервисное меню удаления сканеров">WB</div>
       <div class="brand-title">
         <h1>
           Учёт Сканеров СЦ
-          <span class="version-pill">ENTERPRISE v11.0</span>
+          <span class="version-pill">v12.0</span>
           <span class="only-scanners-pill">ТОЛЬКО СКАНЕРЫ</span>
         </h1>
         <p>Конвейерная выдача и приёмка сканеров штрихкода «в 1 пик» • Облако + Офлайн IndexedDB</p>
@@ -46,6 +47,7 @@
         <span class="dot-ping"></span>
         <span id="syncText">Онлайн</span>
       </div>
+      <span id="syncDetail" class="sync-detail" role="status" aria-live="polite">Данные ещё не получены</span>
       <button type="button" class="btn-hud btn-debt" id="debtBtn" title="Список должников и история просрочек (>14ч)">
         🚨 Должники <span class="debt-badge" id="debtBadge">0</span>
       </button>
@@ -55,8 +57,8 @@
           <div class="menu-sec">Отчёты и сервис</div>
           <button type="button" class="menu-item" id="btnCopySummary" title="Скопировать сводку смены для Telegram/руководства">📋 Сводка смены</button>
           <button type="button" class="menu-item" id="btnPrintAct" title="Печать Акта приёма-передачи смены (Ctrl+P)">🖨️ Акт смены</button>
-          <button type="button" class="menu-item" id="btnExportCsv" title="Выгрузить отчёт за смену в CSV / Excel (Ctrl+E)">📊 CSV / Excel</button>
-          <button type="button" class="menu-item" id="btnOpenBackup" title="Облачные резервные копии парка">💾 Бэкап</button>
+          <button type="button" class="menu-item" id="btnExportCsv" title="Выбрать период отчёта (Ctrl+E)">📊 Отчёт по операциям</button>
+          <button type="button" class="menu-item" id="btnOpenBackup" title="Серверные резервные копии парка">💾 Бэкап</button>
           <button type="button" class="menu-item" id="btnOpenImport" title="Массовый импорт серийных номеров сканеров (Ctrl+I)">📥 Импорт</button>
           <div class="menu-sec">Оформление (Alt+T)</div>
           <div class="theme-switcher menu-themes">
@@ -144,7 +146,7 @@
               <span>1. Бейдж сотрудника (ID / ФИО)</span>
               <span style="color:var(--brand-text);font-size:9.5px;">Шаг 1</span>
             </label>
-            <input id="issWorker" class="hud-input mono" placeholder="Пикните бейдж (напр. 573613)…" autocomplete="off" spellcheck="false" maxlength="45">
+            <input id="issWorker" class="hud-input mono" placeholder="Пикните бейдж сотрудника…" autocomplete="off" spellcheck="false" maxlength="45">
             <div id="workerDrop" class="drop-box"></div>
           </div>
           <div class="hud-group">
@@ -202,10 +204,10 @@
               <span>Причина неисправности:</span>
               <span style="color:var(--text-muted);font-size:9.5px;">Для акта ремонта</span>
             </label>
-            <input id="defReason" class="hud-input" placeholder="Не читает ШК / АКБ / Разбит курок" value="Не сканирует / Требуется проверка АКБ" autocomplete="off">
+            <input id="defReason" maxlength="2000" class="hud-input" placeholder="Не читает ШК / АКБ / Разбит курок" value="Не сканирует / Требуется проверка АКБ" autocomplete="off">
           </div>
         </div>
-        <button type="button" class="btn-submit btn-return-action defect-btn" id="defBtn">ПЕРЕВЕСТИ В РЕМОНТ / ВЕРНУТЬ В СТРОЙ (ENTER)</button>
+        <button type="button" class="btn-submit btn-return-action defect-btn" id="defBtn">ОТПРАВИТЬ В РЕМОНТ (ENTER)</button>
       </div>
     </div>
   </section>
@@ -251,6 +253,7 @@
       </table>
     </div>
 
+    <nav class="pagination" aria-label="Страницы реестра"><button type="button" class="btn-hud" id="prevPage">← Назад</button><span id="pageLabel" role="status"></span><button type="button" class="btn-hud" id="nextPage">Далее →</button></nav>
     <div class="print-act-footer">
       <div>Сдал смену (ФИО / Подпись): ___________________________</div>
       <div>Принял смену (ФИО / Подпись): ___________________________</div>
@@ -272,7 +275,7 @@
 </div>
 
 <!-- КРУПНЫЙ ТОСТ-ИНДИКАТОР С КНОПКОЙ ОТМЕНЫ -->
-<div id="toast"><div class="t-icon" id="tIcon">✓</div><div class="t-body"><h4 id="tTitle">ВЫДАНО</h4><p id="tDesc"></p></div></div>
+<div id="toast" role="status" aria-live="polite"><div class="t-icon" id="tIcon">✓</div><div class="t-body"><h4 id="tTitle">ВЫДАНО</h4><p id="tDesc"></p></div></div>
 
 <!-- УНИВЕРСАЛЬНОЕ КАСТОМНОЕ МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ (ЗАМЕНА БЛОКИРУЮЩЕГО CONFIRM) -->
 <div id="confirmDialogModal" class="modal-overlay">
@@ -332,12 +335,12 @@
 <div id="auditOverlay" class="audit-overlay"></div>
 <div id="auditDrawer" class="audit-drawer">
   <div class="audit-header">
-    <div style="min-width:0;"><h3 id="audSn" class="mono">S24233523020052</h3><span id="audStatusBadge" class="badge-chip chip-free" style="margin-top:4px;">На складе</span></div>
+    <div style="min-width:0;"><h3 id="audSn" class="mono">—</h3><span id="audStatusBadge" class="badge-chip chip-free" style="margin-top:4px;">На складе</span></div>
     <button type="button" class="btn-hud" id="btnCloseAudit" style="padding:4px 8px;font-size:12px;min-width:auto;">✕ Закрыть</button>
   </div>
   <div class="barcode-card" id="audBarcodeCard" title="Клик — скопировать серийный номер сканера">
     <div class="barcode-bars"></div>
-    <div id="audBarcodeText" class="mono" style="font-size:11px;margin-top:5px;letter-spacing:0.25em;color:var(--text-sub);">S24233523020052</div>
+    <div id="audBarcodeText" class="mono" style="font-size:11px;margin-top:5px;letter-spacing:0.25em;color:var(--text-sub);">—</div>
   </div>
   <div class="audit-summary">
     <div class="summary-item"><label>Модель сканера:</label><b id="audModel">—</b></div>
@@ -387,6 +390,7 @@
 <div id="diagModal" class="modal-overlay">
   <div class="modal-card" style="max-width:560px;">
     <h3 style="font-size:14px;margin-bottom:10px;color:var(--brand-text);">⚡ ТЕЛЕМЕТРИЯ СИНХРОНИЗАЦИИ SUPABASE ⇄ INDEXEDDB</h3>
+    <button type="button" class="btn-hud" id="btnDownloadQueue">Скачать очередь</button><button type="button" class="btn-hud" id="btnResolveQueue">Согласовать с облаком</button>
     <div id="diagContent" class="mono" style="font-size:12px;line-height:1.8;color:var(--text-sub);margin-bottom:14px;"></div>
     <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
       <button type="button" class="btn-hud" data-close-modal="diagModal">Закрыть</button>
@@ -400,7 +404,7 @@
 <div id="delModal" class="modal-overlay">
   <div class="modal-card" style="max-width:640px;border-color:rgba(244,63,94,.4);">
     <h3 style="font-size:14px;margin-bottom:10px;color:var(--rose-text);">🗑 СПИСАНИЕ / УДАЛЕНИЕ СКАНЕРА ИЗ БАЗЫ</h3>
-    <p style="font-size:11.5px;color:var(--text-sub);margin-bottom:10px;">Удаляет сканер из локальной базы, очереди и облака Supabase.</p>
+    <p style="font-size:11.5px;color:var(--text-sub);margin-bottom:10px;">Списывает сканер из активного парка. История операций сохраняется.</p>
     <input id="delSearch" class="del-search" placeholder="Поиск по SN / модели / держателю…" autocomplete="off" spellcheck="false">
     <div id="delList" class="del-list"></div>
     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;"><button type="button" class="btn-hud" data-close-modal="delModal">Закрыть (Esc)</button></div>
@@ -410,8 +414,8 @@
 <!-- РЕЗЕРВНЫЕ КОПИИ -->
 <div id="backupModal" class="modal-overlay">
   <div class="modal-card" style="max-width:640px;">
-    <h3 style="font-size:14px;margin-bottom:6px;color:var(--brand-text);">💾 ОБЛАЧНЫЕ РЕЗЕРВНЫЕ КОПИИ ПАРКА</h3>
-    <p style="font-size:11.5px;color:var(--text-sub);margin-bottom:14px;">Автосохранение раз в сутки в Supabase Storage и возможность выгрузки JSON-слепка.</p>
+    <h3 style="font-size:14px;margin-bottom:6px;color:var(--brand-text);">💾 СЕРВЕРНЫЕ РЕЗЕРВНЫЕ КОПИИ ПАРКА</h3>
+    <p style="font-size:11.5px;color:var(--text-sub);margin-bottom:14px;">Ежедневные серверные снимки парка и журнала, хранение 30 суток. Для аварии самой базы нужен отдельный внешний бэкап.</p>
     <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
       <button type="button" class="btn-hud" id="btnCreateCloudBackup" style="border-color:var(--brand-1);color:var(--brand-text);">☁️ Создать облачный бэкап</button>
       <button type="button" class="btn-hud" id="btnDownloadJsonBackup">📥 Скачать JSON-бэкап на ПК</button>
@@ -422,6 +426,19 @@
   </div>
 </div>
 
+<div id="reportModal" class="modal-overlay"><div class="modal-card">
+<h3>Отчёт по операциям</h3><p>Выберите период до 31 суток. Отчёт включает подтверждённые облаком операции и авторов изменений.</p>
+<label for="reportStart">С начала (местное время)</label><input id="reportStart" type="datetime-local" class="hud-input">
+<label for="reportEnd">До (не включая)</label><input id="reportEnd" type="datetime-local" class="hud-input">
+<p id="reportError" role="alert"></p>
+<div class="report-actions"><button type="button" id="btnReportExport" class="btn-hud">Скачать операции CSV</button><button type="button" id="btnFleetExport" class="btn-hud">Текущий парк CSV</button><button type="button" class="btn-hud" data-close-modal="reportModal">Закрыть</button></div>
+</div></div>
+<script src="core.js"></script>
+<script src="data.js"></script>
+<script src="connection.js"></script>
+<script src="backups.js"></script>
+<script src="reports.js"></script>
+<script src="ui.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
