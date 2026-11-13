@@ -14,6 +14,16 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<section id="operatorPanel" class="operator-panel" role="dialog" aria-modal="true" aria-labelledby="operatorPanelTitle">
+ <form id="operatorLoginForm" class="operator-login-card" data-setup="false">
+  <div class="eyebrow">SKLAD / РАБОЧИЙ ПОСТ</div><h1 id="operatorPanelTitle">Кто работает за постом?</h1>
+  <p id="operatorPanelHint">Укажите свой ID и личный PIN. Получатель сканера указывается отдельно при выдаче.</p>
+  <label for="operatorEmployeeId">Ваш ID сотрудника</label><input id="operatorEmployeeId" class="hud-input mono" required maxlength="45" autocomplete="username" placeholder="Введите или сканируйте ID">
+  <label for="operatorPin">Личный PIN · 6–12 цифр</label><input id="operatorPin" class="hud-input mono" type="password" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" required autocomplete="current-password">
+  <div id="operatorSetupFields" hidden><label for="operatorPinConfirm">Повторите PIN</label><input id="operatorPinConfirm" class="hud-input mono" type="password" inputmode="numeric" minlength="6" maxlength="12" autocomplete="new-password"><label for="operatorSetupKey">Одноразовый ключ создателя</label><input id="operatorSetupKey" class="hud-input mono" type="password" autocomplete="off"></div>
+  <p id="operatorMessage" role="alert"></p><button id="operatorLoginBtn" type="submit" class="btn-submit">Начать работу</button>
+ </form>
+</section>
 <div class="boot-overlay" id="bootOverlay">
   <div class="boot-logo">SKLAD / TERMINAL</div>
   <div class="boot-spinner"></div>
@@ -32,19 +42,22 @@
     <button type="button" class="nav-item" data-view="activity"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11a8 8 0 1 1 2 6M4 5v6h6m2-4v5l3 2"/></svg><span>История операций</span></button>
   </nav>
   <button type="button" class="command-launcher" id="commandLauncher"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 9H6a2 2 0 1 1 2-2v10a2 2 0 1 1-2-2h12a2 2 0 1 1-2 2V7a2 2 0 1 1 2 2H8"/></svg><span>Быстрые команды<small>Ctrl + Space</small></span></button>
+  <button type="button" class="nav-item" data-view="ownerAudit" data-owner-only hidden>Журнал сотрудников</button>
+  <button type="button" class="nav-item" data-view="operators" data-owner-only hidden>Операторы и PIN</button>
   <div class="sidebar-spacer"></div>
   <div class="sidebar-note"><span class="sidebar-note-dot"></span>Работает и без интернета<small>Операции сохраняются на этом посту</small></div>
   <div class="sidebar-sync"><div class="sidebar-caption">СОСТОЯНИЕ ПОСТА</div>      <div id="syncStatus" class="pill-badge pill-online" title="Статус синхронизации БД и очереди">
         <span class="dot-ping"></span>
         <span id="syncText">Онлайн</span>
       </div>      <span id="syncDetail" class="sync-detail" role="status" aria-live="polite">Данные ещё не получены</span></div>
-  <div class="sidebar-footer"><span>SKLAD TERMINAL</span><span>13.0</span></div>
+  <div class="sidebar-footer"><span>SKLAD TERMINAL</span><span>14.0</span></div>
 </aside>
 
 <main class="app-shell" id="appContent" inert>
   <header class="hud-header">
     <div class="breadcrumb"><span>Операции</span><span class="breadcrumb-slash">/</span><strong id="workspaceBreadcrumb">Рабочий терминал</strong></div>
     <div class="hud-actions">
+      <div class="operator-badge" id="operatorBadge" hidden><span id="operatorBadgeText"></span><button type="button" id="operatorLogout" class="btn-hud">Сменить оператора</button></div>
       <button class="icon-button" id="soundToggle" type="button" aria-label="Выключить звуки" aria-pressed="false" title="Звуки операций"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 10 4 0 5-4v12l-5-4H4zM16 8a6 6 0 0 1 0 8"/></svg></button>
       <button class="btn-hud focus-toggle" id="focusToggle" type="button" aria-pressed="false" title="Режим поста (F8)"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg><span>Режим поста</span><kbd>F8</kbd></button>
       <div id="shiftPill" class="shift-pill day" title="Клик — переключить смену День/Ночь (F4)">
@@ -65,8 +78,8 @@
           <button type="button" class="menu-item" id="btnCopySummary" title="Скопировать сводку смены для Telegram/руководства">📋 Сводка смены</button>
           <button type="button" class="menu-item" id="btnPrintAct" title="Печать Акта приёма-передачи смены (Ctrl+P)">🖨️ Акт смены</button>
           <button type="button" class="menu-item" id="btnExportCsv" title="Выбрать период отчёта (Ctrl+E)">📊 Отчёт по операциям</button>
-          <button type="button" class="menu-item" id="btnOpenBackup" title="Серверные резервные копии парка">💾 Бэкап</button>
-          <button type="button" class="menu-item" id="btnOpenImport" title="Массовый импорт серийных номеров сканеров (Ctrl+I)">📥 Импорт</button>
+          <button type="button" class="menu-item" id="btnOpenBackup" data-owner-only hidden title="Серверные резервные копии парка">💾 Бэкап</button>
+          <button type="button" class="menu-item" id="btnOpenImport" data-owner-only hidden title="Массовый импорт серийных номеров сканеров (Ctrl+I)">📥 Импорт</button>
           <div class="menu-sec">Оформление (Alt+T)</div>
           <div class="theme-switcher menu-themes">
             <button type="button" class="t-btn active" data-set-theme="berry">Графит</button>
@@ -289,6 +302,16 @@
         <span id="sessionStats" style="color:var(--brand-text);font-weight:700;">Сессия: 📤 0 · 📥 0 · 🛠 0</span>
       </div>
     </div>
+<section id="ownerAuditWorkspace" class="activity-workspace" hidden>
+ <div class="activity-toolbar"><div><h2>Действия сотрудников</h2><p>ID оператора проверен PIN. Время получения записи фиксирует сервер.</p></div><button type="button" class="btn-hud" id="ownerAuditExport">Скачать CSV</button></div>
+ <div class="owner-filters"><label>ID оператора<input id="ownerAuditEmployee" class="hud-input mono" maxlength="45" placeholder="Все сотрудники"></label><label>С начала<input id="ownerAuditFrom" class="hud-input" type="datetime-local"></label><label>До<input id="ownerAuditTo" class="hud-input" type="datetime-local"></label><button type="button" class="btn-hud" id="refreshOwnerAudit">Показать</button></div>
+ <p id="ownerAuditError" role="alert"></p><div id="ownerAuditList"></div><button type="button" class="btn-hud" id="nextOwnerAudit" disabled>Ещё 100 записей</button>
+</section>
+<section id="operatorsWorkspace" class="activity-workspace" hidden>
+ <div class="activity-toolbar"><div><h2>Операторы и личные PIN</h2><p>Создатель добавляет сотрудников. PIN в журнале и списке не отображается.</p></div></div>
+ <form id="ownerOperatorForm" data-action="create" class="owner-operator-form"><label>ID сотрудника<input class="hud-input mono" id="managedEmployeeId" maxlength="45" required autocomplete="off"></label><label>Имя (необязательно)<input class="hud-input" id="managedEmployeeName" maxlength="100" autocomplete="off"></label><label>Новый PIN · 6–12 цифр<input class="hud-input mono" id="managedEmployeePin" type="password" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" required autocomplete="new-password"></label><button type="submit" class="btn-hud" id="saveManagedOperator">Добавить сотрудника</button></form>
+ <p id="managedOperatorError" role="alert"></p><div id="operatorList"></div>
+</section>
 <footer class="workspace-footer"><span><span class="mini-dot"></span> Общий пост · без входа</span><span><kbd>F1</kbd> Выдача <kbd>F2</kbd> Приёмка <kbd>F8</kbd> Режим поста</span></footer>
 </main>
 
@@ -408,11 +431,11 @@
 <div id="diagModal" class="modal-overlay">
   <div class="modal-card" style="max-width:560px;">
     <h3 style="font-size:14px;margin-bottom:10px;color:var(--brand-text);">⚡ ТЕЛЕМЕТРИЯ СИНХРОНИЗАЦИИ SUPABASE ⇄ INDEXEDDB</h3>
-    <button type="button" class="btn-hud" id="btnDownloadQueue">Скачать очередь</button><button type="button" class="btn-hud" id="btnResolveQueue">Согласовать с облаком</button>
+    <button type="button" class="btn-hud" id="btnDownloadQueue">Скачать очередь</button><button type="button" class="btn-hud" id="btnResolveQueue" data-owner-only hidden>Согласовать с облаком</button>
     <div id="diagContent" class="mono" style="font-size:12px;line-height:1.8;color:var(--text-sub);margin-bottom:14px;"></div>
     <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
       <button type="button" class="btn-hud" data-close-modal="diagModal">Закрыть</button>
-      <button type="button" class="btn-hud" id="btnHardReset" style="border-color:rgba(244,63,94,.4);color:var(--rose-text);">🔥 Сброс кэша</button>
+      <button type="button" class="btn-hud" id="btnHardReset" data-owner-only hidden style="border-color:rgba(244,63,94,.4);color:var(--rose-text);">🔥 Сброс кэша</button>
       <button type="button" class="btn-submit btn-issue" id="btnForceSync" style="width:auto;padding:6px 14px;">Форсировать sync</button>
     </div>
   </div>
@@ -453,6 +476,7 @@
 </div></div>
 <div id="commandModal" class="modal-overlay"><div class="modal-card command-card"><div class="command-heading"><h3>Быстрые команды</h3><button type="button" class="btn-hud" data-close-modal="commandModal">Esc</button></div><label class="sr-only" for="commandSearch">Поиск команды</label><input id="commandSearch" class="hud-input" placeholder="Что нужно сделать?" autocomplete="off"><div id="commandList"></div><p class="command-foot">↑ ↓ выбрать · Enter выполнить · Esc закрыть</p></div></div>
 <script src="core.js"></script>
+<script src="operators.js"></script>
 <script src="data.js"></script>
 <script src="connection.js"></script>
 <script src="backups.js"></script>

@@ -5,10 +5,13 @@ let commandIndex = 0;
 const workspaceViews = {
   terminal: { title: 'Рабочий терминал', eyebrow: 'ПОСТ ВЫДАЧИ И ПРИЁМКИ', description: 'Сканируйте бейдж, затем устройство. Выдача сохранится автоматически.' },
   fleet: { title: 'Парк сканеров', eyebrow: 'ОБОРУДОВАНИЕ И СОТРУДНИКИ', description: 'Найдите устройство, проверьте статус или откройте историю выдач.' },
+  ownerAudit:{title:'Действия сотрудников',eyebrow:'ЖУРНАЛ СОЗДАТЕЛЯ',description:'Кто, когда и что изменил. Фильтр по ID сотрудника и периоду.'},
+  operators:{title:'Операторы и PIN',eyebrow:'УПРАВЛЕНИЕ ДОСТУПОМ',description:'Добавляйте сотрудников и назначайте им личные PIN.'},
   activity: { title: 'История операций', eyebrow: 'ЖУРНАЛ РАБОЧЕГО ПОСТА', description: 'Выдачи, возвраты и ремонт — в одной последовательности событий.' }
 };
 function setWorkspaceView(view, { focus = false } = {}) {
   if (!workspaceViews[view]) return;
+  if(['ownerAudit','operators'].includes(view))requireOperator(true);
   if (view !== 'terminal' && document.body.classList.contains('focus-mode')) toggleFocusMode(false);
   workspaceView = view;
   const info = workspaceViews[view];
@@ -19,10 +22,14 @@ function setWorkspaceView(view, { focus = false } = {}) {
   $('workspaceDescription').textContent = info.description;
   $('workspaceBreadcrumb').textContent = info.title;
   $('terminalWorkspace').hidden = view !== 'terminal';
-  $('fleetRegistry').hidden = view === 'activity';
-  document.querySelector('.metrics-grid').hidden = view === 'activity';
+  $('fleetRegistry').hidden = !['terminal','fleet'].includes(view);
+  document.querySelector('.metrics-grid').hidden = !['terminal','fleet'].includes(view);
   document.querySelector('.telemetry-strip').hidden = view !== 'terminal';
   $('activityWorkspace').hidden = view !== 'activity';
+  $('ownerAuditWorkspace').hidden=view!=='ownerAudit';
+  $('operatorsWorkspace').hidden=view!=='operators';
+  if(view==='ownerAudit')refreshOwnerAudit();
+  if(view==='operators')loadOperatorList();
   document.querySelector('.terminal-ready').hidden = view !== 'terminal';
   document.querySelectorAll('[data-view]').forEach(button => {
     const active = button.dataset.view === view;
@@ -69,14 +76,14 @@ const workspaceCommands = [
   { name: 'История последних операций', keywords: 'журнал события', key: '', run: () => setWorkspaceView('activity', { focus: true }) },
   { name: 'Включить / выключить режим поста', keywords: 'фокус экран', key: 'F8', run: () => toggleFocusMode() },
   { name: 'Отчёт по операциям', keywords: 'csv excel период', key: 'Ctrl E', run: () => exportExcel() },
-  { name: 'Резервные копии', keywords: 'бэкап восстановление', key: '', run: () => openBackupModal() },
-  { name: 'Импорт сканеров', keywords: 'добавить загрузить', key: 'Ctrl I', run: () => { openModal('impModal'); $('impText').focus(); } },
+  { ownerOnly:true,name: 'Резервные копии', keywords: 'бэкап восстановление', key: '', run: () => openBackupModal() },
+  { ownerOnly:true,name: 'Импорт сканеров', keywords: 'добавить загрузить', key: 'Ctrl I', run: () => { openModal('impModal'); $('impText').focus(); } },
   { name: 'Очередь и синхронизация', keywords: 'офлайн конфликты диагностика', key: '', run: () => showDiag() },
-  { name: 'Списание сканера', keywords: 'удалить обслуживание', key: '', run: () => openDeleteModal() }
+  { ownerOnly:true,name: 'Списание сканера', keywords: 'удалить обслуживание', key: '', run: () => openDeleteModal() }
 ];
 function filteredCommands() {
   const query = $('commandSearch').value.trim().toLocaleLowerCase('ru');
-  return workspaceCommands.filter(c => `${c.name} ${c.keywords}`.toLocaleLowerCase('ru').includes(query));
+  return workspaceCommands.filter(c => (!c.ownerOnly||operatorContext.profile?.role==='owner') && `${c.name} ${c.keywords}`.toLocaleLowerCase('ru').includes(query));
 }
 function renderCommands() {
   const commands = filteredCommands();
@@ -108,7 +115,7 @@ async function refreshActivity() {
     let remote = [], errorMessage = '';
     if (cloud && navigator.onLine) {
       try {
-        const { data, error } = await withTimeout(cloud.from('movements').select('id,event_id,serial,action,worker,created_at,terminal_id').order('id', { ascending: false }).limit(50), NET_TIMEOUT_MS, 'журнал');
+        const { data, error } = await withTimeout(cloud.from('movements').select('id,event_id,serial,action,worker,created_at,terminal_id,operator_employee_id').order('id', { ascending: false }).limit(50), NET_TIMEOUT_MS, 'журнал');
         if (error) throw error;
         remote = data || [];
       } catch (error) { errorMessage = error.message; }
@@ -124,7 +131,7 @@ async function refreshActivity() {
       const time = new Date(row.created_at);
       const waiting = pending.has(row.event_id || row.moveId);
       const validTime = Number.isFinite(time.getTime());
-      return `<div class="activity-row"><time>${validTime ? esc(time.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })) : '—'}</time><div>${esc(row.action || 'Операция')}<small>${validTime ? esc(time.toLocaleDateString('ru-RU')) : 'Время не указано'} · <span class="${waiting ? 'activity-pending' : ''}">${waiting ? 'ожидает отправки' : row.event_id ? 'подтверждено облаком' : 'локальная запись'}</span></small></div><div class="mono">${esc(row.serial || '—')}</div><div>${esc(row.worker || 'Без сотрудника')}</div></div>`;
+      return `<div class="activity-row"><time>${validTime ? esc(time.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })) : '—'}</time><div>${esc(row.action || 'Операция')}<small>${validTime ? esc(time.toLocaleDateString('ru-RU')) : 'Время не указано'} · <span class="${waiting ? 'activity-pending' : ''}">${waiting ? 'ожидает отправки' : row.event_id ? 'подтверждено облаком' : 'локальная запись'}</span></small></div><div class="mono">${esc(row.serial || '—')}</div><div>${esc(row.worker || 'Без сотрудника')}<small>Оператор: ${esc(row.operator_employee_id||'автор не указан')}</small></div></div>`;
     }).join('') : '<p class="debt-empty-modal">Операций пока нет. После первой выдачи здесь появится запись.</p>';
     status.textContent = errorMessage ? `Показан журнал этого поста. Облачный журнал недоступен: ${errorMessage}` : !navigator.onLine ? 'Офлайн · показан сохранённый журнал этого поста' : `Последние события: ${rows.length}. Полный отчёт доступен в сервисном меню.`;
   } catch (error) { if (request === activityRequest) status.textContent = `Не удалось загрузить журнал: ${error.message}`; }
@@ -150,6 +157,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (event.target.closest('[data-action="issue"]')) setWorkspaceView('terminal');
   }, true);
   document.addEventListener('keydown', event => {
+    if(!operatorActive())return;
     const modal = document.querySelector('.modal-overlay.show');
     if (event.ctrlKey && event.code === 'Space') {
       event.preventDefault(); event.stopImmediatePropagation();
