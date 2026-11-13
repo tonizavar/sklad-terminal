@@ -2,7 +2,7 @@
 const operatorContext = { profile: null, token: null, key: null, saving: 0, timer: null };
 let operatorSetupToken = '';
 let ownerAuditCursor = null;
-const OPERATOR_ACTIONS = { login:'Вход', logout:'Выход', logout_offline:'Выход на устройстве без сети', owner_setup:'Настройка создателя', issue:'Выдача', return:'Приёмка', repair:'Ремонт', repair_complete:'Возврат из ремонта', retire:'Списание', register:'Регистрация сканера', device_update:'Изменение устройства', device_operation:'Операция с устройством', operator_create:'Добавление оператора', operator_reset_pin:'Сброс PIN', operator_disable:'Отключение оператора', operator_enable:'Включение оператора', report_export:'Экспорт отчёта', fleet_export:'Экспорт парка', print_act:'Печать акта', queue_reconciliation:'Согласование очереди', cache_refresh:'Перезагрузка кэша', backup_create:'Создание копии', backup_list:'Просмотр копий', backup_download:'Скачивание копии', backup_delete:'Скрытие копии' };
+const OPERATOR_ACTIONS = { login:'Вход', logout:'Выход', logout_offline:'Выход на устройстве без сети', owner_setup:'Настройка создателя', operator_register:'Самостоятельная регистрация', issue:'Выдача', return:'Приёмка', repair:'Ремонт', repair_complete:'Возврат из ремонта', retire:'Списание', register:'Регистрация сканера', device_update:'Изменение устройства', device_operation:'Операция с устройством', operator_create:'Добавление оператора', operator_reset_pin:'Сброс PIN', operator_disable:'Отключение оператора', operator_enable:'Включение оператора', report_export:'Экспорт отчёта', fleet_export:'Экспорт парка', print_act:'Печать акта', queue_reconciliation:'Согласование очереди', cache_refresh:'Перезагрузка кэша', backup_create:'Создание копии', backup_list:'Просмотр копий', backup_download:'Скачивание копии', backup_delete:'Скрытие копии' };
 function operatorActive() { return Boolean(operatorContext.profile && operatorContext.token && Date.parse(operatorContext.profile.expires_at)>Date.now()); }
 function requireOperator(owner = false) {
   if (!operatorActive()) { lockOperator(); throw new Error('Укажите ID оператора и личный PIN'); }
@@ -45,9 +45,21 @@ function lockOperator(message='') {
   $('operatorPin').value='';$('operatorMessage').textContent=message;
   updateOperatorUI();setTimeout(()=>$('operatorEmployeeId').focus(),0);
 }
+function setOperatorMode(mode) {
+  if(!['login','register','setup'].includes(mode))return;
+  const creating=mode!=='login',setup=mode==='setup';
+  $('operatorLoginForm').dataset.mode=mode;$('operatorLoginForm').dataset.setup=String(setup);
+  $('operatorSetupFields').hidden=!creating;$('operatorPinConfirm').required=creating;
+  $('operatorOwnerKeyFields').hidden=!setup;$('operatorSetupKey').required=setup;
+  $('operatorPin').autocomplete=creating?'new-password':'current-password';
+  $('operatorPanelTitle').textContent=setup?'Настройка создателя':creating?'Первый раз за постом?':'Кто работает за постом?';
+  $('operatorPanelHint').textContent=setup?'Создатель задаёт свой первый PIN с одноразовым ключом настройки.':creating?'Укажите свой ID сотрудника и придумайте личный PIN. После регистрации можно сразу работать.':'Укажите свой ID и личный PIN. Получатель сканера указывается отдельно при выдаче.';
+  $('operatorLoginBtn').textContent=setup?'Задать PIN и начать работу':creating?'Создать PIN и начать работу':'Начать работу';
+  document.querySelectorAll('[data-operator-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.operatorMode===mode)));
+  $('operatorPin').value='';$('operatorPinConfirm').value='';$('operatorMessage').textContent='';
+}
 async function acceptOperatorSession(data) {
-  $('operatorLoginForm').dataset.setup='false';$('operatorSetupFields').hidden=true;$('operatorPinConfirm').required=false;$('operatorSetupKey').required=false;
-  $('operatorPanelTitle').textContent='Кто работает за постом?';$('operatorLoginBtn').textContent='Начать работу';
+  setOperatorMode('login');$('operatorOwnerSetup').hidden=true;
   if(!data.profile || !data.token)throw new Error('Сервер не подтвердил оператора');
   operatorContext.profile=data.profile;operatorContext.token=data.token;
   operatorContext.key=await operatorSigningKey(data.token);
@@ -59,21 +71,26 @@ async function acceptOperatorSession(data) {
 function readOperatorSetupFragment() {
   const fragment=new URLSearchParams(location.hash.slice(1));
   operatorSetupToken=fragment.get('setup')||'';
-  if(operatorSetupToken){history.replaceState(null,'',location.pathname+location.search);$('operatorSetupKey').value=operatorSetupToken;}
+  if(operatorSetupToken){history.replaceState(null,'',location.pathname+location.search);$('operatorSetupKey').value=operatorSetupToken;if(!operatorContext.profile)setOperatorMode('setup');}
 }
 async function initOperatorAccess() {
   readOperatorSetupFragment();
   window.addEventListener('hashchange',readOperatorSetupFragment);
+  document.querySelectorAll('[data-operator-mode]').forEach(button=>button.addEventListener('click',()=>setOperatorMode(button.dataset.operatorMode)));
+  $('operatorOwnerSetup').addEventListener('click',()=>setOperatorMode('setup'));
   $('operatorLoginForm').addEventListener('submit',async event=>{
     event.preventDefault();const button=$('operatorLoginBtn');button.disabled=true;$('operatorMessage').textContent='';
     try{
-      const setup=$('operatorLoginForm').dataset.setup==='true';
-      if(setup && $('operatorPin').value!==$('operatorPinConfirm').value)throw new Error('Повторный PIN не совпадает');
+      const mode=$('operatorLoginForm').dataset.mode||'login',setup=mode==='setup';
+      if(mode!=='login' && $('operatorPin').value!==$('operatorPinConfirm').value)throw new Error('Повторный PIN не совпадает');
       const args={p_employee_id:$('operatorEmployeeId').value.trim(),p_pin:$('operatorPin').value,p_terminal:terminalId()};
       if(setup)args.p_setup_token=$('operatorSetupKey').value.trim();
-      const result=await operatorRpc(setup?'scanner_operator_setup':'scanner_operator_login',args);
+      const result=await operatorRpc(setup?'scanner_operator_setup':mode==='register'?'scanner_operator_register':'scanner_operator_login',args);
       $('operatorPin').value='';$('operatorPinConfirm').value='';
-      if(result.status!=='ok')throw new Error(result.status==='locked'?'Слишком много попыток. Повторите через 15 минут.':result.status==='setup_denied'?'Проверьте ID создателя и одноразовый ключ настройки.':'Неверный ID или PIN.');
+      if(result.status!=='ok'){
+        const messages={locked:'Слишком много попыток. Повторите через 15 минут.',exists:'Этот ID уже зарегистрирован. Перейдите во «Вход» и введите свой PIN.',reserved:'Этот ID закреплён за создателем. Используйте вкладку «Вход».',owner_required:'Создатель должен сначала настроить свой доступ.',invalid_pin:'PIN должен содержать от 6 до 12 цифр.',invalid:'Проверьте ID и PIN. ID: 2–45 латинских букв, цифр, точка, дефис или подчёркивание.',setup_denied:'Проверьте ID создателя и одноразовый ключ настройки.'};
+        throw new Error(mode==='login'&&result.status==='invalid'?'Неверный ID или PIN.':messages[result.status]||'Не удалось подтвердить доступ.');
+      }
       operatorSetupToken='';$('operatorSetupKey').value='';await acceptOperatorSession(result);
     }catch(error){$('operatorMessage').textContent=error.message;}finally{button.disabled=false;}
   });
@@ -81,7 +98,7 @@ async function initOperatorAccess() {
     if(state.opLock || operatorContext.saving){showToast('ПОДОЖДИТЕ','Операция ещё сохраняется','warn');return;}
     const session=operatorContext.profile?.session_id;
     try{if(navigator.onLine)await operatorRpc('scanner_operator_logout');else await recordOperatorAction('logout_offline',{offline:true});}catch(_){await recordOperatorAction('logout_offline',{offline:true});}
-    lockOperator('Сеанс завершён. Следующий сотрудник вводит свой ID и PIN.');
+    setOperatorMode('login');lockOperator('Сеанс завершён. Следующий сотрудник вводит свой ID и PIN.');
     tabChannel?.postMessage({type:'operator_logout',session});
   });
   $('ownerOperatorForm').addEventListener('submit',saveManagedOperator);
@@ -100,13 +117,9 @@ async function initOperatorAccess() {
   }
   lockOperator();
   try{
-    const status=await operatorRpc('scanner_operator_status');const setup=!status.configured;
-    $('operatorLoginForm').dataset.setup=String(setup);
-    $('operatorSetupFields').hidden=!setup;
-    $('operatorSetupKey').required=setup;$('operatorPinConfirm').required=setup;
-    $('operatorPanelTitle').textContent=setup?'Настройка создателя':'Кто работает за постом?';
-    $('operatorPanelHint').textContent=setup?'Создатель задаёт свой первый PIN с одноразовым ключом настройки.':'Укажите свой ID и личный PIN. Получатель сканера указывается отдельно при выдаче.';
-    $('operatorLoginBtn').textContent=setup?'Задать PIN и начать работу':'Начать работу';
+    const status=await operatorRpc('scanner_operator_status');
+    $('operatorOwnerSetup').hidden=status.configured;
+    setOperatorMode(operatorSetupToken?'setup':'login');
   }catch(error){$('operatorMessage').textContent=`Для входа нужно облако: ${error.message}`;}
 }
 async function recordOperatorAction(action,details={}) {

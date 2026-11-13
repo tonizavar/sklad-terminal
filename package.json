@@ -1,11 +1,11 @@
 {
   "name": "sklad-terminal",
-  "version": "14.0.0",
+  "version": "15.0.0",
   "private": true,
   "scripts": {
     "test": "node --test tests/*.test.cjs",
     "test:browser": "playwright test",
-    "check": "node --check app.js && node --check core.js && node --check data.js && node --check connection.js && node --check backups.js && node --check reports.js && node --check ui.js && node --check sw.js && node --check workspace.js && node --check operators.js"
+    "check": "node --check app.js && node --check core.js && node --check data.js && node --check connection.js && node --check backups.js && node --check reports.js && node --check ui.js && node --check sw.js && node --check workspace.js && node --check operators.js && node --check themes.js"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.16",
