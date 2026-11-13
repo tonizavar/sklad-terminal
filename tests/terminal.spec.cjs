@@ -26,7 +26,7 @@ async function setup(page,{role='admin',count=2}={}){
  await page.goto('/');
  return {backend,errors};
 }
-async function login(page){await expect(page.locator('#appContent')).not.toHaveAttribute('inert','');await expect(page.locator('#syncText')).toHaveText('Подтверждено облаком');}
+async function login(page){await expect(page.locator('#appContent')).not.toHaveAttribute('inert','');await expect(page.locator('#syncText')).toHaveText('Подтверждено облаком');await expect(page.locator('#bootOverlay')).toHaveCount(0);}
 test('clean boot opens directly without login or embedded employee data',async({page})=>{
  const {errors}=await setup(page);await login(page);await expect(page.locator('input[type=password]')).toHaveCount(0);await expect(page.locator('#mTotal')).toHaveText('2');expect(errors).toEqual([]);
 });
@@ -101,4 +101,37 @@ test('legacy SN; inventory remains visible and returnable',async({page})=>{
  await page.evaluate(()=>syncNow());await expect(page.locator('#mTotal')).toHaveText('3');
  await page.locator('#retQuery').fill('SN;TEST-LEGACY-001');await page.locator('#retQuery').press('Enter');await expect(page.locator('#tTitle')).toContainText('ПРИНЯТ');
  await page.evaluate(()=>syncNow());expect(backend.devices.find(d=>d.serial==='SN;TEST-LEGACY-001').status).toBe('free');
+});
+test('workspace navigation preserves a partially entered issue and keyboard routes',async({page})=>{
+ await setup(page);await login(page);await page.locator('#issWorker').fill('TEST-DRAFT');
+ await page.locator('[data-view="fleet"]').click();await expect(page.locator('#terminalWorkspace')).toBeHidden();await expect(page.locator('#searchTable')).toBeFocused();
+ await page.keyboard.press('F2');await expect(page.locator('#terminalWorkspace')).toBeVisible();await expect(page.locator('#retQuery')).toBeFocused();await expect(page.locator('#issWorker')).toHaveValue('TEST-DRAFT');
+ await page.keyboard.press('Control+k');await expect(page.locator('#searchTable')).toBeFocused();
+});
+test('command search executes by keyboard without submitting the issue form',async({page})=>{
+ const {backend}=await setup(page);await login(page);await page.keyboard.press('Control+Space');await expect(page.locator('#commandModal')).toBeVisible();
+ await page.locator('#commandSearch').fill('принять');await expect(page.locator('.command-result')).toHaveCount(1);await page.locator('#commandSearch').press('Enter');
+ await expect(page.locator('#commandModal')).toBeHidden();await expect(page.locator('#retQuery')).toBeFocused();expect(backend.operations).toHaveLength(0);
+});
+test('focus mode enlarges the work area and escape restores panels without clearing inputs',async({page})=>{
+ await setup(page);await login(page);await page.locator('#issWorker').fill('TEST-DRAFT');await page.keyboard.press('F8');
+ await expect(page.locator('.workspace-sidebar')).toBeHidden();await expect(page.locator('#fleetRegistry')).toBeHidden();await expect(page.locator('#terminalWorkspace')).toBeVisible();
+ await page.keyboard.press('Escape');await expect(page.locator('.workspace-sidebar')).toBeVisible();await expect(page.locator('#fleetRegistry')).toBeVisible();await expect(page.locator('#issWorker')).toHaveValue('TEST-DRAFT');
+});
+test('sound preference survives reload',async({page})=>{
+ await setup(page);await login(page);await page.locator('#soundToggle').click();await expect(page.locator('#soundToggle')).toHaveAttribute('aria-pressed','true');await page.reload();await login(page);await expect(page.locator('#soundToggle')).toHaveAttribute('aria-pressed','true');
+});
+test('history shows unsent local operations with a pending label',async({page,context})=>{
+ await setup(page);await login(page);await context.setOffline(true);
+ await page.locator('#issWorker').fill('TEST-WORKER');await page.locator('#issSn').fill('TEST-A');await page.locator('#btnIssue').click();await expect(page.locator('#toast .t-undo')).toBeVisible();
+ await page.locator('[data-view="activity"]').click();await expect(page.locator('#activityList')).toContainText('TEST-A');await expect(page.locator('.activity-pending')).toContainText('ожидает отправки');await expect(page.locator('#activityStatus')).toContainText('Офлайн');
+});
+test('design review screenshots use synthetic inventory only',async({page})=>{
+ await page.setViewportSize({width:1440,height:1000});
+ const {backend,errors}=await setup(page);await login(page);
+ backend.devices=Array.from({length:24},(_,i)=>({...fixture()[0],serial:`DEMO-${String(100001+i)}`,model:i%3===0?'Zebra RS5100':'Point Mobile',status:i%7===0?'repair':i%3===0?'issued':'free',holder:i%7!==0&&i%3===0?`DEMO-${2000+i}`:'',issued_at:i%7!==0&&i%3===0?new Date(Date.now()-i*25*60000).toISOString():null,shift:i%2?'Дневная':'Ночная',defect:i%7===0?'Проверка аккумулятора':''}));
+ await page.evaluate(()=>syncNow());await page.screenshot({path:'test-results/terminal-v13-desktop.png',fullPage:false});
+ await page.keyboard.press('F8');await page.screenshot({path:'test-results/terminal-v13-focus.png',fullPage:false});await page.keyboard.press('Escape');
+ await page.keyboard.press('Control+Space');await page.screenshot({path:'test-results/terminal-v13-commands.png',fullPage:false});await page.keyboard.press('Escape');
+ await page.setViewportSize({width:390,height:844});await page.screenshot({path:'test-results/terminal-v13-mobile.png',fullPage:false});expect(errors).toEqual([]);
 });

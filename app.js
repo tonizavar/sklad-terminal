@@ -26,13 +26,13 @@ const SYNC_BASE_INTERVAL = 20000;
 const SYNC_MAX_INTERVAL = 300000;
 const THEMES = ['berry', 'sapphire', 'carbon', 'quartz'];
 const THEME_NAMES = {
-  berry: '🔮 WB Berry (Корпоративная)',
-  sapphire: '💎 Сапфир (Executive Dark)',
-  carbon: '🌑 Карбон (Высокий контраст)',
-  quartz: '☀️ Светлая (Дневной пост)'
+  berry: 'Графит',
+  sapphire: 'Синий',
+  carbon: 'Контрастный',
+  quartz: 'Светлый'
 };
 const THEME_META_COLORS = {
-  berry: '#07040e',
+  berry: '#121416',
   sapphire: '#060812',
   carbon: '#090a0d',
   quartz: '#eef2f6'
@@ -533,6 +533,7 @@ async function toggleDeviceShift(sn) {
 /* ===== АУДИО- И ВИБРО-ИНДИКАЦИЯ ОПЕРАТОРА ===== */
 let audioCtx = null;
 function beep(type) {
+  if (state.soundMuted) return;
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -818,7 +819,7 @@ function setRightMode(mode) {
   if (state.rightMode === 'defect') {
     card.classList.add('defect-mode');
     titleEl.style.color = 'var(--amber-text)';
-    titleText.innerText = 'ПЕРЕВОД СКАНЕРА В БРАК / РЕМОНТ';
+    titleText.innerText = 'Отправить в ремонт';
     tabRet.className = 'mode-tab';
     tabDef.className = 'mode-tab active-def';
     paneRet.style.display = 'none';
@@ -827,7 +828,7 @@ function setRightMode(mode) {
   } else {
     card.classList.remove('defect-mode');
     titleEl.style.color = 'var(--emerald-text)';
-    titleText.innerText = 'ПРИЁМКА В 1 ПИК';
+    titleText.innerText = 'Принять сканер';
     tabRet.className = 'mode-tab active-ret';
     tabDef.className = 'mode-tab';
     paneRet.style.display = 'flex';
@@ -846,7 +847,7 @@ function updateIssBanner(fixedQuery) {
     banner.className = 'sn-live-banner';
     banner.innerHTML = '';
     inp.classList.remove('warn-busy');
-    $('modelHint').innerText = "F1 • Бейдж ➔ Сканер ➔ Авто-выдача";
+    $('modelHint').innerText = "F1 · Выдача";
     return;
   }
   const exact = state.devices.find(d => d.serial.toUpperCase() === q);
