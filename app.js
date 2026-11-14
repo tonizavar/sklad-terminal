@@ -115,7 +115,7 @@ function askConfirmDialog(title, message, okLabel = 'Подтвердить (Ent
     $('confirmDialogMessage').innerText = message || '';
     $('confirmDialogOkBtn').innerText = okLabel;
     openModal('confirmDialogModal');
-    setTimeout(() => $('confirmDialogOkBtn')?.focus(), 50);
+    $('confirmDialogCancelBtn').focus();
   });
 }
 function resolveConfirmDialog(result) {
@@ -239,7 +239,7 @@ function withTimeout(promise, ms, label) {
   const request = controller ? promise.abortSignal(controller.signal) : promise;
   const timeout = new Promise((_, reject) => {
     timer = setTimeout(() => {
-      reject(new Error(`⏱ Таймаут: ${label} (${ms}мс)`));
+      reject(Object.assign(new Error(`⏱ Таймаут: ${label} (${ms}мс)`), {code:'TIMEOUT'}));
       controller?.abort();
     }, ms);
   });
@@ -767,6 +767,8 @@ function clearAllInputsAndFocus() {
   $('issSn').value = '';
   $('retQuery').value = '';
   $('defSn').value = '';
+  $('defReason').value = $('defReason').defaultValue;
+  state.pendingSwap = null;
   $('issWorker').classList.remove('err');
   $('issSn').classList.remove('err', 'warn-busy');
   $('retQuery').classList.remove('err');
@@ -909,7 +911,7 @@ function handleIssSnInput() {
     if (aFree !== bFree) return aFree - bFree;
     return sa.localeCompare(sb);
   });
-  if (allMatches.length === 1 && allMatches[0].serial.toUpperCase() === fixed) {
+  if (allMatches.some(device => device.serial.toUpperCase() === fixed)) {
     resetIssueDropdown();
     state.lastDropQuery = fixed;
     return;
@@ -1134,9 +1136,9 @@ async function submitIssue() {
     showToastWithAction(
       'ОШИБКА: УСТРОЙСТВО В РЕМОНТЕ',
       `Сканер ${sn} заблокирован (${dev.defect || 'неисправен'})`,
-      '✅ Вернуть в строй и выдать',
+      '✅ Вернуть в строй',
       async () => {
-        await toggleDeviceRepair(sn);
+        if (!await toggleDeviceRepair(sn)) return;
         $('issSn').value = sn;
         $('issWorker').value = worker;
       },
@@ -1650,13 +1652,14 @@ async function submitDefectForm() {
     showToast('СКАНЕР НЕ НАЙДЕН', `По запросу «${rawSn}» устройство не найдено`, 'err');
     return;
   }
-  await toggleDeviceRepair(target.serial, reason, 'repair');
-  $('defSn').value = '';
-  $('defSn').focus();
+  if (await toggleDeviceRepair(target.serial, reason, 'repair')) {
+    $('defSn').value = '';
+    $('defReason').value = $('defReason').defaultValue;
+    $('defSn').focus();
+  }
 }
 
 async function toggleDeviceRepair(sn, customReason, desiredStatus) {
-  if (isSerialInCooldown(sn)) return;
   if (state.opLock) return;
   const dev = state.devices.find(d => d.serial === sn);
   if (!dev) return;
@@ -1664,8 +1667,20 @@ async function toggleDeviceRepair(sn, customReason, desiredStatus) {
   const ts = nowIso();
   const isCurrentlyRepair = dev.status === 'repair';
   if (desiredStatus === 'repair' && isCurrentlyRepair) { showToast('УЖЕ В РЕМОНТЕ', sn, 'warn'); return; }
+  if (!isCurrentlyRepair && !desiredStatus) {
+    closeAuditDrawer();
+    setWorkspaceView('terminal');
+    setRightMode('defect');
+    $('defSn').value = sn;
+    $('defReason').value = $('defReason').defaultValue;
+    $('defReason').focus();
+    return;
+  }
   if (isCurrentlyRepair && !await askConfirmDialog('Возврат в строй', `Подтвердите, что сканер ${sn} проверен и исправен.`, 'Вернуть в строй')) return;
-  if (dev.version !== state.devices.find(d => d.serial === sn)?.version) return;
+  if (state.opLock || dev.version !== state.devices.find(d => d.serial === sn)?.version) {
+    showToast('СОСТОЯНИЕ ИЗМЕНИЛОСЬ', 'Проверьте сканер и повторите операцию', 'warn');
+    return;
+  }
   const prevHolder = dev.holder || '';
   const reason = customReason || $('defReason')?.value.trim() || 'Требуется диагностика / ремонт';
 
@@ -1698,6 +1713,7 @@ async function toggleDeviceRepair(sn, customReason, desiredStatus) {
     );
     logMsg(`🛠 СТАТУС РЕМОНТА: ${sn} — ${actionLabel}`);
     if (state.auditSn === sn) openAudit(sn);
+    return true;
   } catch(e) {
     beep('err');
     showToast('ОШИБКА', e.message || '?', 'err');
@@ -1750,6 +1766,9 @@ function openDebtModal() {
 
 function showAllDebtsInTable() {
   closeModal('debtModal');
+  setWorkspaceView('fleet');
+  state.modelFilter = 'all';
+  document.querySelectorAll('[data-mfilter]').forEach(button => button.classList.toggle('active', button.dataset.mfilter === 'all'));
   document.querySelectorAll('.kpi-card').forEach(x => x.classList.remove('active'));
   const card = document.querySelector('.kpi-card[data-filter="overdue"]');
   if (card) card.classList.add('active');
@@ -1760,6 +1779,9 @@ function showAllDebtsInTable() {
 }
 
 function filterByHolder(holder) {
+  if (workspaceView !== 'terminal' && workspaceView !== 'fleet') setWorkspaceView('fleet');
+  state.modelFilter = 'all';
+  document.querySelectorAll('[data-mfilter]').forEach(button => button.classList.toggle('active', button.dataset.mfilter === 'all'));
   $('searchTable').value = holder;
   updateSearchWrap();
   state.filter = 'all';
@@ -1904,7 +1926,7 @@ function renderTable() {
     $('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:42px;color:var(--text-muted);font-size:13px;">Сканеры по выбранному фильтру не найдены</td></tr>';
     return;
   }
-  const visible = state.printing ? filtered : filtered.slice(state.tablePage * PAGE_SIZE, (state.tablePage + 1) * PAGE_SIZE);
+  const visible = filtered.slice(state.tablePage * PAGE_SIZE, (state.tablePage + 1) * PAGE_SIZE);
   const html = visible.map(d => renderRow(d)).join('');
   const body = $('tbody');
   if (html !== body.innerHTML) {
@@ -1997,6 +2019,8 @@ async function openAudit(sn) {
   const dev = state.devices.find(d => d.serial === sn);
   if (!dev) return;
   state.auditSn = sn;
+  const tl = $('audTimeline');
+  tl.textContent = 'Загрузка истории…';
   $('audSn').innerText = dev.serial;
   const bcTxt = $('audBarcodeText');
   if (bcTxt) bcTxt.innerText = dev.serial;
@@ -2049,17 +2073,18 @@ async function openAudit(sn) {
   });
   const filteredLocal = localMoves.filter(m => m.serial === sn);
 
-  let cloudMoves = [];
+  let cloudMoves = [], historyUnavailable = !cloud || !navigator.onLine;
   if (cloud && navigator.onLine) {
     try {
-      const { data } = await withTimeout(
+      const { data, error } = await withTimeout(
         cloud.from('movements').select('*').eq('serial', sn).order('created_at', { ascending: false }).limit(25),
         NET_TIMEOUT_MS,
         'audit query'
       );
       if (state.auditSn !== sn) return;
+      if (error) throw error;
       if (data) cloudMoves = data;
-    } catch(e) {}
+    } catch(e) { historyUnavailable = true; }
   }
   if (state.auditSn !== sn) return;
 
@@ -2073,12 +2098,12 @@ async function openAudit(sn) {
     return true;
   }).sort((a, b) => parseTime(b.created_at || b.at) - parseTime(a.created_at || a.at)).slice(0, 30);
 
-  const tl = $('audTimeline');
+  const note = historyUnavailable ? '<p>Облачная история недоступна. Показаны записи этого поста.</p>' : '';
   if (!moves.length) {
-    tl.innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:15px;">Журнал операций по данному сканеру пока пуст.</div>';
+    tl.innerHTML = note || '<p>Журнал операций по данному сканеру пока пуст.</p>';
     return;
   }
-  tl.innerHTML = moves.map(h => {
+  tl.innerHTML = note + moves.map(h => {
     const isRet = h.action && h.action.startsWith('Возврат');
     const d = h.created_at || h.at;
     const t = d ? new Date(d).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
@@ -2125,6 +2150,7 @@ async function exportFleetSnapshot() {
 }
 
 async function printShiftAct() {
+  if (!state.dataVerified) { showToast('ПАРК ЕЩЁ НЕ ЗАГРУЖЕН', 'Дождитесь загрузки данных для акта', 'warn'); return; }
   await recordOperatorAction('print_act',{devices:state.devices.length});
   const dt = new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   const total = state.devices.length;
@@ -2135,9 +2161,15 @@ async function printShiftAct() {
   if (meta) {
     meta.innerText = `Дата и время: ${dt} • Смена: ${state.issueShift} • Всего сканеров: ${total} шт. (На руках: ${issued} | В резерве: ${free} | В ремонте: ${repair})`;
   }
-  state.printing = true; renderTable();
-  window.print();
-  state.printing = false; renderTable();
+  const print = $('shiftActPrint');
+  $('shiftActRows').innerHTML = [...state.devices].sort((a,b) => a.serial.localeCompare(b.serial)).map(d => {
+    const status = {free:'На складе',issued:'На руках',repair:'В ремонте'}[d.status];
+    return `<tr>${[d.serial, d.model, status, d.holder, d.shift, d.defect].map(value => `<td>${esc(value || '—')}</td>`).join('')}</tr>`;
+  }).join('');
+  print.hidden = false;
+  document.body.classList.add('printing-shift-act');
+  try { window.print(); }
+  finally { print.hidden = true; document.body.classList.remove('printing-shift-act'); $('shiftActRows').replaceChildren(); }
 }
 
 async function processImport() {
@@ -2237,8 +2269,8 @@ async function confirmDelete(sn) {
   );
   if (!ok) return;
   try {
-    await deleteSerial(sn);
-    showToast('УДАЛЕНО ИЗ ПАРКА', sn, 'warn');
+    await saveDeviceChanges([{ dev, remove: true, actionName: 'Списание сканера', workerName: dev.holder }], { admin: true });
+    showToast('СПИСАНИЕ СОХРАНЕНО НА ЭТОМ ПК', sn, 'warn');
     renderDeleteList();
   } catch(e) { showToast('ОШИБКА УДАЛЕНИЯ', e.message || '?', 'err'); }
 }
@@ -2566,8 +2598,8 @@ $('brandTag').addEventListener('click', () => {
 document.addEventListener('keydown', e => {
   if (e.defaultPrevented || !terminalContext.id || !operatorActive()) return;
   if ($('confirmDialogModal').classList.contains('show')) {
-    if (e.key === 'Enter') { e.preventDefault(); resolveConfirmDialog(true); return; }
     if (e.key === 'Escape') { e.preventDefault(); resolveConfirmDialog(false); return; }
+    return;
   }
 
   if ($('issPickModal').classList.contains('show')) {
@@ -2632,7 +2664,7 @@ document.addEventListener('keydown', e => {
   else if (e.ctrlKey && e.key.toLowerCase() === 'k') { e.preventDefault(); $('searchTable').focus(); }
   else if (e.ctrlKey && e.key.toLowerCase() === 'e') { e.preventDefault(); exportExcel(); }
   else if (e.ctrlKey && e.key.toLowerCase() === 'p') { e.preventDefault(); printShiftAct(); }
-  else if (e.ctrlKey && e.key.toLowerCase() === 'i') { e.preventDefault(); openModal('impModal'); }
+  else if (e.ctrlKey && e.key.toLowerCase() === 'i' && operatorContext.profile?.role === 'owner') { e.preventDefault(); openModal('impModal'); $('impText').focus(); }
   else if (e.key === 'Escape') {
     const anyModal = document.querySelector('.modal-overlay.show');
     const drawer = $('auditDrawer') && $('auditDrawer').classList.contains('open');
@@ -2694,7 +2726,8 @@ function initAppUpdates() {
     reloadTimer = setTimeout(() => {
       reloadTimer = null;
       const fillingForm = ['issWorker', 'issSn', 'retQuery', 'defSn', 'operatorEmployeeId']
-        .some(id => $(id).value.trim() && (id !== 'operatorEmployeeId' || !$('operatorPanel').hidden));
+        .some(id => $(id).value.trim() && (id !== 'operatorEmployeeId' || !$('operatorPanel').hidden)) ||
+        (!$('operatorPanel').hidden && Boolean($('operatorPin').value));
       const busy = state.opLock || operatorContext.saving || state.undoAction || $('operatorLoginBtn').disabled ||
         $('bootOverlay') || document.querySelector('.modal-overlay.show, #auditDrawer.open');
       if (!navigator.onLine || fillingForm || busy || Date.now() - lastInteraction < 5000) reloadWhenIdle();

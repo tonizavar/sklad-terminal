@@ -9,7 +9,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (title) { title.id ||= `${el.id}Title`; el.setAttribute('aria-labelledby', title.id); }
   });
   document.addEventListener('keydown', e => {
-    const modal = [...document.querySelectorAll('.modal-overlay.show')].at(-1);
+    const modal = [...modalFocusStack].reverse().map(entry => $(entry.id)).find(el => el?.classList.contains('show'));
     if (e.key === 'Tab' && modal) {
       const controls = [...modal.querySelectorAll('button, input, textarea, [tabindex="0"]')].filter(el => !el.disabled && el.offsetParent !== null);
       const first = controls[0], last = controls.at(-1);

@@ -1,10 +1,10 @@
-/* ID is self-declared. Server sessions still bind the offline outbox to its original operator. */
+/* PIN sessions bind the offline outbox to its original operator. */
 const operatorContext = { profile: null, token: null, key: null, saving: 0, timer: null };
 let ownerAuditCursor = null;
 const OPERATOR_ACTIONS = { login:'Вход', logout:'Выход', logout_offline:'Выход на устройстве без сети', owner_setup:'Настройка создателя', operator_register:'Самостоятельная регистрация', issue:'Выдача', return:'Приёмка', repair:'Ремонт', repair_complete:'Возврат из ремонта', retire:'Списание', register:'Регистрация сканера', device_update:'Изменение устройства', device_operation:'Операция с устройством', operator_create:'Добавление оператора', operator_reset_pin:'Сброс PIN', operator_disable:'Отключение оператора', operator_enable:'Включение оператора', report_export:'Экспорт отчёта', fleet_export:'Экспорт парка', print_act:'Печать акта', queue_reconciliation:'Согласование очереди', cache_refresh:'Перезагрузка кэша', backup_create:'Создание копии', backup_list:'Просмотр копий', backup_download:'Скачивание копии', backup_delete:'Скрытие копии' };
 function operatorActive() { return Boolean(operatorContext.profile && operatorContext.token && Date.parse(operatorContext.profile.expires_at)>Date.now()); }
 function requireOperator(owner = false) {
-  if (!operatorActive()) { lockOperator(); throw new Error('Укажите ID оператора'); }
+  if (!operatorActive()) { lockOperator(); throw new Error('Введите ID и PIN'); }
   if (owner && operatorContext.profile.role!=='owner') throw new Error('Действие доступно только создателю');
   return operatorContext.profile;
 }
@@ -19,8 +19,8 @@ async function signOperatorOperation(operation, captured) {
 }
 async function operatorRpc(name,args={}) {
   if (!cloud) throw new Error('Для входа нужно соединение с облаком');
-  const {data,error}=await withTimeout(cloud.rpc(name,args),NET_TIMEOUT_MS,'оператор');
-  if(error) throw error;
+  const {data,error,status}=await withTimeout(cloud.rpc(name,args),NET_TIMEOUT_MS,'оператор');
+  if (error) throw Object.assign(new Error(error.message), { code: error.code, connectionUnavailable: status === 0 || [502,503,504].includes(status) });
   return data;
 }
 function updateOperatorUI() {
@@ -41,6 +41,16 @@ function lockOperator(message='') {
   document.querySelectorAll('.modal-overlay.show').forEach(el=>closeModal(el.id));closeAuditDrawer();
   state.devices=[];renderTable();
   if(typeof setWorkspaceView==='function')setWorkspaceView('terminal');
+  clearAllInputsAndFocus();
+  $('searchTable').value = '';
+  $('impText').value = '';
+  $('operatorEmployeeId').value = '';
+  $('lastOperation').hidden = true;
+  $('operatorList').replaceChildren();
+  $('terminalList').replaceChildren();
+  $('ownerAuditList').replaceChildren();
+  $('ownerAuditEmployee').value = '';
+  setOperatorEnrollment(false);
   $('operatorMessage').textContent=message;
   updateOperatorUI();setTimeout(()=>$('operatorEmployeeId').focus(),0);
 }
@@ -48,28 +58,85 @@ async function acceptOperatorSession(data) {
   if(!data.profile || !data.token)throw new Error('Сервер не подтвердил оператора');
   operatorContext.profile=data.profile;operatorContext.token=data.token;
   operatorContext.key=await operatorSigningKey(data.token);
-  try{sessionStorage.setItem('sklad_operator_session',JSON.stringify({token:data.token,profile:data.profile}));}catch(_){}
+  try{sessionStorage.setItem('sklad_operator_session',JSON.stringify({token:data.token,profile:data.profile,pinVerified:true}));}catch(_){}
   clearTimeout(operatorContext.timer);
-  operatorContext.timer=setTimeout(()=>lockOperator('Время сессии истекло. Введите ID снова.'),Math.max(0,Date.parse(data.profile.expires_at)-Date.now()));
+  operatorContext.timer=setTimeout(()=>lockOperator('Время сессии истекло. Введите ID и PIN.'),Math.max(0,Date.parse(data.profile.expires_at)-Date.now()));
   updateOperatorUI();await loadLocal();await syncNow();scheduleSync();focusActiveTerminalInput();
 }
+function setOperatorEnrollment(enrolling) {
+  $('operatorEnroll').setAttribute('aria-pressed', String(enrolling));
+  $('operatorEnroll').textContent = enrolling ? 'Уже есть PIN? Войти' : 'Первый вход / создать PIN';
+  $('operatorEnrollFields').hidden = !enrolling;
+  $('operatorPinRepeat').disabled = !enrolling;
+  $('operatorPinRepeat').required = enrolling;
+  $('operatorPinRepeat').value = '';
+  $('operatorPin').value = '';
+  $('operatorPin').autocomplete = enrolling ? 'new-password' : 'current-password';
+  $('operatorPinLabel').textContent = enrolling ? 'Придумайте PIN' : 'PIN';
+  $('operatorLoginBtn').textContent = enrolling ? 'Создать PIN и войти' : 'Войти';
+}
 async function initOperatorAccess() {
+  $('operatorEnroll').addEventListener('click', () => {
+    setOperatorEnrollment($('operatorEnrollFields').hidden);
+    $('operatorMessage').textContent = '';
+    ($('operatorEmployeeId').value.trim() ? $('operatorPin') : $('operatorEmployeeId')).focus();
+  });
+  $('operatorEmployeeId').addEventListener('keydown', event => {
+    if (event.key === 'Enter' && $('operatorEmployeeId').value.trim()) {
+      event.preventDefault();
+      $('operatorPin').focus();
+    }
+  });
   $('operatorLoginForm').addEventListener('submit',async event=>{
-    event.preventDefault();const button=$('operatorLoginBtn');button.disabled=true;$('operatorMessage').textContent='';
+    event.preventDefault();
+    const button=$('operatorLoginBtn');
+    if (button.disabled) return;
+    button.disabled=true; $('operatorEnroll').disabled=true; $('operatorMessage').textContent='';
+    const enrolling = !$('operatorEnrollFields').hidden;
     try {
-      const result=await operatorRpc('scanner_operator_id_login',{p_employee_id:$('operatorEmployeeId').value.trim(),p_terminal:terminalId()});
-      if(result.status!=='ok')throw new Error(({disabled:'Доступ для этого ID отключён создателем.',owner_required:'Доступ создателя ещё не настроен.',locked:'Слишком много входов. Повторите позже.'})[result.status]||'Проверьте ID: 2–45 букв, цифр, точка, дефис или подчёркивание.');
+      const employee = $('operatorEmployeeId').value.trim();
+      const pin = $('operatorPin').value;
+      if (!/^[a-z0-9_.-]{2,45}$/i.test(employee)) throw new Error('Проверьте ID. Допустимы латинские буквы, цифры, точка, дефис и подчёркивание.');
+      if (!/^[0-9]{6,12}$/.test(pin)) throw new Error('PIN должен содержать от 6 до 12 цифр.');
+      if (enrolling && pin !== $('operatorPinRepeat').value) throw new Error('PIN не совпадают.');
+      const args = {p_employee_id:employee,p_pin:pin,p_terminal:terminalId()};
+      const result=await operatorRpc(enrolling ? 'scanner_operator_register' : 'scanner_operator_login',args);
+      if(result.status!=='ok') throw new Error(({
+        exists: 'Для этого ID регистрация недоступна. Войдите с действующим PIN или обратитесь к создателю.',
+        reserved: 'Для этого ID используйте действующий PIN создателя.',
+        owner_required: 'Доступ создателя ещё не настроен.',
+        locked: 'Слишком много попыток. Повторите позже.',
+        disabled: 'Доступ для этого ID отключён создателем.'
+      })[result.status] || 'Проверьте ID и PIN. Если у вас ещё нет PIN, выберите «Первый вход».');
       await acceptOperatorSession(result);
-    }catch(error){$('operatorMessage').textContent=error.message;}finally{button.disabled=false;}
+      setOperatorEnrollment(false);
+    } catch(error) {
+      $('operatorMessage').textContent = error.connectionUnavailable || error.code === 'TIMEOUT' ? 'Не удалось связаться с облаком. Проверьте соединение и повторите вход.' : error.message;
+    } finally {
+      $('operatorPin').value = '';
+      $('operatorPinRepeat').value = '';
+      button.disabled=false; $('operatorEnroll').disabled=false;
+    }
   });
   $('operatorLogout').addEventListener('click',async()=>{
     if(state.opLock || operatorContext.saving){showToast('ПОДОЖДИТЕ','Операция ещё сохраняется','warn');return;}
     const session=operatorContext.profile?.session_id;
-    try{if(navigator.onLine)await operatorRpc('scanner_operator_logout');else await recordOperatorAction('logout_offline',{offline:true});}catch(_){await recordOperatorAction('logout_offline',{offline:true});}
-    lockOperator('Сеанс завершён. Следующий сотрудник вводит свой ID.');
+    try {
+      if (!navigator.onLine) throw new Error('Офлайн');
+      await operatorRpc('scanner_operator_logout');
+    } catch (_) {
+      try { await recordOperatorAction('logout_offline',{offline:true}); } catch (error) { reportLocalError(error); }
+    }
+    lockOperator('Сеанс завершён. Следующий сотрудник вводит ID и PIN.');
     tabChannel?.postMessage({type:'operator_logout',session});
   });
   $('operatorList').addEventListener('click',manageOperatorClick);
+  $('refreshTerminals').addEventListener('click', () => refreshTerminals());
+  $('terminalList').addEventListener('submit', event => {
+    event.preventDefault();
+    const form = event.target;
+    if (form.dataset.terminalId) refreshTerminals({ p_terminal:form.dataset.terminalId, p_label:new FormData(form).get('label') });
+  });
   $('refreshOwnerAudit').addEventListener('click',()=>refreshOwnerAudit(false));
   $('nextOwnerAudit').addEventListener('click',()=>refreshOwnerAudit(true));
   $('ownerAuditExport').addEventListener('click',exportOwnerAudit);
@@ -77,12 +144,49 @@ async function initOperatorAccess() {
   const local=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
   $('ownerAuditFrom').value=local(start);$('ownerAuditTo').value=local(new Date(end.getTime()+60000));
   let cached;try{cached=JSON.parse(sessionStorage.getItem('sklad_operator_session')||'null');}catch(_){}
-  if(cached?.token && Date.parse(cached.profile?.expires_at)>Date.now()){
+  if(cached?.pinVerified === true && cached.token && Date.parse(cached.profile?.expires_at)>Date.now()){
     operatorContext.token=cached.token;
     if(!navigator.onLine){await acceptOperatorSession(cached);return;}
-    try{const checked=await operatorRpc('scanner_operator_session');if(checked.profile){await acceptOperatorSession({token:cached.token,profile:checked.profile});return;}}catch(_){}
+    try {
+      const checked=await operatorRpc('scanner_operator_session');
+      if (checked?.profile) { await acceptOperatorSession({token:cached.token,profile:checked.profile}); return; }
+      lockOperator('Доступ изменён. Введите ID и PIN.');
+      return;
+    } catch (error) {
+      if (error.connectionUnavailable || error.code === 'TIMEOUT') { await acceptOperatorSession(cached); return; }
+    }
   }
   lockOperator();
+}
+let lastHeartbeatAt = 0;
+let heartbeatSession;
+function maybeSendTerminalHeartbeat(session) {
+  if (!operatorActive() || operatorContext.profile.session_id !== session) return;
+  if (heartbeatSession === session && Date.now() - lastHeartbeatAt < 60000) return;
+  heartbeatSession = session;
+  lastHeartbeatAt = Date.now();
+  operatorRpc('scanner_workstation_heartbeat').catch(error => {
+    if (operatorContext.profile?.session_id === session && error.code === '42501' && /LOGIN_REQUIRED/.test(error.message)) lockOperator('Доступ изменён. Введите ID и PIN.');
+  });
+}
+let terminalListRequest = 0;
+async function refreshTerminals(args = {}) {
+  const session = requireOperator(true).session_id;
+  const request = ++terminalListRequest;
+  const status = $('terminalListStatus');
+  status.textContent = 'Загрузка постов…';
+  try {
+    const terminals = await operatorRpc('scanner_manage_workstations', args);
+    if (request !== terminalListRequest || session !== operatorContext.profile?.session_id) return;
+    $('terminalList').innerHTML = terminals.map(post => {
+      const name = post.label || `Пост ${post.terminal_id.slice(0,8)}`;
+      const time = new Date(post.last_seen_at).toLocaleString('ru-RU');
+      return `<div class="managed-operator"><div><strong>${esc(name)}</strong><small>Последняя связь ${esc(time)} · ID ${esc(post.employee_id)}</small></div><form class="terminal-edit" data-terminal-id="${esc(post.terminal_id)}"><input name="label" class="hud-input" aria-label="Название ${esc(name)}" maxlength="60" value="${esc(post.label)}" placeholder="Название поста"><button class="btn-hud">Сохранить</button></form></div>`;
+    }).join('');
+    status.textContent = terminals.length ? '' : 'Посты появятся после первой синхронизации.';
+  } catch (error) {
+    if (request === terminalListRequest && session === operatorContext.profile?.session_id) status.textContent = error.message;
+  }
 }
 async function recordOperatorAction(action,details={}) {
   const profile=requireOperator(['queue_reconciliation','cache_refresh'].includes(action));

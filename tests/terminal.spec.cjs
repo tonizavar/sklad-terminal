@@ -13,12 +13,14 @@ async function setup(page,{role='owner',count=2,configured=true,sharedBackend,in
   if(!backend.online || (backend.failApply && new URL(route.request().url()).pathname.endsWith('/rpc/scanner_apply')))return route.abort();
   const req=route.request(),url=new URL(req.url());let body={};
   const profile={employee_id:backend.role==='owner'?'TEST-OWNER':'TEST-STAFF',display_name:'Тестовый сотрудник',role:backend.role,session_id:'00000000-0000-4000-8000-000000000001',expires_at:new Date(Date.now()+3600000).toISOString(),terminal_id:'test-terminal'};
-  if(url.pathname.endsWith('/rpc/scanner_operator_id_login')){const args=req.postDataJSON();backend.idLogin=args;body=backend.idLoginStatus?{status:backend.idLoginStatus}:{status:'ok',token:'a'.repeat(64),profile:{...profile,employee_id:args.p_employee_id,identity_mode:'declared_id'}};}
+  if(url.pathname.endsWith('/rpc/scanner_operator_login')){const args=req.postDataJSON();backend.pinLogin=args;body=backend.idLoginStatus?{status:backend.idLoginStatus}:args.p_pin===TEST_PIN?{status:'ok',token:'a'.repeat(64),profile:{...profile,employee_id:args.p_employee_id}}:{status:'invalid'};}
   else if(url.pathname.endsWith('/rpc/scanner_operator_register')){const args=req.postDataJSON();backend.registration=args;body=backend.registrationStatus?{status:backend.registrationStatus}:{status:'ok',token:'a'.repeat(64),profile:{...profile,employee_id:args.p_employee_id,role:'operator'}};}
   else if(url.pathname.endsWith('/rpc/scanner_operator_status'))body={configured:backend.configured,setup_ready:true};
-  else if(url.pathname.endsWith('/rpc/scanner_operator_login')||url.pathname.endsWith('/rpc/scanner_operator_setup'))body=req.postDataJSON().p_pin===TEST_PIN?{status:'ok',token:'a'.repeat(64),profile}:{status:'invalid'};
+  else if(url.pathname.endsWith('/rpc/scanner_operator_setup'))body=req.postDataJSON().p_pin===TEST_PIN?{status:'ok',token:'a'.repeat(64),profile}:{status:'invalid'};
   else if(url.pathname.endsWith('/rpc/scanner_operator_session'))body={profile};
   else if(url.pathname.endsWith('/rpc/scanner_operator_logout'))body={status:'ok'};
+  else if(url.pathname.endsWith('/rpc/scanner_workstation_heartbeat'))body=null;
+  else if(url.pathname.endsWith('/rpc/scanner_manage_workstations'))body=[];
   else if(url.pathname.endsWith('/rpc/scanner_record_action')){backend.audit.push(req.postDataJSON());body={status:'ok'};}
   else if(url.pathname.endsWith('/rpc/scanner_operator_manage')){const args=req.postDataJSON();if(args.p_action==='list')body=backend.operators;else{backend.operators.push({employee_id:args.p_employee_id,display_name:args.p_name,role:'operator',active:true});body={status:'ok'};}}
   else if(url.pathname.endsWith('/rpc/scanner_record_signed_action')){const op=req.postDataJSON();const payload=JSON.parse(op.p_payload);backend.audit.push(payload);body={status:'applied'};}
@@ -47,7 +49,9 @@ async function setup(page,{role='owner',count=2,configured=true,sharedBackend,in
 async function login(page,id='TEST-OWNER'){
  await expect(page.locator('#bootOverlay')).toHaveCount(0);
  if(await page.locator('#operatorPanel').isVisible()){
-  await page.locator('#operatorEmployeeId').fill(id);await page.locator('#operatorLoginBtn').click();
+  await page.locator('#operatorEmployeeId').fill(id);
+  await page.locator('#operatorPin').fill(TEST_PIN);
+  await page.locator('#operatorPin').press('Enter');
  }
  await expect(page.locator('#operatorPanel')).toBeHidden();await expect(page.locator('#syncText')).toHaveText('Подтверждено облаком');await expect(page.locator('#bootOverlay')).toHaveCount(0);
 }
@@ -55,7 +59,7 @@ async function openView(page, view) {
  await page.locator('#btnMenu').click();
  await page.locator(`[data-view="${view}"]`).click();
 }
-test('clean boot requests only the operator ID before showing inventory',async({page})=>{
+test('clean boot requires operator ID and PIN before showing inventory',async({page})=>{
  const {errors}=await setup(page);await login(page);await expect(page.locator('#operatorPanel')).toBeHidden();await expect(page.locator('#mTotal')).toHaveText('2');expect(errors).toEqual([]);
 });
 test('repair is explicit: repeating the repair form never releases the scanner',async({page})=>{
@@ -258,17 +262,17 @@ test('design review screenshots use synthetic inventory only',async({page})=>{
  await page.keyboard.press('Control+Space');await page.screenshot({path:'test-results/terminal-classic-commands.png',fullPage:false});await page.keyboard.press('Escape');
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:'test-results/terminal-classic-mobile.png',fullPage:false});expect(errors).toEqual([]);
 });
-test('disabled ID leaves the working area locked without any password field',async({page})=>{
- const {backend,errors}=await setup(page);backend.idLoginStatus='disabled';await expect(page.locator('#bootOverlay')).toHaveCount(0);await page.locator('#operatorEmployeeId').fill('TEST-DISABLED');await page.locator('#operatorLoginBtn').click();await expect(page.locator('#operatorPanel')).toBeVisible();await expect(page.locator('#operatorMessage')).toContainText('отключён');await expect(page.locator('input[type="password"]')).toHaveCount(0);expect(errors).toEqual([]);
+test('disabled ID leaves the working area locked and clears the PIN field',async({page})=>{
+ const {backend,errors}=await setup(page);backend.idLoginStatus='disabled';await expect(page.locator('#bootOverlay')).toHaveCount(0);await page.locator('#operatorEmployeeId').fill('TEST-DISABLED');await page.locator('#operatorPin').fill(TEST_PIN);await page.locator('#operatorLoginBtn').click();await expect(page.locator('#operatorPanel')).toBeVisible();await expect(page.locator('#operatorMessage')).toContainText('отключён');await expect(page.locator('#operatorPin')).toHaveValue('');expect(errors).toEqual([]);
 });
 
-test('staff cannot see owner controls and operation proof captures declared staff ID',async({page})=>{
+test('staff cannot see owner controls and operation proof captures verified staff ID',async({page})=>{
  const {backend}=await setup(page,{role:'operator'});await login(page,'TEST-STAFF');await expect(page.locator('[data-view="ownerAudit"]')).toBeHidden();await expect(page.locator('[data-view="operators"]')).toBeHidden();
  await page.locator('#issWorker').fill('RECIPIENT-ID');await page.locator('#issSn').fill('TEST-A');await page.locator('#btnIssue').click();await expect(page.locator('#toast .t-undo')).toBeVisible();await page.evaluate(()=>syncNow());
  await expect.poll(()=>backend.operations.length).toBeGreaterThan(0);const payload=JSON.parse(backend.operations[0].p_payload);expect(payload.employee_id).toBe('TEST-STAFF');expect(payload.changes[0].after.holder).toBe('RECIPIENT-ID');expect(backend.operations[0].p_payload).not.toContain(TEST_PIN);
 });
-test('employees appear after ID entry and creator can disable access without PIN controls',async({page})=>{
- const {backend}=await setup(page);await login(page);backend.operators=[{employee_id:'TEST-NEW',display_name:'',role:'operator',active:true}];await openView(page,'operators');await expect(page.locator('#operatorList')).toContainText('TEST-NEW');await expect(page.locator('[data-pin-reset]')).toHaveCount(0);await expect(page.locator('input[type="password"]')).toHaveCount(0);
+test('creator can see registered employees and the access control',async({page})=>{
+ const {backend}=await setup(page);await login(page);backend.operators=[{employee_id:'TEST-NEW',display_name:'',role:'operator',active:true}];await openView(page,'operators');await expect(page.locator('#operatorList')).toContainText('TEST-NEW');await expect(page.locator('[data-operator-action="disable"]')).toBeVisible();
 });
 
 test('owner journal filters by the operator ID and shows actual changes',async({page})=>{
@@ -288,16 +292,30 @@ test('operator access review uses only synthetic accounts and audit records',asy
  await openView(page,'ownerAudit');await expect(page.locator('#ownerAuditList')).toContainText('TEST-STAFF');await page.locator('#ownerAuditList details summary').first().click();await page.screenshot({path:'test-results/operator-audit.png',fullPage:false});
 });
 
-test('creator signs in with ID only and no setup key',async({page})=>{
- const {backend,errors}=await setup(page);await login(page);expect(backend.idLogin.p_employee_id).toBe('TEST-OWNER');expect(backend.idLogin).not.toHaveProperty('p_pin');await expect(page.locator('#operatorSetupKey')).toHaveCount(0);expect(errors).toEqual([]);
+test('creator signs in with the existing PIN and no setup key',async({page})=>{
+ const {backend,errors}=await setup(page);await login(page);expect(backend.pinLogin).toMatchObject({p_employee_id:'TEST-OWNER',p_pin:TEST_PIN});await expect(page.locator('#operatorSetupKey')).toHaveCount(0);expect(errors).toEqual([]);
 });
 
-test('employee first entry requires one ID and gives ordinary access',async({page})=>{
- const {backend,errors}=await setup(page,{role:'operator'});await login(page,'TEST-STAFF');expect(backend.idLogin).not.toHaveProperty('p_pin');await expect(page.locator('[data-owner-only]:visible')).toHaveCount(0);await expect(page.locator('input[type="password"]')).toHaveCount(0);expect(errors).toEqual([]);
+test('an incorrect PIN keeps the equipment register locked',async({page})=>{
+ const {backend}=await setup(page);await expect(page.locator('#bootOverlay')).toHaveCount(0);
+ await page.locator('#operatorEmployeeId').fill('TEST-OWNER');await page.locator('#operatorPin').fill('111111');await page.locator('#operatorPin').press('Enter');
+ await expect(page.locator('#operatorMessage')).toContainText('Проверьте ID и PIN');
+ await expect(page.locator('#operatorPanel')).toBeVisible();await expect(page.locator('#appContent')).toHaveAttribute('inert','');
+ expect(backend.pinLogin.p_employee_id).toBe('TEST-OWNER');
 });
 
-test('invalid employee ID is explained without offering password registration',async({page})=>{
- const {backend}=await setup(page);backend.idLoginStatus='invalid';await expect(page.locator('#bootOverlay')).toHaveCount(0);await page.locator('#operatorEmployeeId').fill('BAD ID');await page.locator('#operatorLoginBtn').click();await expect(page.locator('#operatorMessage')).toContainText('Проверьте ID');await expect(page.locator('#operatorAccessTabs')).toHaveCount(0);
+test('employee chooses and repeats a PIN on first entry',async({page})=>{
+ const {backend,errors}=await setup(page,{role:'operator'});await expect(page.locator('#bootOverlay')).toHaveCount(0);
+ await page.locator('#operatorEmployeeId').fill('TEST-STAFF');await page.locator('#operatorEmployeeId').press('Enter');await expect(page.locator('#operatorPin')).toBeFocused();expect(backend.pinLogin).toBeUndefined();
+ await page.locator('#operatorEnroll').click();await page.locator('#operatorPin').fill(TEST_PIN);await page.locator('#operatorPinRepeat').fill('111111');await page.locator('#operatorLoginBtn').click();
+ await expect(page.locator('#operatorMessage')).toContainText('не совпадают');expect(backend.registration).toBeUndefined();
+ await page.locator('#operatorPin').fill(TEST_PIN);await page.locator('#operatorPinRepeat').fill(TEST_PIN);await page.locator('#operatorPinRepeat').press('Enter');
+ await expect(page.locator('#operatorPanel')).toBeHidden();expect(backend.registration).toMatchObject({p_employee_id:'TEST-STAFF',p_pin:TEST_PIN});
+ await expect(page.locator('[data-owner-only]:visible')).toHaveCount(0);await expect(page.locator('#operatorPin')).toHaveValue('');expect(errors).toEqual([]);
+});
+
+test('invalid employee ID is explained before calling the server',async({page})=>{
+ const {backend}=await setup(page);await expect(page.locator('#bootOverlay')).toHaveCount(0);await page.locator('#operatorEmployeeId').fill('BAD ID');await page.locator('#operatorPin').fill(TEST_PIN);await page.locator('#operatorLoginBtn').click();await expect(page.locator('#operatorMessage')).toContainText('Проверьте ID');expect(backend.pinLogin).toBeUndefined();
 });
 
 test('four original themes work before login and persist after reload',async({page})=>{

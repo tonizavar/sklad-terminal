@@ -90,9 +90,17 @@ async function readQueueWithKeys() {
   const [keys, values] = await Promise.all([requestResult(s.getAllKeys()), requestResult(s.getAll())]);
   return keys.map((key, i) => ({ key, value: values[i] }));
 }
-async function deleteQueueKey(key) {
-  const tx = db.transaction('queue', 'readwrite'); const done = transactionDone(tx);
-  tx.objectStore('queue').delete(key); await done;
+function markLastOperation(meta, id, status) {
+  const request = meta.get('lastOperation');
+  request.onsuccess = () => {
+    if (request.result?.id === id) meta.put({ ...request.result, status }, 'lastOperation');
+  };
+}
+async function deleteQueueKey(key, operation) {
+  const tx = db.transaction(['queue', 'meta'], 'readwrite'); const done = transactionDone(tx);
+  tx.objectStore('queue').delete(key);
+  if (operation?.type === 'operation') markLastOperation(tx.objectStore('meta'), operation.id, 'confirmed');
+  await done;
 }
 function saveDevice(dev, actionName, workerName) { return saveDeviceChanges([{ dev, actionName, workerName }]); }
 async function saveDeviceChanges(changes, options={}) {
@@ -115,14 +123,17 @@ async function saveDeviceChanges(changes, options={}) {
     }
     operation.proof=await signOperatorOperation(operation,captured);
     if(operatorContext.profile?.session_id!==profile.session_id)throw new Error('Оператор изменился. Повторите операцию.');
-    const tx=db.transaction(['devices','queue','moves'],'readwrite'),done=transactionDone(tx);let failure,remaining=operation.changes.length;
+    const tx=db.transaction(['devices','queue','moves','meta'],'readwrite'),done=transactionDone(tx);let failure,remaining=operation.changes.length;
     for(const change of operation.changes){
       const req=tx.objectStore('devices').get(change.serial);
       req.onsuccess=()=>{try{
         if((req.result?.version||null)!==(change.before?.version||null))throw new Error('Данные изменились в другой вкладке. Повторите операцию.');
         if(change.after)tx.objectStore('devices').put(change.after);else tx.objectStore('devices').delete(change.serial);
         tx.objectStore('moves').add({serial:change.serial,action:change.action,worker:change.worker,created_at:at,moveId:`${id}:${change.serial}`,operator_employee_id:profile.employee_id,operator_session_id:profile.session_id,operator_id:null,terminal_id:operation.terminal});
-        if(--remaining===0)tx.objectStore('queue').add(operation);
+        if (--remaining === 0) {
+          tx.objectStore('queue').add(operation);
+          tx.objectStore('meta').put({ id, actor: profile.employee_id, serials: operation.serials, status: 'local' }, 'lastOperation');
+        }
       }catch(error){failure=error;tx.abort();}};
     }
     try{await done;}catch(error){throw failure||error;}
@@ -139,16 +150,29 @@ async function deleteSerial(sn) {
 }
 async function updateQueueStatus() {
   if (!db) return;
-  const queue = await readQueueWithKeys();
+  const [queue, last] = await Promise.all([
+    readQueueWithKeys(), requestResult(db.transaction('meta').objectStore('meta').get('lastOperation'))
+  ]);
   state.pendingCount = queue.length;
   state.conflictCount = queue.filter(x => x.value.conflict || !['operation','operator_action'].includes(x.value.type)).length;
   const at = state.lastSyncAt ? new Date(state.lastSyncAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : 'ещё не было';
   $('syncDetail').textContent = `Локально сохранено · ожидает: ${queue.length} · конфликтов: ${state.conflictCount} · облако: ${at}`;
+  const activity = $('lastOperation');
+  activity.hidden = !operatorActive() || !last || last.actor !== operatorContext.profile.employee_id;
+  if (!activity.hidden) {
+    const label = { local: 'сохранено на этом ПК', confirmed: 'подтверждено облаком', conflict: 'требуется сверка', reviewed: 'сверено с облаком' }[last.status];
+    const serials = last.serials.length <= 2 ? last.serials.join(' → ') : `${last.serials.length} устройств`;
+    const text = `Последняя операция · ${serials} · ${label}`;
+    if (activity.textContent !== text) activity.textContent = text;
+  }
 }
 async function setQueueConflict(key, message) {
-  const tx = db.transaction('queue', 'readwrite'), done = transactionDone(tx);
+  const tx = db.transaction(['queue','meta'], 'readwrite'), done = transactionDone(tx);
   const s = tx.objectStore('queue'), req = s.get(key);
-  req.onsuccess = () => { if (req.result) s.put({ ...req.result, conflict: message }, key); };
+  req.onsuccess = () => { if (req.result) {
+    s.put({ ...req.result, conflict: message }, key);
+    if (req.result.type === 'operation') markLastOperation(tx.objectStore('meta'), req.result.id, 'conflict');
+  } };
   await done;
 }
 function syncNow() {
@@ -172,30 +196,31 @@ async function syncWithCloud() {
         }
         if(op.type==='operator_action'){
           const {data,error}=await withTimeout(cloud.rpc('scanner_record_signed_action',{p_session:op.proof.session,p_payload:op.proof.payload,p_signature:op.proof.signature}),NET_TIMEOUT_MS,'журнал');
-          if(error){if(error.code==='42501'){await setQueueConflict(key,error.message);if(op.proof.session===operatorContext.profile?.session_id)lockOperator('Доступ изменён. Введите ID снова.');break;}throw error;}if(data?.status!=='applied')throw new Error('Запись журнала не подтверждена');await deleteQueueKey(key);continue;
+          if(error){if(error.code==='42501'){await setQueueConflict(key,error.message);if(op.proof.session===operatorContext.profile?.session_id)lockOperator('Доступ изменён. Введите ID и PIN.');break;}throw error;}if(data?.status!=='applied')throw new Error('Запись журнала не подтверждена');await deleteQueueKey(key, op);continue;
         }
         const { data, error } = await withTimeout(cloud.rpc('scanner_apply', {p_id:op.id,p_changes:op.changes,p_events:[],p_terminal:op.terminal,p_session:op.proof.session,p_payload:op.proof.payload,p_signature:op.proof.signature}), NET_TIMEOUT_MS, 'операция');
-        if(error){if(error.code==='42501'){await setQueueConflict(key,error.message);if(op.proof.session===operatorContext.profile?.session_id)lockOperator('Доступ изменён. Введите ID снова.');break;}throw error;}
+        if(error){if(error.code==='42501'){await setQueueConflict(key,error.message);if(op.proof.session===operatorContext.profile?.session_id)lockOperator('Доступ изменён. Введите ID и PIN.');break;}throw error;}
         if (data?.status === 'conflict') {
           await setQueueConflict(key, `Состояние изменено другим терминалом: ${(data.serials || []).join(', ')}`);
           break; // Preserve dependent operations and every local event.
         }
         if (data?.status !== 'applied') throw new Error('Сервер не подтвердил операцию');
-        await deleteQueueKey(key);
+        await deleteQueueKey(key, op);
       }
-      if(!operatorActive()){setSync(false,'Укажите ID оператора');await updateQueueStatus();return null;}
+      if(!operatorActive()){setSync(false,'Введите ID и PIN');await updateQueueStatus();return null;}
       const session = operatorContext.profile.session_id;
       const data = await pullAllDevices();
       if (!operatorActive() || operatorContext.profile.session_id !== session) return null;
       await applyPull(data);
       await updateQueueStatus();
+      maybeSendTerminalHeartbeat(session);
       setSync(!state.conflictCount, state.conflictCount ? 'Требуется сверка с облаком' : state.pendingCount ? `Ожидает отправки: ${state.pendingCount}` : 'Подтверждено облаком');
       return true;
     };
     // Cross-tab exclusion prevents duplicate uploads, not just a per-tab boolean.
     return navigator.locks ? await navigator.locks.request('sklad-sync', { ifAvailable: true }, lock => lock ? run() : null) : await run();
   } catch (e) {
-    if(e.code==='42501' && /LOGIN_REQUIRED/.test(e.message))lockOperator('Введите ID снова.');
+    if(e.code==='42501' && /LOGIN_REQUIRED/.test(e.message))lockOperator('Введите ID и PIN.');
     state.lastError = e.message || 'Ошибка синхронизации';
     setSync(false, 'Нет подтверждения облака');
     await updateQueueStatus().catch(reportLocalError);
@@ -229,6 +254,7 @@ async function applyPull(snapshot, reviewed = []) {
     for (const item of reviewed) {
       meta.put(item.value, `conflict:${Date.now()}:${item.key}`);
       queueStore.delete(item.key);
+      if (item.value?.type === 'operation') markLastOperation(meta, item.value.id, 'reviewed');
     }
     if (!changed) { meta.put({ verified: true, at, cursor: snapshot.cursor }, 'snapshot'); return; }
     const queue = queueStore.getAll();

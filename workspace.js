@@ -6,7 +6,7 @@ const workspaceViews = {
   terminal: { title: 'Рабочий терминал', eyebrow: 'ПОСТ ВЫДАЧИ И ПРИЁМКИ', description: 'Сканируйте бейдж, затем устройство. Выдача сохранится автоматически.' },
   fleet: { title: 'Парк сканеров', eyebrow: 'ОБОРУДОВАНИЕ И СОТРУДНИКИ', description: 'Найдите устройство, проверьте статус или откройте историю выдач.' },
   ownerAudit:{title:'Действия сотрудников',eyebrow:'ЖУРНАЛ СОЗДАТЕЛЯ',description:'Кто, когда и что изменил. Фильтр по ID сотрудника и периоду.'},
-  operators:{title:'Сотрудники',eyebrow:'УПРАВЛЕНИЕ ДОСТУПОМ',description:'Сотрудники появляются после первого входа по ID. Здесь можно управлять их доступом.'},
+  operators:{title:'Сотрудники и посты',eyebrow:'УПРАВЛЕНИЕ ДОСТУПОМ',description:'Управляйте доступом сотрудников и проверяйте связь постов.'},
   activity: { title: 'История операций', eyebrow: 'ЖУРНАЛ РАБОЧЕГО ПОСТА', description: 'Выдачи, возвраты и ремонт — в одной последовательности событий.' }
 };
 function setWorkspaceView(view, { focus = false } = {}) {
@@ -30,7 +30,7 @@ function setWorkspaceView(view, { focus = false } = {}) {
   $('ownerAuditWorkspace').hidden=view!=='ownerAudit';
   $('operatorsWorkspace').hidden=view!=='operators';
   if(view==='ownerAudit')refreshOwnerAudit();
-  if(view==='operators')loadOperatorList();
+  if(view==='operators'){loadOperatorList();refreshTerminals();}
   document.querySelector('.terminal-ready').hidden = view !== 'terminal';
   document.querySelectorAll('[data-view]').forEach(button => {
     const active = button.dataset.view === view;
@@ -41,7 +41,7 @@ function setWorkspaceView(view, { focus = false } = {}) {
   if (focus) {
     if (view === 'fleet') $('searchTable').focus();
     else if (view === 'terminal') focusActiveTerminalInput();
-    else $('refreshActivity').focus();
+    else $(view === 'ownerAudit' ? 'ownerAuditEmployee' : view === 'operators' ? 'refreshTerminals' : 'refreshActivity').focus();
   }
 }
 function toggleFocusMode(force) {

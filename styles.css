@@ -685,7 +685,17 @@ tbody tr.just-issued { animation: glow-blue 2.2s ease-out; }
 
 /* ===== PRINT SHIFT ACT (ПЕЧАТНЫЙ АКТ ПРИЁМА-ПЕРЕДАЧИ СМЕНЫ) ===== */
 .print-act-header, .print-act-footer { display: none; }
+#shiftActPrint { display: none; }
+#confirmDialogModal { z-index: 10001; }
+#operatorEnroll { width: 100%; margin-top: 8px; }
+.terminal-edit { max-width: 360px; display: flex; gap: 6px; align-items: center; }
+.terminal-edit input { min-width: 0; }
 @media print {
+  body.printing-shift-act > :not(#shiftActPrint) { display: none !important; }
+  body.printing-shift-act #shiftActPrint { display: block; }
+  #shiftActPrint th:last-child, #shiftActPrint td:last-child { display: table-cell !important; }
+  #shiftActPrint th { position: static; }
+  #shiftActPrint tr { break-inside: avoid; }
   body { background: #fff !important; color: #000 !important; overflow: visible !important; height: auto !important; padding: 10mm !important; }
   .hud-header, .metrics-grid, .telemetry-strip, .terminal-grid, .hud-actions, .reg-head, .btn-hud, #toast, .drop-box, .hotkeys-bar, .debt-alert-bar, .row-action-cell, th:last-child, td:last-child, .scan-flash-overlay, .menu-wrap, .menu-pop { display: none !important; }
   .print-act-header { display: block !important; margin-bottom: 14px; border-bottom: 2px solid #000; padding-bottom: 10px; }

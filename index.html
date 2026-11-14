@@ -19,10 +19,13 @@
  <form id="operatorLoginForm" class="operator-login-card">
   <div class="operator-card-top"><div class="eyebrow">SKLAD / РАБОЧИЙ ПОСТ</div><button type="button" class="btn-hud operator-theme-button" data-open-themes>Темы</button></div>
   <h1 id="operatorPanelTitle">Кто работает за постом?</h1>
-  <p id="operatorPanelHint">Введите или отсканируйте свой ID. Он будет записан в журнале выдач и возвратов. Получатель оборудования указывается отдельно.</p>
+  <p id="operatorPanelHint">Введите или отсканируйте свой ID и введите PIN. Получатель оборудования указывается отдельно.</p>
   <label for="operatorEmployeeId">Ваш ID сотрудника</label><input id="operatorEmployeeId" class="hud-input mono" required maxlength="45" autocomplete="username" placeholder="Введите или сканируйте ID" aria-describedby="operatorPanelHint">
-  <p id="operatorMessage" role="alert"></p><button id="operatorLoginBtn" type="submit" class="btn-submit">Начать работу</button>
-  <p class="operator-identity-note">Без пароля. ID указывается сотрудником и не подтверждает личность.</p>
+  <label for="operatorPin" id="operatorPinLabel">PIN</label><input type="password" id="operatorPin" class="hud-input mono" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" required autocomplete="current-password" aria-describedby="operatorPinHint">
+  <div id="operatorEnrollFields" hidden><label for="operatorPinRepeat">Повторите PIN</label><input type="password" id="operatorPinRepeat" class="hud-input mono" inputmode="numeric" minlength="6" maxlength="12" autocomplete="new-password" disabled></div>
+  <p id="operatorPinHint">От 6 до 12 цифр. При первом входе выберите свой PIN.</p>
+  <p id="operatorMessage" role="alert"></p><button id="operatorLoginBtn" type="submit" class="btn-submit">Войти</button>
+  <button id="operatorEnroll" type="button" class="btn-hud" aria-pressed="false">Первый вход / создать PIN</button>
  </form>
 </section>
 <div class="boot-overlay" id="bootOverlay">
@@ -61,6 +64,7 @@
         <span id="syncText">Онлайн</span>
       </div>
       <span id="syncDetail" class="sync-detail" role="status" aria-live="polite">Данные ещё не получены</span>
+      <span id="lastOperation" class="sync-detail" role="status" hidden></span>
       <button type="button" class="btn-hud btn-debt" id="debtBtn" title="Список должников и история просрочек (>14ч)">
         🚨 Должники <span class="debt-badge" id="debtBadge">0</span>
       </button>
@@ -234,11 +238,6 @@
 
   <!-- ОПЕРАТИВНЫЙ РЕЕСТР ПАРКА СКАНЕРОВ -->
   <section class="registry-deck" id="fleetRegistry" aria-label="Реестр сканеров">
-    <div class="print-act-header">
-      <h2>АКТ ПРИЁМА-ПЕРЕДАЧИ ПАРКА СКАНЕРОВ (СЦ WILDBERRIES)</h2>
-      <p id="printActMeta">Сформирован: —</p>
-    </div>
-
     <div class="reg-head">
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
         <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-main);">
@@ -274,11 +273,6 @@
     </div>
 
     <nav class="pagination" aria-label="Страницы реестра"><button type="button" class="btn-hud" id="prevPage">← Назад</button><span id="pageLabel" role="status"></span><button type="button" class="btn-hud" id="nextPage">Далее →</button></nav>
-    <div class="print-act-footer">
-      <div>Сдал смену (ФИО / Подпись): ___________________________</div>
-      <div>Принял смену (ФИО / Подпись): ___________________________</div>
-    </div>
-
   </section>
 <section id="activityWorkspace" class="activity-workspace" hidden aria-label="История операций">
   <div class="activity-toolbar"><div><h2>Последние операции</h2><p>Подтверждённые события и локальные операции этого поста</p></div><button type="button" class="btn-hud" id="refreshActivity">Обновить</button></div>
@@ -297,17 +291,24 @@
       </div>
     </div>
 <section id="ownerAuditWorkspace" class="activity-workspace" hidden>
- <div class="activity-toolbar"><div><h2>Действия сотрудников</h2><p>Действия привязаны к ID, указанному при входе. Время получения записи фиксирует сервер.</p></div><button type="button" class="btn-hud" id="ownerAuditExport">Скачать CSV</button></div>
+ <div class="activity-toolbar"><div><h2>Действия сотрудников</h2><p>Журнал показывает ID оператора и время получения записи сервером.</p></div><button type="button" class="btn-hud" id="ownerAuditExport">Скачать CSV</button></div>
  <div class="owner-filters"><label>ID оператора<input id="ownerAuditEmployee" class="hud-input mono" maxlength="45" placeholder="Все сотрудники"></label><label>С начала<input id="ownerAuditFrom" class="hud-input" type="datetime-local"></label><label>До<input id="ownerAuditTo" class="hud-input" type="datetime-local"></label><button type="button" class="btn-hud" id="refreshOwnerAudit">Показать</button></div>
  <p id="ownerAuditError" role="alert"></p><div id="ownerAuditList"></div><button type="button" class="btn-hud" id="nextOwnerAudit" disabled>Ещё 100 записей</button>
 </section>
 <section id="operatorsWorkspace" class="activity-workspace" hidden>
- <div class="activity-toolbar"><div><h2>Сотрудники</h2><p>Новый сотрудник появляется в списке после первого входа по ID. Здесь можно отключить или включить его доступ.</p></div></div>
+ <div class="activity-toolbar"><div><h2>Сотрудники</h2><p>Новый сотрудник появляется после создания PIN. Здесь можно управлять его доступом.</p></div></div>
 
  <p id="managedOperatorError" role="alert"></p><div id="operatorList"></div>
+ <div class="activity-toolbar"><h2>Рабочие посты</h2><button type="button" id="refreshTerminals" class="btn-hud">Обновить</button></div>
+ <p id="terminalListStatus" role="status"></p><div id="terminalList"></div>
 </section>
-<footer class="workspace-footer"><span><span class="mini-dot"></span> Общий пост · без входа</span><span><kbd>F1</kbd> Выдача <kbd>F2</kbd> Приёмка <kbd>F8</kbd> Режим поста</span></footer>
+<footer class="workspace-footer"><span><span class="mini-dot"></span> Пост · требуется вход</span><span><kbd>F1</kbd> Выдача <kbd>F2</kbd> Приёмка <kbd>F8</kbd> Режим поста</span></footer>
 </main>
+<section id="shiftActPrint" hidden aria-label="Акт приёма-передачи">
+ <div class="print-act-header"><h2>АКТ ПРИЁМА-ПЕРЕДАЧИ ПАРКА СКАНЕРОВ (СЦ WILDBERRIES)</h2><p id="printActMeta"></p></div>
+ <table><thead><tr><th>Сканер</th><th>Модель</th><th>Статус</th><th>Сотрудник</th><th>Смена</th><th>Примечание</th></tr></thead><tbody id="shiftActRows"></tbody></table>
+ <div class="print-act-footer"><div>Сдал смену (ФИО / подпись): __________________</div><div>Принял смену (ФИО / подпись): __________________</div></div>
+</section>
 
 <!-- КРУПНЫЙ ТОСТ-ИНДИКАТОР С КНОПКОЙ ОТМЕНЫ -->
 <div id="toast" role="status" aria-live="polite"><div class="t-icon" id="tIcon">✓</div><div class="t-body"><h4 id="tTitle">ВЫДАНО</h4><p id="tDesc"></p></div></div>
