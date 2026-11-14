@@ -22,8 +22,9 @@ const DEBT_ALERT_DISMISSED_KEY = 'sklad_debt_alert_dismissed';
 const REPAIR_MAP_KEY = 'sklad_repair_map_v10';
 const NEW_OVERDUE_HIGHLIGHT_MS = 30000;
 const NET_TIMEOUT_MS = 15000;
-const SYNC_BASE_INTERVAL = 20000;
-const SYNC_MAX_INTERVAL = 300000;
+const SYNC_BASE_INTERVAL = 5000;
+const SYNC_BACKGROUND_INTERVAL = 30000;
+const SYNC_MAX_INTERVAL = 60000;
 const THEMES = THEME_CATALOG.map(theme => theme.id);
 const THEME_NAMES = Object.fromEntries(THEME_CATALOG.map(theme => [theme.id,theme.name]));
 const THEME_META_COLORS = Object.fromEntries(THEME_CATALOG.map(theme => [theme.id,theme.background]));
@@ -1193,6 +1194,8 @@ async function submitIssue() {
         worker,
         oldSn: existingWorkerDev.serial,
         newSn: sn,
+        oldVersion: existingWorkerDev.version,
+        newVersion: dev?.version,
         isNew: !dev,
         shift,
         originalIssuedAt: existingWorkerDev.issued_at,
@@ -1246,46 +1249,34 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
     defect: ''
   };
   const oldSnapshot = dev ? JSON.parse(JSON.stringify(dev)) : null;
-  const idx = state.devices.findIndex(d => d.serial === sn);
-  if (idx >= 0) state.devices[idx] = updated;
-  else state.devices.push(updated);
-
-  state.justIssued = sn;
-  renderTable();
-  setTimeout(() => { state.justIssued = null; renderTable(); }, 2200);
-
   const actionName = inheritedIssuedAt
     ? (isNew ? 'Создан и выдан (время перенесено)' : 'Выдан (время перенесено)')
     : (isNew ? 'Создан и выдан' : 'Выдан');
 
-  try {
-    await saveDevice(updated, actionName, worker);
-    rememberWorkerShift(worker, shift);
-    beep('issue');
-    triggerScanFlash('ok');
-    pushTickerEvent('t-iss', sn, worker);
-    showUndoToast(
-      'ВЫДАНО В СМЕНУ',
-      `Сканер ${sn} (${updated.model}) ➔ 👤 ${worker} (${shift})`,
-      '↩ Отменить (Ctrl+Z)',
-      async () => {
-        try {
-          if (isNew) await deleteSerial(sn);
-          else await saveDevice({ ...oldSnapshot, last_move: nowIso() }, 'Отмена выдачи', worker);
-          beep('return');
-          showToast('ВЫДАЧА ОТМЕНЕНА', `Сканер ${sn} возвращён в резерв`);
-        } catch(e) { showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err'); }
-      },
-      'ok'
-    );
-    logMsg(`✅ ВЫДАНО: ${sn} ➔ ${worker} (${shift})`);
-    clearDraft();
-  } catch(e) {
-    if (isNew) state.devices = state.devices.filter(d => d.serial !== sn);
-    else if (idx >= 0) state.devices[idx] = dev;
-    renderTable();
-    throw e;
-  }
+  await saveDevice(updated, actionName, worker);
+  state.justIssued = sn;
+  renderTable();
+  setTimeout(() => { state.justIssued = null; renderTable(); }, 2200);
+  rememberWorkerShift(worker, shift);
+  beep('issue');
+  triggerScanFlash('ok');
+  pushTickerEvent('t-iss', sn, worker);
+  showUndoToast(
+    'ВЫДАНО В СМЕНУ',
+    `Сканер ${sn} (${updated.model}) ➔ 👤 ${worker} (${shift})`,
+    '↩ Отменить (Ctrl+Z)',
+    async () => {
+      try {
+        if (isNew) await deleteSerial(sn);
+        else await saveDevice({ ...oldSnapshot, last_move: nowIso() }, 'Отмена выдачи', worker);
+        beep('return');
+        showToast('ВЫДАЧА ОТМЕНЕНА', `Сканер ${sn} возвращён в резерв`);
+      } catch(e) { showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err'); }
+    },
+    'ok'
+  );
+  logMsg(`✅ ВЫДАНО: ${sn} ➔ ${worker} (${shift})`);
+  clearDraft();
 
   // Полный сброс и возврат фокуса на поле бейджа для следующего сотрудника в очереди!
   $('issSn').value = '';
@@ -1328,7 +1319,7 @@ async function confirmSwap() {
       shift: p.shift,
       defect: ''
     };
-    if (!oldDev || oldDev.status !== 'issued' || String(oldDev.holder || '').toUpperCase() !== p.worker.toUpperCase() || (newDev && newDev.status !== 'free')) {
+    if (!oldDev || oldDev.version !== p.oldVersion || newDev?.version !== p.newVersion || (newDev && newDev.status !== 'free')) {
       throw new Error('Статус сканеров изменился. Повторите замену.');
     }
     await saveDeviceChanges([
@@ -1475,13 +1466,6 @@ function handleRetKeydown(e) {
   const drop = $('retDrop');
   if (e.key === 'Enter') {
     e.preventDefault();
-    handleRetInput();
-    const items = Array.from(drop.querySelectorAll('.drop-item'));
-    const cur = items.findIndex(it => it.classList.contains('selected'));
-    if (drop.classList.contains('show') && cur >= 0 && items[cur] && items.length === 1) {
-      $('retQuery').value = items[cur].dataset.sn;
-    }
-    resetRetDropdown();
     quickReturn();
     return;
   }
@@ -1591,6 +1575,10 @@ async function doReturn(sn) {
     showToast('ОШИБКА', 'Сканер не найден в базе', 'err');
     return;
   }
+  if (dev.status !== 'issued') {
+    showToast('ПРИЁМКА ОСТАНОВЛЕНА', 'Состояние сканера изменилось. Проверьте его в реестре.', 'warn');
+    return;
+  }
   const holder = dev.holder || 'Сотрудник';
   const durationStr = dev.issued_at ? fmtHoursShort(hoursSince(dev.issued_at)) : '—';
   const ts = nowIso();
@@ -1601,14 +1589,11 @@ async function doReturn(sn) {
 
   try {
     const updated = { ...dev, status: 'free', holder: '', shift: '—', issued_at: null, last_move: ts, defect: '' };
-    const idx = state.devices.findIndex(d => d.serial === sn);
-    if (idx >= 0) state.devices[idx] = updated;
+    await saveDevice(updated, 'Возврат на склад', holder);
     state.justReturned = sn;
     renderTable();
-    updateIssBanner(fixLayout($('issSn').value));
     setTimeout(() => { state.justReturned = null; renderTable(); }, 2200);
 
-    await saveDevice(updated, 'Возврат на склад', holder);
     beep('return');
     triggerScanFlash('ok');
     pushTickerEvent('t-ret', sn, holder);
@@ -1633,9 +1618,6 @@ async function doReturn(sn) {
     resetRetDropdown();
     $('retQuery').focus();
   } catch(e) {
-    const idx = state.devices.findIndex(d => d.serial === sn);
-    if (idx >= 0) state.devices[idx] = snapshot;
-    renderTable();
     beep('err');
     triggerScanFlash('err');
     showToast('ОШИБКА ПРИЁМКИ', e.message || '?', 'err');
@@ -1699,11 +1681,6 @@ async function toggleDeviceRepair(sn, customReason, desiredStatus) {
       actionLabel = `Переведён в ремонт: ${reason}`;
     }
 
-    const idx = state.devices.findIndex(d => d.serial === sn);
-    if (idx >= 0) state.devices[idx] = updated;
-    renderTable();
-    updateIssBanner(fixLayout($('issSn').value));
-
     await saveDevice(updated, actionLabel, prevHolder);
     beep(isCurrentlyRepair ? 'return' : 'swap');
     triggerScanFlash(isCurrentlyRepair ? 'ok' : 'warn');
@@ -1722,9 +1699,6 @@ async function toggleDeviceRepair(sn, customReason, desiredStatus) {
     logMsg(`🛠 СТАТУС РЕМОНТА: ${sn} — ${actionLabel}`);
     if (state.auditSn === sn) openAudit(sn);
   } catch(e) {
-    const idx = state.devices.findIndex(d => d.serial === sn);
-    if (idx >= 0) state.devices[idx] = snapshot;
-    renderTable();
     beep('err');
     showToast('ОШИБКА', e.message || '?', 'err');
   } finally {
@@ -2370,7 +2344,7 @@ function setupDelegation() {
   });
 
   $('btnProcessImport')?.addEventListener('click', processImport);
-  $('btnHardReset')?.addEventListener('click', hardReset);
+  $('btnHardReset')?.addEventListener('click', () => hardReset().catch(reportLocalError));
   $('btnForceSync')?.addEventListener('click', forceSync);
   $('btnCreateCloudBackup')?.addEventListener('click', () => doBackup('manual'));
   $('btnDownloadJsonBackup')?.addEventListener('click', downloadJsonBackup);
@@ -2590,7 +2564,7 @@ $('brandTag').addEventListener('click', () => {
 });
 
 document.addEventListener('keydown', e => {
-  if (!terminalContext.id || !operatorActive()) return;
+  if (e.defaultPrevented || !terminalContext.id || !operatorActive()) return;
   if ($('confirmDialogModal').classList.contains('show')) {
     if (e.key === 'Enter') { e.preventDefault(); resolveConfirmDialog(true); return; }
     if (e.key === 'Escape') { e.preventDefault(); resolveConfirmDialog(false); return; }
@@ -2694,9 +2668,56 @@ window.addEventListener('DOMContentLoaded', () => {
   setupDelegation();
   updateDebtBadge();
   initStorage().then(initTerminal).catch(reportLocalError);
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e => dbg('offline shell', e.message));
+  initAppUpdates();
 });
 
-window.addEventListener('online', () => { state.syncBackoff = 0; scheduleSync(500); });
+function resumeCloudSync() { state.syncBackoff = 0; scheduleSync(150); }
+window.addEventListener('online', resumeCloudSync);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) resumeCloudSync(); });
 window.addEventListener('offline', () => setSync(false, 'Офлайн (Локальная БД)'));
 window.addEventListener('beforeunload', () => { try { saveDraft(); } catch(e) {} });
+
+function initAppUpdates() {
+  if (!('serviceWorker' in navigator)) return;
+  const workers = navigator.serviceWorker;
+  let controller = workers.controller;
+  let reloadPending = false;
+  let reloadTimer;
+  let lastInteraction = Date.now();
+  let lastCheck = 0;
+  let registration;
+  for (const event of ['input', 'keydown', 'pointerdown']) {
+    document.addEventListener(event, () => { lastInteraction = Date.now(); }, { capture: true, passive: true });
+  }
+  const reloadWhenIdle = () => {
+    if (!reloadPending || reloadTimer) return;
+    reloadTimer = setTimeout(() => {
+      reloadTimer = null;
+      const fillingForm = ['issWorker', 'issSn', 'retQuery', 'defSn', 'operatorEmployeeId']
+        .some(id => $(id).value.trim() && (id !== 'operatorEmployeeId' || !$('operatorPanel').hidden));
+      const busy = state.opLock || operatorContext.saving || state.undoAction || $('operatorLoginBtn').disabled ||
+        $('bootOverlay') || document.querySelector('.modal-overlay.show, #auditDrawer.open');
+      if (!navigator.onLine || fillingForm || busy || Date.now() - lastInteraction < 5000) reloadWhenIdle();
+      else window.location.reload();
+    }, 1000);
+  };
+  workers.addEventListener('controllerchange', () => {
+    if (controller && workers.controller && controller !== workers.controller) {
+      reloadPending = true;
+      reloadWhenIdle();
+    }
+    controller = workers.controller;
+  });
+  const check = () => {
+    if (!registration || !navigator.onLine || Date.now() - lastCheck < 5000) return;
+    lastCheck = Date.now();
+    registration.update().catch(e => dbg('offline shell update', e.message));
+  };
+  workers.register('sw.js', { updateViaCache: 'none' }).then(result => {
+    registration = result;
+    setInterval(check, 60000);
+    window.addEventListener('online', check);
+    window.addEventListener('focus', check);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+  }).catch(e => dbg('offline shell', e.message));
+}

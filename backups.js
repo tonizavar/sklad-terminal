@@ -36,8 +36,7 @@ async function restoreFromBackup(filename) {
     devices.forEach(SkladCore.validateDevice);
     if (new Set(devices.map(d => d.serial)).size !== devices.length) throw new Error('В копии повторяются серийные номера');
     const remote = await pullAllDevices({ full: true });
-    if (remote === null) throw new Error('Не удалось проверить текущее состояние облака');
-    await applyPull(remote);
+    if (!await applyPull(remote)) throw new Error('Парк обновился во время загрузки. Повторите сравнение.');
     const diff = SkladCore.backupDiff(state.devices, devices);
     if (!await askConfirmDialog('Сравнение с резервной копией', `Добавится: ${diff.added}. Изменится: ${diff.changed}.\nБудет перезаписано активных выдач: ${diff.activeIssues}.\nОстальные устройства сохранятся. Журнал останется, восстановление будет записано отдельным событием.`, 'Восстановить после сверки')) return;
     // Capture the reviewed versions; saveDeviceChanges checks them again transactionally.

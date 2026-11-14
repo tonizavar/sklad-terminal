@@ -2,6 +2,8 @@
 let db = null;
 let cloud = null;
 let syncScheduledTimer = null;
+let syncScheduledAt = Infinity;
+let syncInFlight = null;
 const terminalContext = { id: null };
 const PAGE_SIZE = 100;
 let tabChannel;
@@ -55,7 +57,11 @@ async function initStorage() {
 function reportLocalError(e) { state.lastError = e.message; showToast('ОШИБКА ХРАНЕНИЯ', e.message, 'err'); }
 async function loadLocal() {
   if (!db || !terminalContext.id || !operatorActive()) return;
-  const rows = await requestResult(db.transaction('devices').objectStore('devices').getAll());
+  const tx = db.transaction(['devices', 'meta']);
+  const [rows, snapshot] = await Promise.all([requestResult(tx.objectStore('devices').getAll()), requestResult(tx.objectStore('meta').get('snapshot'))]);
+  if (!operatorActive()) return;
+  state.dataVerified = Boolean(snapshot?.verified);
+  state.lastSyncAt = snapshot?.at || null;
   state.devices = rows.filter(d => !d.deleted_at).map(normalizeCloudDevice).filter(Boolean);
   state.tablePage = Math.min(state.tablePage || 0, Math.max(0, Math.ceil(state.devices.length / PAGE_SIZE) - 1));
   renderTable();
@@ -145,26 +151,31 @@ async function setQueueConflict(key, message) {
   req.onsuccess = () => { if (req.result) s.put({ ...req.result, conflict: message }, key); };
   await done;
 }
-async function syncNow() {
-  if (state.syncing || !db || !cloud || !terminalContext.id) return false;
+function syncNow() {
+  if (syncInFlight) return syncInFlight;
+  if (!db || !state.dbReady || !cloud || !terminalContext.id || !operatorActive()) return Promise.resolve(null);
+  syncInFlight = syncWithCloud().finally(() => { syncInFlight = null; });
+  return syncInFlight;
+}
+async function syncWithCloud() {
   if (!navigator.onLine) { setSync(false, 'Офлайн — сохранение локально'); return false; }
   state.syncing = true;
-  setSync(true, 'Синхронизация…', true);
   try {
     const run = async () => {
       const queue = await readQueueWithKeys();
+      if (queue.length && !queue[0].value.conflict) setSync(true, 'Синхронизация…', true);
       for (const { key, value: op } of queue) {
-        if (op.conflict) break;
+        if (op.conflict || !operatorActive()) break;
         if (!['operation','operator_action'].includes(op.type) || !op.proof) {
           await setQueueConflict(key, 'Очередь старой версии: скачайте её и согласуйте с администратором');
           break;
         }
         if(op.type==='operator_action'){
           const {data,error}=await withTimeout(cloud.rpc('scanner_record_signed_action',{p_session:op.proof.session,p_payload:op.proof.payload,p_signature:op.proof.signature}),NET_TIMEOUT_MS,'журнал');
-          if(error){if(error.code==='42501'){await setQueueConflict(key,error.message);if(op.proof.session===operatorContext.profile?.session_id)lockOperator('Доступ изменён. Введите ID и PIN снова.');break;}throw error;}if(data?.status!=='applied')throw new Error('Запись журнала не подтверждена');await deleteQueueKey(key);continue;
+          if(error){if(error.code==='42501'){await setQueueConflict(key,error.message);if(op.proof.session===operatorContext.profile?.session_id)lockOperator('Доступ изменён. Введите ID снова.');break;}throw error;}if(data?.status!=='applied')throw new Error('Запись журнала не подтверждена');await deleteQueueKey(key);continue;
         }
         const { data, error } = await withTimeout(cloud.rpc('scanner_apply', {p_id:op.id,p_changes:op.changes,p_events:[],p_terminal:op.terminal,p_session:op.proof.session,p_payload:op.proof.payload,p_signature:op.proof.signature}), NET_TIMEOUT_MS, 'операция');
-        if(error){if(error.code==='42501'){await setQueueConflict(key,error.message);if(op.proof.session===operatorContext.profile?.session_id)lockOperator('Доступ изменён. Введите ID и PIN снова.');break;}throw error;}
+        if(error){if(error.code==='42501'){await setQueueConflict(key,error.message);if(op.proof.session===operatorContext.profile?.session_id)lockOperator('Доступ изменён. Введите ID снова.');break;}throw error;}
         if (data?.status === 'conflict') {
           await setQueueConflict(key, `Состояние изменено другим терминалом: ${(data.serials || []).join(', ')}`);
           break; // Preserve dependent operations and every local event.
@@ -172,81 +183,122 @@ async function syncNow() {
         if (data?.status !== 'applied') throw new Error('Сервер не подтвердил операцию');
         await deleteQueueKey(key);
       }
-      if(!operatorActive()){setSync(false,'Укажите ID оператора и PIN');await updateQueueStatus();return false;}
+      if(!operatorActive()){setSync(false,'Укажите ID оператора');await updateQueueStatus();return null;}
+      const session = operatorContext.profile.session_id;
       const data = await pullAllDevices();
-      if (data === null) throw new Error(state.lastError || 'Не удалось получить парк');
+      if (!operatorActive() || operatorContext.profile.session_id !== session) return null;
       await applyPull(data);
       await updateQueueStatus();
-      const waiting = state.pendingCount > 0;
-      setSync(!state.conflictCount, waiting ? `Ожидает отправки: ${state.pendingCount}` : 'Подтверждено облаком');
-      return !waiting;
+      setSync(!state.conflictCount, state.conflictCount ? 'Требуется сверка с облаком' : state.pendingCount ? `Ожидает отправки: ${state.pendingCount}` : 'Подтверждено облаком');
+      return true;
     };
     // Cross-tab exclusion prevents duplicate uploads, not just a per-tab boolean.
-    return navigator.locks ? await navigator.locks.request('sklad-sync', { ifAvailable: true }, lock => lock ? run() : false) : await run();
+    return navigator.locks ? await navigator.locks.request('sklad-sync', { ifAvailable: true }, lock => lock ? run() : null) : await run();
   } catch (e) {
-    if(e.code==='42501' && /LOGIN_REQUIRED/.test(e.message))lockOperator('Введите ID и PIN снова.');
+    if(e.code==='42501' && /LOGIN_REQUIRED/.test(e.message))lockOperator('Введите ID снова.');
     state.lastError = e.message || 'Ошибка синхронизации';
     setSync(false, 'Нет подтверждения облака');
-    await updateQueueStatus();
+    await updateQueueStatus().catch(reportLocalError);
     return false;
   } finally { state.syncing = false; }
 }
 async function pullAllDevices(options = {}) {
-  try {
-    const snapshot = await requestResult(db.transaction('meta').objectStore('meta').get('snapshot'));
-    const after = options.full ? 0 : snapshot?.cursor || 0;
-    const { data, error } = await withTimeout(cloud.rpc('scanner_pull', { p_after: after }), NET_TIMEOUT_MS, 'загрузка изменений');
-    if (error) throw error;
-    if (!data || !Array.isArray(data.devices) || !Number.isSafeInteger(data.cursor) || typeof data.full !== 'boolean') throw new Error('Некорректный ответ синхронизации');
-    return data;
-  } catch (e) { state.lastError = e.message; return null; }
+  const snapshot = await requestResult(db.transaction('meta').objectStore('meta').get('snapshot'));
+  const baseCursor = snapshot?.cursor || 0;
+  const { data, error } = await withTimeout(cloud.rpc('scanner_pull', { p_after: options.full ? 0 : baseCursor }), NET_TIMEOUT_MS, 'загрузка изменений');
+  if (error) throw error;
+  if (!data || !Array.isArray(data.devices) || !Number.isSafeInteger(data.cursor) || typeof data.full !== 'boolean') throw new Error('Некорректный ответ синхронизации');
+  return { ...data, baseCursor };
 }
-async function applyPull(snapshot) {
+async function applyPull(snapshot, reviewed = []) {
   if (!snapshot || !Array.isArray(snapshot.devices) || !db) throw new Error('Некорректный ответ облака');
   const data = snapshot.devices;
+  const at = nowIso();
+  const changed = snapshot.full || data.length > 0;
   const tx = db.transaction(['devices', 'queue', 'meta'], 'readwrite'), done = transactionDone(tx);
-  const queue = tx.objectStore('queue').getAll();
+  const meta = tx.objectStore('meta');
+  const current = meta.get('snapshot');
   const store = tx.objectStore('devices');
-  queue.onsuccess = () => {
-    const protectedSn = new Set();
-    for (const op of queue.result) {
-      for (const sn of op.serials || []) protectedSn.add(sn);
-      if (op.dev?.serial) protectedSn.add(op.dev.serial);
-      if (op.serial) protectedSn.add(op.serial);
+  let applied = false;
+  current.onsuccess = () => {
+    // A slow response must not roll back a newer snapshot from another tab or action.
+    if (snapshot.baseCursor !== (current.result?.cursor || 0)) return;
+    applied = true;
+    const queueStore = tx.objectStore('queue');
+    // Archive only the packets the operator reviewed, in the same commit as the merge.
+    for (const item of reviewed) {
+      meta.put(item.value, `conflict:${Date.now()}:${item.key}`);
+      queueStore.delete(item.key);
     }
-    const records = new Map(data.map(d => [d.serial, d]));
-    const keys = store.getAllKeys();
-    keys.onsuccess = () => {
-      if (snapshot.full) for (const sn of keys.result) if (!protectedSn.has(sn) && !records.has(sn)) store.delete(sn);
-      for (const raw of data) {
-        if (protectedSn.has(raw.serial)) continue;
-        if (raw.deleted_at) { store.put(raw); continue; }
-        const d = normalizeCloudDevice(raw);
-        if (d) store.put(d);
+    if (!changed) { meta.put({ verified: true, at, cursor: snapshot.cursor }, 'snapshot'); return; }
+    const queue = queueStore.getAll();
+    queue.onsuccess = () => {
+      const protectedSn = new Set();
+      for (const op of queue.result) {
+        for (const sn of op.serials || []) protectedSn.add(sn);
+        if (op.dev?.serial) protectedSn.add(op.dev.serial);
+        if (op.serial) protectedSn.add(op.serial);
       }
-      tx.objectStore('meta').put({ verified: true, at: nowIso(), cursor: snapshot.cursor }, 'snapshot');
+      let skipped = false;
+      const merge = () => {
+        for (const raw of data) {
+          if (protectedSn.has(raw.serial)) { skipped = true; continue; }
+          if (raw.deleted_at) { store.put(raw); continue; }
+          const d = normalizeCloudDevice(raw);
+          if (d) store.put(d);
+        }
+        // Read skipped cloud changes again when the local packet is cleared.
+        meta.put({ verified: true, at, cursor: skipped ? (snapshot.full ? 0 : snapshot.baseCursor) : snapshot.cursor }, 'snapshot');
+      };
+      if (snapshot.full) {
+        const records = new Set(data.map(d => d.serial));
+        const keys = store.getAllKeys();
+        keys.onsuccess = () => {
+          for (const sn of keys.result) {
+            if (records.has(sn)) continue;
+            if (protectedSn.has(sn)) skipped = true;
+            else store.delete(sn);
+          }
+          merge();
+        };
+      } else merge();
     };
   };
   await done;
-  state.dataVerified = true;
-  state.lastSyncAt = nowIso();
-  state.repairMap = {};
-  await loadLocal();
+  if (changed || !applied) {
+    await loadLocal();
+    if (applied) tabChannel?.postMessage('changed');
+  } else {
+    state.dataVerified = true;
+    state.lastSyncAt = at;
+  }
+  return applied;
 }
 function setSync(ok, txt, busy = false) {
   const p = $('syncStatus');
   p.className = `pill-badge ${ok ? 'pill-online' : 'pill-offline'}${busy ? ' syncing' : ''}`;
   $('syncText').textContent = txt;
 }
-function scheduleSync(delay = SYNC_BASE_INTERVAL) {
+function scheduleSync(delay = syncInterval()) {
+  if (!terminalContext.id || !operatorActive()) return;
+  const due = Date.now() + delay;
+  if (due >= syncScheduledAt) return;
   clearTimeout(syncScheduledTimer);
-  if (!terminalContext.id) return;
+  syncScheduledAt = due;
   syncScheduledTimer = setTimeout(async () => {
+    syncScheduledAt = Infinity;
+    if (syncInFlight) {
+      await syncInFlight;
+      scheduleSync(delay);
+      return;
+    }
     const ok = await syncNow();
+    if (ok === null) { scheduleSync(1000); return; }
     state.syncBackoff = ok ? 0 : Math.min((state.syncBackoff || 0) + 1, 5);
-    scheduleSync(ok ? SYNC_BASE_INTERVAL : Math.min(SYNC_BASE_INTERVAL * 2 ** state.syncBackoff, SYNC_MAX_INTERVAL));
+    scheduleSync(ok ? syncInterval() : Math.min(syncInterval() * 2 ** state.syncBackoff, SYNC_MAX_INTERVAL));
   }, delay);
 }
+function syncInterval() { return document.hidden ? SYNC_BACKGROUND_INTERVAL : SYNC_BASE_INTERVAL; }
 async function forceSync() { closeModal('diagModal'); await syncNow(); scheduleSync(); }
 async function retryQueuedSync() { await forceSync(); }
 async function renderQueuePreview() {
@@ -266,13 +318,7 @@ async function resolveQueueFromCloud() {
   if (!ok) return;
   await recordOperatorAction('queue_reconciliation',{reviewed_packets:queue.length});
   const data = await pullAllDevices({ full: true });
-  if (data === null) throw new Error('Облако недоступно');
-  const tx = db.transaction(['queue', 'meta'], 'readwrite'), done = transactionDone(tx);
-  const s = tx.objectStore('queue');
-  // Remove exactly the reviewed entries; new scans remain protected.
-  for (const item of queue) { tx.objectStore('meta').put(item.value, `conflict:${Date.now()}:${item.key}`); s.delete(item.key); }
-  await done;
-  await applyPull(data);
+  if (!await applyPull(data, queue)) throw new Error('Парк обновился во время загрузки. Повторите сверку.');
   await updateQueueStatus();
   scheduleSync(100);
 }
@@ -282,7 +328,8 @@ async function hardReset() {
   if (!await askConfirmDialog('Перезагрузка кэша', 'Загрузить актуальное состояние из облака? Локальный журнал будет сохранён.')) return;
   await recordOperatorAction('cache_refresh');
   const data = await pullAllDevices({ full: true });
-  if (data !== null) { await applyPull(data); closeModal('diagModal'); }
+  if (!await applyPull(data)) throw new Error('Парк обновился во время загрузки. Повторите операцию.');
+  closeModal('diagModal');
 }
 function terminalId() {
   let id = localStorage.getItem('sklad_terminal_id');

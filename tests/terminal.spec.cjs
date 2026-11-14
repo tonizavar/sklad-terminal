@@ -6,11 +6,11 @@ const fixture=()=>[
  {serial:'TEST-A',model:'Point Mobile',status:'free',holder:'',shift:'—',issued_at:null,last_move:'2026-11-13T06:00:00.000Z',version:'initial',defect:''},
  {serial:'TEST-B',model:'Point Mobile',status:'free',holder:'',shift:'—',issued_at:null,last_move:'2026-11-13T06:00:00.000Z',version:'initial',defect:''}
 ];
-async function setup(page,{role='owner',count=2,configured=true}={}){
- const backend={devices:count===2?fixture():Array.from({length:count},(_,i)=>({...fixture()[0],serial:`TEST-${String(i).padStart(5,'0')}`})),operations:[],online:true,role,configured,audit:[],operators:[]};
+async function setup(page,{role='owner',count=2,configured=true,sharedBackend,incremental=false}={}){
+ const backend=sharedBackend ?? {devices:count===2?fixture():Array.from({length:count},(_,i)=>({...fixture()[0],serial:`TEST-${String(i).padStart(5,'0')}`})),operations:[],online:true,role,configured,audit:[],operators:[],cursor:1,incremental};
  await page.context().route('https://fonts.googleapis.com/**',r=>r.abort());
  await page.context().route('https://sgpkvnymkqwuhepkaoxw.supabase.co/**',async route=>{
-  if(!backend.online)return route.abort();
+  if(!backend.online || (backend.failApply && new URL(route.request().url()).pathname.endsWith('/rpc/scanner_apply')))return route.abort();
   const req=route.request(),url=new URL(req.url());let body={};
   const profile={employee_id:backend.role==='owner'?'TEST-OWNER':'TEST-STAFF',display_name:'Тестовый сотрудник',role:backend.role,session_id:'00000000-0000-4000-8000-000000000001',expires_at:new Date(Date.now()+3600000).toISOString(),terminal_id:'test-terminal'};
   if(url.pathname.endsWith('/rpc/scanner_operator_id_login')){const args=req.postDataJSON();backend.idLogin=args;body=backend.idLoginStatus?{status:backend.idLoginStatus}:{status:'ok',token:'a'.repeat(64),profile:{...profile,employee_id:args.p_employee_id,identity_mode:'declared_id'}};}
@@ -23,14 +23,17 @@ async function setup(page,{role='owner',count=2,configured=true}={}){
   else if(url.pathname.endsWith('/rpc/scanner_operator_manage')){const args=req.postDataJSON();if(args.p_action==='list')body=backend.operators;else{backend.operators.push({employee_id:args.p_employee_id,display_name:args.p_name,role:'operator',active:true});body={status:'ok'};}}
   else if(url.pathname.endsWith('/rpc/scanner_record_signed_action')){const op=req.postDataJSON();const payload=JSON.parse(op.p_payload);backend.audit.push(payload);body={status:'applied'};}
   else if(url.pathname.endsWith('/rpc/scanner_owner_audit')){const args=req.postDataJSON();body=backend.audit.filter(e=>!args.p_employee_id||e.operator_employee_id===args.p_employee_id);}
-  else if(url.pathname.endsWith('/rpc/scanner_pull'))body={cursor:1,full:true,devices:backend.devices};
+  else if(url.pathname.endsWith('/rpc/scanner_pull')){
+   const after=req.postDataJSON().p_after,full=!backend.incremental||after===0||after>backend.cursor;
+   body={cursor:backend.cursor,full,devices:full?backend.devices:backend.devices.filter(d=>(d.revision||1)>after)};
+  }
   else if(url.pathname.endsWith('/rpc/scanner_apply')){
    const op=req.postDataJSON();backend.operations.push(op);
    const expected=crypto.createHmac('sha256',crypto.createHash('sha256').update('a'.repeat(64)).digest()).update(op.p_payload).digest('hex');
    if(expected!==op.p_signature)throw new Error('Invalid browser signature');
    const conflict=op.p_changes.filter(c=>{const before=backend.devices.find(d=>d.serial===c.serial);return (before?.version||null)!==(c.before?.version||null)});
    if(conflict.length)body={status:'conflict',serials:conflict.map(c=>c.serial)};
-   else{for(const c of op.p_changes){backend.devices=backend.devices.filter(d=>d.serial!==c.serial);if(c.after)backend.devices.push(c.after);}body={status:'applied'};}
+   else{for(const c of op.p_changes){backend.devices=backend.devices.filter(d=>d.serial!==c.serial);if(c.after)backend.devices.push({...c.after,revision:++backend.cursor});}body={status:'applied'};}
   }else if(url.pathname.endsWith('/devices')){const after=(url.searchParams.get('serial')||'gt.').slice(3);body=backend.devices.filter(d=>d.serial>after).sort((a,b)=>a.serial.localeCompare(b.serial)).slice(0,Number(url.searchParams.get('limit')||1000));}
   else if(url.pathname.endsWith('/movements'))body=[];
   else if(url.pathname.endsWith('/rpc/scanner_backup'))body=[];
@@ -74,6 +77,54 @@ test('remote conflict preserves local operation and prevents silent overwrite',a
 test('a verified empty server snapshot clears stale devices',async({page})=>{
  const {backend}=await setup(page);await login(page);backend.devices=[];await page.evaluate(()=>syncNow());await expect(page.locator('#mTotal')).toHaveText('0');await expect(page.locator('#syncText')).toHaveText('Подтверждено облаком');
 });
+test('separate workstations see issue and return without reloading',async({page,browser})=>{
+ const other=await browser.newContext();
+ try {
+  const {backend}=await setup(page,{incremental:true});await login(page);
+  const station=await other.newPage();await setup(station,{sharedBackend:backend});await login(station,'TEST-POST-B');
+  await station.evaluate(()=>{window.testWorkstation=true;});
+  await page.locator('#issWorker').fill('TEST-CROSS-POST');await page.locator('#issSn').fill('TEST-A');await page.locator('#issSn').press('Enter');
+  await expect(station.locator('#mIssued')).toHaveText('1',{timeout:9000});
+  await expect(station.locator('#tbody tr').filter({hasText:'TEST-A'})).toContainText('TEST-CROSS-POST');
+  await station.locator('#retQuery').fill('TEST-A');await station.locator('#retQuery').press('Enter');
+  await expect(station.locator('#tTitle')).toContainText('ПРИНЯТ');
+  await station.locator('#retQuery').fill('TEST-A');await station.locator('#retQuery').press('Enter');
+  await expect(station.locator('#tTitle')).toHaveText('УЖЕ НА СКЛАДЕ');
+  await expect(page.locator('#mIssued')).toHaveText('0',{timeout:9000});
+  expect(backend.operations).toHaveLength(2);
+  expect(await station.evaluate(()=>window.testWorkstation)).toBe(true);
+ } finally {await other.close();}
+});
+test('a blocked queue does not delay sync of unrelated scanners',async({page})=>{
+ const {backend}=await setup(page,{incremental:true});await login(page);backend.online=false;
+ await page.locator('#issWorker').fill('TEST-LOCAL');await page.locator('#issSn').fill('TEST-A');await page.locator('#btnIssue').click();
+ await expect(page.locator('#syncDetail')).toContainText('ожидает: 1');
+ backend.devices[0]={...backend.devices[0],status:'issued',holder:'TEST-CLOUD',version:'remote-a',revision:++backend.cursor};backend.online=true;
+ await expect(page.locator('#syncText')).toHaveText('Требуется сверка с облаком',{timeout:12000});
+ backend.devices[1]={...backend.devices[1],status:'issued',holder:'TEST-SECOND',version:'remote-b',revision:++backend.cursor};
+ await expect(page.locator('#mIssued')).toHaveText('2',{timeout:9000});
+ expect(await page.evaluate(async()=>(await readQueueWithKeys()).length)).toBe(1);
+ await expect(page.locator('#tbody tr').filter({hasText:'TEST-A'})).toContainText('TEST-LOCAL');
+});
+test('Enter on an exact free serial never returns a similar issued scanner',async({page})=>{
+ const {backend}=await setup(page);backend.devices[1]={...backend.devices[1],serial:'OTHER-TEST-A',status:'issued',holder:'TEST-HOLDER',issued_at:new Date().toISOString()};
+ await login(page);
+ await page.locator('#retQuery').fill('TEST-A');await page.locator('#retQuery').press('Enter');
+ await expect(page.locator('#tTitle')).toHaveText('УЖЕ НА СКЛАДЕ');
+ await expect(page.locator('#mIssued')).toHaveText('1');
+ expect(await page.evaluate(async()=>(await readQueueWithKeys()).length)).toBe(0);
+});
+test('a short series of scans keeps focus and records one movement per scanner',async({page})=>{
+ const {backend}=await setup(page);await login(page);
+ for(const [serial,worker] of [['TEST-A','TEST-FIRST'],['TEST-B','TEST-SECOND']]){
+  await expect(page.locator('#issWorker')).toBeFocused();
+  await page.locator('#issWorker').fill(worker);await page.locator('#issSn').fill(serial);await page.locator('#issSn').press('Enter');
+  await expect(page.locator('#issWorker')).toHaveValue('');
+ }
+ await expect(page.locator('#mIssued')).toHaveText('2');
+ await expect.poll(()=>backend.operations.length).toBe(2);
+ await expect(page.locator('#issWorker')).toBeFocused();
+});
 test('owner maintenance is available after creator ID entry',async({page})=>{
  await setup(page);await login(page);await page.locator('#btnMenu').click();await expect(page.locator('#btnOpenBackup')).toBeVisible();await expect(page.locator('#btnOpenImport')).toBeVisible();
 });
@@ -95,6 +146,39 @@ test('verified operator session survives an offline reload',async({page,context}
  await expect(page.locator('#mTotal')).toHaveText('2');
  await expect(page.locator('#syncText')).toContainText('Офлайн');
 });
+test('a new version waits for the scan, reloads automatically and starts offline',async({page,context})=>{
+ const deployment='test-deployment-2';
+ await page.clock.install();
+ const {backend,errors}=await setup(page);await login(page);
+ await page.waitForFunction(()=>navigator.serviceWorker.controller!==null);
+ await page.evaluate(()=>{window.beforeUpdate=true;});
+ await page.locator('#issWorker').fill('TEST-IN-PROGRESS');
+ await page.locator('#issSn').fill('TEST-A');
+ const publish=await context.request.post('/__test_deployment',{data:deployment});
+ expect(publish.ok()).toBe(true);
+ try {
+  await page.clock.fastForward(61000);
+  await expect.poll(()=>page.evaluate(async()=>{
+   const keys=await caches.keys();return keys.some(key=>key.endsWith('test-deployment-2'));
+  })).toBe(true);
+  await page.clock.runFor(2000);
+  expect(await page.evaluate(()=>window.beforeUpdate)).toBe(true);
+  await expect(page.locator('#issWorker')).toHaveValue('TEST-IN-PROGRESS');
+  backend.failApply=true;
+  await page.locator('#issSn').press('Enter');
+  await expect(page.locator('#syncDetail')).toContainText('ожидает: 1');
+  await page.clock.runFor(10000);
+  await expect(page.locator('html')).toHaveAttribute('data-test-deployment',deployment);
+  await expect.poll(()=>page.evaluate(()=>window.beforeUpdate)).toBeUndefined();
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-test-deployment',deployment);
+  await expect(page.locator('#operatorPanel')).toBeHidden();
+  await expect(page.locator('#syncDetail')).toContainText('ожидает: 1');
+  await expect(page.locator('#mIssued')).toHaveText('1');
+  expect(errors).toEqual([]);
+ } finally {await context.request.post('/__test_deployment',{data:'reset'});}
+});
 test('issue and return are reversible without destroying newer versions',async({page})=>{
  const {backend}=await setup(page);await login(page);backend.online=false;
  await page.locator('#issWorker').fill('TEST-WORKER');await page.locator('#issSn').fill('TEST-A');await page.locator('#btnIssue').click();await expect(page.locator('#mIssued')).toHaveText('1');
@@ -106,6 +190,20 @@ test('replacement of two scanners is sent as one operation',async({page})=>{
  await page.locator('#issWorker').fill('TEST-WORKER');await page.locator('#issSn').fill('TEST-A');await page.locator('#btnIssue').click();await expect(page.locator('#toast .t-undo')).toBeVisible();await page.evaluate(()=>syncNow());
  await page.locator('#issWorker').fill('TEST-WORKER');await page.locator('#issSn').fill('TEST-B');await page.locator('#btnIssue').click();await expect(page.locator('#swapModal')).toBeVisible();await page.locator('#swapConfirm').click();await expect(page.locator('#tTitle')).toContainText('ЗАМЕНА');await page.evaluate(()=>syncNow());
  expect(backend.operations.at(-1).p_changes).toHaveLength(2);expect(backend.devices.find(d=>d.serial==='TEST-A').status).toBe('free');expect(backend.devices.find(d=>d.serial==='TEST-B').holder).toBe('TEST-WORKER');
+});
+test('swap confirmation is rejected if another workstation refreshed either version',async({page})=>{
+ const {backend}=await setup(page,{incremental:true});
+ backend.devices[0]={...backend.devices[0],status:'issued',holder:'TEST-WORKER',issued_at:new Date().toISOString()};
+ await login(page);
+ await page.locator('#issWorker').fill('TEST-WORKER');await page.locator('#issSn').fill('TEST-B');await page.locator('#issSn').press('Enter');
+ await expect(page.locator('#swapModal')).toBeVisible();
+ expect(backend.operations).toHaveLength(0);
+ backend.devices[0]={...backend.devices[0],version:'updated-while-confirming',revision:++backend.cursor};
+ await page.evaluate(()=>syncNow());
+ await page.locator('#swapConfirm').click();
+ await expect(page.locator('#tTitle')).toHaveText('ОШИБКА ЗАМЕНЫ');
+ await expect(page.locator('#mIssued')).toHaveText('1');
+ expect(await page.evaluate(async()=>(await readQueueWithKeys()).length)).toBe(0);
 });
 test('stale writes in another tab fail before touching the queue',async({page,context})=>{
  const {backend}=await setup(page);await login(page);backend.online=false;
