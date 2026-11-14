@@ -109,17 +109,24 @@ async function saveDeviceChanges(changes, options={}) {
     }
     operation.proof=await signOperatorOperation(operation,captured);
     if(operatorContext.profile?.session_id!==profile.session_id)throw new Error('Оператор изменился. Повторите операцию.');
-    const tx=db.transaction(['devices','queue','moves'],'readwrite'),done=transactionDone(tx);let failure,remaining=operation.changes.length;
-    for(const change of operation.changes){
-      const req=tx.objectStore('devices').get(change.serial);
-      req.onsuccess=()=>{try{
-        if((req.result?.version||null)!==(change.before?.version||null))throw new Error('Данные изменились в другой вкладке. Повторите операцию.');
+    const tx=db.transaction(['devices','queue','moves'],'readwrite'),done=transactionDone(tx);let failure;
+    // Check the complete final assignment inside the write transaction. Two tabs can
+    // hold fresh versions of different scanners and still race for the same recipient.
+    const req=tx.objectStore('devices').getAll();
+    req.onsuccess=()=>{try{
+      const current=new Map(req.result.map(d=>[d.serial,d]));
+      for(const change of operation.changes){
+        if((current.get(change.serial)?.version||null)!==(change.before?.version||null))throw new Error('Данные изменились в другой вкладке. Повторите операцию.');
+      }
+      SkladCore.assertSingleActiveIssue(req.result,operation.changes);
+      for(const change of operation.changes){
         if(change.after)tx.objectStore('devices').put(change.after);else tx.objectStore('devices').delete(change.serial);
         tx.objectStore('moves').add({serial:change.serial,action:change.action,worker:change.worker,created_at:at,moveId:`${id}:${change.serial}`,operator_employee_id:profile.employee_id,operator_session_id:profile.session_id,operator_id:null,terminal_id:operation.terminal});
-        if(--remaining===0)tx.objectStore('queue').add(operation);
-      }catch(error){failure=error;tx.abort();}};
-    }
+      }
+      tx.objectStore('queue').add(operation);
+    }catch(error){failure=error;tx.abort();}};
     try{await done;}catch(error){throw failure||error;}
+    setSync(false,'Сохранено локально · ожидает синхронизации');
     state.lastSavedSerials=operation.serials;state.repairMap={};
     try{localStorage.removeItem(REPAIR_MAP_KEY);}catch(_){}
     for(const c of operation.changes){state.devices=state.devices.filter(d=>d.serial!==c.serial);if(c.after)state.devices.push(c.after);}
@@ -138,12 +145,15 @@ async function updateQueueStatus() {
   state.conflictCount = queue.filter(x => x.value.conflict || !['operation','operator_action'].includes(x.value.type)).length;
   const at = state.lastSyncAt ? new Date(state.lastSyncAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : 'ещё не было';
   $('syncDetail').textContent = `Локально сохранено · ожидает: ${queue.length} · конфликтов: ${state.conflictCount} · облако: ${at}`;
+  if (queue.length && !state.syncing) setSync(false, state.conflictCount ? `Конфликт синхронизации · в очереди: ${queue.length}` : `Сохранено локально · ожидает синхронизации: ${queue.length}`);
 }
 async function setQueueConflict(key, message) {
   const tx = db.transaction('queue', 'readwrite'), done = transactionDone(tx);
   const s = tx.objectStore('queue'), req = s.get(key);
   req.onsuccess = () => { if (req.result) s.put({ ...req.result, conflict: message }, key); };
   await done;
+  state.lastError = message;
+  showToast('КОНФЛИКТ СИНХРОНИЗАЦИИ', `${message}. Операция сохранена в очереди; требуется сверка.`, 'err');
 }
 async function syncNow() {
   if (state.syncing || !db || !cloud || !terminalContext.id) return false;
@@ -178,7 +188,7 @@ async function syncNow() {
       await applyPull(data);
       await updateQueueStatus();
       const waiting = state.pendingCount > 0;
-      setSync(!state.conflictCount, waiting ? `Ожидает отправки: ${state.pendingCount}` : 'Подтверждено облаком');
+      setSync(!waiting, state.conflictCount ? `Конфликт синхронизации · в очереди: ${state.pendingCount}` : waiting ? `Сохранено локально · ожидает синхронизации: ${state.pendingCount}` : 'Подтверждено сервером');
       return !waiting;
     };
     // Cross-tab exclusion prevents duplicate uploads, not just a per-tab boolean.
@@ -186,8 +196,8 @@ async function syncNow() {
   } catch (e) {
     if(e.code==='42501' && /LOGIN_REQUIRED/.test(e.message))lockOperator('Введите ID и PIN снова.');
     state.lastError = e.message || 'Ошибка синхронизации';
-    setSync(false, 'Нет подтверждения облака');
     await updateQueueStatus();
+    setSync(false, `Нет подтверждения сервера: ${state.lastError}`);
     return false;
   } finally { state.syncing = false; }
 }

@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { validateDevice, backupDiff, csvSafe, reportMoves } = require('../core.js');
+const { validateDevice, assertSingleActiveIssue, backupDiff, csvSafe, reportMoves } = require('../core.js');
 test('serials and issued state are validated', () => {
   assert.throws(() => validateDevice({ serial: '<img>', status: 'free' }));
   assert.throws(() => validateDevice({ serial: 'TEST-1', status: 'issued', holder: '' }));
@@ -23,4 +23,11 @@ test('period report uses an exclusive end and limits query size', () => {
 test('legacy SN; prefix is accepted without normalizing away its identity', () => {
   assert.equal(validateDevice({serial:'SN;TEST-LEGACY-001',status:'free'}).serial,'SN;TEST-LEGACY-001');
   assert.throws(()=>validateDevice({serial:'OTHER;TEST-001',status:'free'}));
+});
+test('recipient uniqueness ignores case and spaces and permits only a complete replacement', () => {
+  const old={serial:'TEST-A',status:'issued',holder:' Staff '};
+  const next={serial:'TEST-B',status:'issued',holder:'staff'};
+  assert.throws(()=>assertSingleActiveIssue([old],[{serial:next.serial,after:next}]),/активная выдача/);
+  assert.doesNotThrow(()=>assertSingleActiveIssue([old],[{serial:old.serial,after:{...old,status:'free',holder:''}},{serial:next.serial,after:next}]));
+  assert.doesNotThrow(()=>assertSingleActiveIssue([{...old,deleted_at:'2026-11-14T00:00:00Z'}],[{serial:next.serial,after:next}]));
 });

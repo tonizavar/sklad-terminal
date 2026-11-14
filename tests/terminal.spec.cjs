@@ -6,8 +6,8 @@ const fixture=()=>[
  {serial:'TEST-A',model:'Point Mobile',status:'free',holder:'',shift:'—',issued_at:null,last_move:'2026-11-13T06:00:00.000Z',version:'initial',defect:''},
  {serial:'TEST-B',model:'Point Mobile',status:'free',holder:'',shift:'—',issued_at:null,last_move:'2026-11-13T06:00:00.000Z',version:'initial',defect:''}
 ];
-async function setup(page,{role='owner',count=2,configured=true}={}){
- const backend={devices:count===2?fixture():Array.from({length:count},(_,i)=>({...fixture()[0],serial:`TEST-${String(i).padStart(5,'0')}`})),operations:[],online:true,role,configured,audit:[],operators:[]};
+async function setup(page,{role='owner',count=2,configured=true,backend:sharedBackend}={}){
+ const backend=sharedBackend||{devices:count===2?fixture():Array.from({length:count},(_,i)=>({...fixture()[0],serial:`TEST-${String(i).padStart(5,'0')}`})),operations:[],online:true,role,configured,audit:[],operators:[],applied:new Map(),moves:[]};
  await page.context().route('https://fonts.googleapis.com/**',r=>r.abort());
  await page.context().route('https://sgpkvnymkqwuhepkaoxw.supabase.co/**',async route=>{
   if(!backend.online)return route.abort();
@@ -26,11 +26,20 @@ async function setup(page,{role='owner',count=2,configured=true}={}){
   else if(url.pathname.endsWith('/rpc/scanner_pull'))body={cursor:1,full:true,devices:backend.devices};
   else if(url.pathname.endsWith('/rpc/scanner_apply')){
    const op=req.postDataJSON();backend.operations.push(op);
+   if(backend.applyError)return route.fulfill({status:400,json:backend.applyError});
    const expected=crypto.createHmac('sha256',crypto.createHash('sha256').update('a'.repeat(64)).digest()).update(op.p_payload).digest('hex');
    if(expected!==op.p_signature)throw new Error('Invalid browser signature');
-   const conflict=op.p_changes.filter(c=>{const before=backend.devices.find(d=>d.serial===c.serial);return (before?.version||null)!==(c.before?.version||null)});
-   if(conflict.length)body={status:'conflict',serials:conflict.map(c=>c.serial)};
-   else{for(const c of op.p_changes){backend.devices=backend.devices.filter(d=>d.serial!==c.serial);if(c.after)backend.devices.push(c.after);}body={status:'applied'};}
+   const previous=backend.applied.get(op.p_id);
+   if(previous)body=previous;
+   else{
+    const final=backend.devices.filter(d=>!op.p_changes.some(c=>c.serial===d.serial)).concat(op.p_changes.flatMap(c=>c.after?[c.after]:[]));
+    const holder=d=>String(d.holder||'').trim().toUpperCase();
+    const conflict=op.p_changes.filter(c=>{const before=backend.devices.find(d=>d.serial===c.serial);return (before?.version||null)!==(c.before?.version||null)||(c.after?.status==='issued'&&final.filter(d=>!d.deleted_at&&d.status==='issued'&&holder(d)===holder(c.after)).length>1)});
+    if(conflict.length)body={status:'conflict',serials:conflict.map(c=>c.serial)};
+    else{backend.devices=final;backend.moves.push(...op.p_changes.map(c=>({event_id:`${op.p_id}:${c.serial}`,serial:c.serial,action:c.action,worker:c.worker,created_at:c.ts})));body={status:'applied'};}
+    backend.applied.set(op.p_id,body);
+   }
+   if(backend.loseNextAck){backend.loseNextAck=false;return route.abort();}
   }else if(url.pathname.endsWith('/devices')){const after=(url.searchParams.get('serial')||'gt.').slice(3);body=backend.devices.filter(d=>d.serial>after).sort((a,b)=>a.serial.localeCompare(b.serial)).slice(0,Number(url.searchParams.get('limit')||1000));}
   else if(url.pathname.endsWith('/movements'))body=[];
   else if(url.pathname.endsWith('/rpc/scanner_backup'))body=[];
@@ -46,7 +55,7 @@ async function login(page,id='TEST-OWNER'){
  if(await page.locator('#operatorPanel').isVisible()){
   await page.locator('#operatorEmployeeId').fill(id);await page.locator('#operatorLoginBtn').click();
  }
- await expect(page.locator('#operatorPanel')).toBeHidden();await expect(page.locator('#syncText')).toHaveText('Подтверждено облаком');await expect(page.locator('#bootOverlay')).toHaveCount(0);
+ await expect(page.locator('#operatorPanel')).toBeHidden();await expect(page.locator('#syncText')).toHaveText('Подтверждено сервером');await expect(page.locator('#bootOverlay')).toHaveCount(0);
 }
 async function openView(page, view) {
  await page.locator('#btnMenu').click();
@@ -72,7 +81,7 @@ test('remote conflict preserves local operation and prevents silent overwrite',a
  await page.evaluate(()=>syncNow());await expect(page.locator('#syncDetail')).toContainText('конфликтов: 1');expect(backend.devices[0].holder).toBe('OTHER-WORKER');expect(await page.evaluate(async()=>(await readQueueWithKeys()).length)).toBe(1);
 });
 test('a verified empty server snapshot clears stale devices',async({page})=>{
- const {backend}=await setup(page);await login(page);backend.devices=[];await page.evaluate(()=>syncNow());await expect(page.locator('#mTotal')).toHaveText('0');await expect(page.locator('#syncText')).toHaveText('Подтверждено облаком');
+ const {backend}=await setup(page);await login(page);backend.devices=[];await page.evaluate(()=>syncNow());await expect(page.locator('#mTotal')).toHaveText('0');await expect(page.locator('#syncText')).toHaveText('Подтверждено сервером');
 });
 test('owner maintenance is available after creator ID entry',async({page})=>{
  await setup(page);await login(page);await page.locator('#btnMenu').click();await expect(page.locator('#btnOpenBackup')).toBeVisible();await expect(page.locator('#btnOpenImport')).toBeVisible();
@@ -110,7 +119,7 @@ test('replacement of two scanners is sent as one operation',async({page})=>{
 test('stale writes in another tab fail before touching the queue',async({page,context})=>{
  const {backend}=await setup(page);await login(page);backend.online=false;
  await page.evaluate(()=>{window.oldSnapshot={...state.devices.find(d=>d.serial==='TEST-A')};});
- const tab=await context.newPage();backend.online=true;await tab.goto('/');await login(tab);await expect(tab.locator('#syncText')).toHaveText('Подтверждено облаком');backend.online=false;
+ const tab=await context.newPage();backend.online=true;await tab.goto('/');await login(tab);await expect(tab.locator('#syncText')).toHaveText('Подтверждено сервером');backend.online=false;
  await tab.locator('#issWorker').fill('TEST-WORKER');await tab.locator('#issSn').fill('TEST-A');await tab.locator('#btnIssue').click();await expect(tab.locator('#toast .t-undo')).toBeVisible();
  const result=await page.evaluate(async()=>{try{await saveDevice({...window.oldSnapshot,status:'repair',defect:'STALE'},'repair','');return 'bad'}catch(e){return e.message}});
  expect(result).toContain('другой вкладке');expect(await page.evaluate(async()=>(await readQueueWithKeys()).length)).toBe(1);
@@ -215,4 +224,115 @@ test('theme review captures synthetic screens with different palettes and geomet
  await page.setViewportSize({width:1440,height:1000});await setup(page);await login(page);
  for(const id of ['berry','sapphire','carbon','quartz']){await page.evaluate(id=>applyTheme(id,false),id);await page.screenshot({path:`test-results/theme-${id}.png`,fullPage:false});}
  await page.locator('#btnMenu').click();await page.locator('#menuPop [data-open-themes]').click();await page.screenshot({path:'test-results/theme-gallery.png',fullPage:false});
+});
+
+test('reassignment cannot give a second scanner to an already equipped recipient',async({page})=>{
+ const {backend}=await setup(page);await login(page);
+ backend.devices=backend.devices.map((d,i)=>({...d,status:'issued',holder:i?'RECIPIENT-B':'RECIPIENT-A',issued_at:new Date().toISOString()}));
+ await page.evaluate(()=>syncNow());backend.online=false;
+ await page.locator('#issWorker').fill('RECIPIENT-B');await page.locator('#issSn').fill('TEST-A');await page.locator('#btnIssue').click();
+ await expect(page.locator('#toast .t-undo')).toContainText('Переоформить');await page.locator('#toast .t-undo').click();
+ await expect(page.locator('#tTitle')).toHaveText('ОПЕРАЦИЯ ОСТАНОВЛЕНА');
+ expect(await page.evaluate(()=>state.devices.filter(d=>d.status==='issued'&&d.holder==='RECIPIENT-B').map(d=>d.serial))).toEqual(['TEST-B']);
+ expect(await page.evaluate(async()=>(await readQueueWithKeys()).length)).toBe(0);
+ expect(await page.evaluate(async()=>requestResult(db.transaction('moves').objectStore('moves').count()))).toBe(0);
+});
+
+test('first issue is explicitly local until acknowledged; duplicate scan adds no operation',async({page})=>{
+ const {backend}=await setup(page);await login(page);backend.online=false;
+ await page.locator('#issWorker').fill('RECIPIENT');await page.locator('#issSn').fill('TEST-A');await page.locator('#btnIssue').click();
+ await expect(page.locator('#tTitle')).toContainText('СОХРАНЕНА ЛОКАЛЬНО');await expect(page.locator('#syncText')).not.toHaveText('Подтверждено сервером');
+ await expect(page.locator('#toast .t-undo')).toBeVisible();
+ const before=await page.evaluate(()=>readQueueWithKeys());expect(before).toHaveLength(1);
+ await page.locator('#issWorker').fill('RECIPIENT');await page.locator('#issSn').fill('TEST-A');await page.locator('#btnIssue').click();
+ expect(await page.evaluate(()=>readQueueWithKeys())).toEqual(before);
+ await page.evaluate(()=>clearTimeout(syncScheduledTimer));backend.online=true;await page.evaluate(()=>syncNow());
+ await expect(page.locator('#syncText')).toHaveText('Подтверждено сервером');expect(backend.moves).toHaveLength(1);
+});
+
+test('swap cancellation writes nothing; confirmed swap and undo each use one atomic packet',async({page})=>{
+ const {backend}=await setup(page);await login(page);
+ backend.devices[0]={...backend.devices[0],status:'issued',holder:'RECIPIENT',issued_at:new Date().toISOString()};await page.evaluate(()=>syncNow());backend.online=false;
+ const before=await page.evaluate(()=>structuredClone(state.devices));
+ await page.locator('#issWorker').fill('RECIPIENT');await page.locator('#issSn').fill('TEST-B');await page.locator('#btnIssue').click();await expect(page.locator('#swapModal')).toBeVisible();
+ await page.locator('#swapModal [data-close-modal]').click();
+ expect(await page.evaluate(()=>state.devices)).toEqual(before);expect(await page.evaluate(()=>readQueueWithKeys())).toHaveLength(0);
+ // A canceled dialog must not leave a pending replacement that can be committed later.
+ expect(await page.evaluate(()=>state.pendingSwap)).toBeNull();
+ await page.evaluate(()=>opCooldownMap.clear());await page.locator('#btnIssue').click();await page.locator('#swapConfirm').click();await expect(page.locator('#tTitle')).toContainText('ЗАМЕНА СОХРАНЕНА ЛОКАЛЬНО');
+ let queue=await page.evaluate(()=>readQueueWithKeys());expect(queue).toHaveLength(1);expect(queue[0].value.changes).toHaveLength(2);
+ await page.keyboard.press('Control+z');await expect(page.locator('#tTitle')).toContainText('ОТМЕНА ЗАМЕНЫ СОХРАНЕНА ЛОКАЛЬНО');
+ queue=await page.evaluate(()=>readQueueWithKeys());expect(queue).toHaveLength(2);expect(queue[1].value.changes).toHaveLength(2);
+ expect(await page.evaluate(()=>state.devices.map(d=>({serial:d.serial,status:d.status,holder:d.holder})).sort((a,b)=>a.serial.localeCompare(b.serial)))).toEqual(before.map(d=>({serial:d.serial,status:d.status,holder:d.holder})).sort((a,b)=>a.serial.localeCompare(b.serial)));
+ await page.evaluate(()=>clearTimeout(syncScheduledTimer));backend.online=true;await page.evaluate(()=>syncNow());
+ expect(backend.devices.find(d=>d.serial==='TEST-A').holder).toBe('RECIPIENT');expect(backend.devices.find(d=>d.serial==='TEST-B').status).toBe('free');expect(backend.moves).toHaveLength(4);
+});
+
+test('replacement stops if a reviewed version changes before confirmation',async({page})=>{
+ const {backend}=await setup(page);await login(page);
+ backend.devices[0]={...backend.devices[0],status:'issued',holder:'RECIPIENT',issued_at:new Date().toISOString()};await page.evaluate(()=>syncNow());
+ await page.locator('#issWorker').fill('RECIPIENT');await page.locator('#issSn').fill('TEST-B');await page.locator('#btnIssue').click();await expect(page.locator('#swapModal')).toBeVisible();
+ backend.devices[1]={...backend.devices[1],version:'another-terminal-version'};await page.evaluate(()=>syncNow());
+ await page.locator('#swapConfirm').click();await expect(page.locator('#tTitle')).toHaveText('ОШИБКА ЗАМЕНЫ');
+ expect(await page.evaluate(()=>readQueueWithKeys())).toHaveLength(0);expect(backend.devices[0].holder).toBe('RECIPIENT');expect(backend.devices[1].status).toBe('free');
+});
+
+test('replacement rolls back both devices and journal when IndexedDB cannot enqueue it',async({page})=>{
+ const {backend}=await setup(page);await login(page);
+ backend.devices[0]={...backend.devices[0],status:'issued',holder:'RECIPIENT',issued_at:new Date().toISOString()};await page.evaluate(()=>syncNow());backend.online=false;
+ const before=await page.evaluate(()=>structuredClone(state.devices));
+ await page.locator('#issWorker').fill('RECIPIENT');await page.locator('#issSn').fill('TEST-B');await page.locator('#btnIssue').click();await expect(page.locator('#swapModal')).toBeVisible();
+ await page.evaluate(async()=>{const add=IDBObjectStore.prototype.add;IDBObjectStore.prototype.add=function(...args){if(this.name==='queue')throw new Error('TEST_QUEUE_WRITE_FAILURE');return add.apply(this,args);};try{await confirmSwap();}finally{IDBObjectStore.prototype.add=add;}});
+ await expect(page.locator('#tTitle')).toHaveText('ОШИБКА ЗАМЕНЫ');expect(await page.evaluate(()=>state.devices)).toEqual(before);expect(await page.evaluate(()=>readQueueWithKeys())).toHaveLength(0);
+ expect(await page.evaluate(async()=>requestResult(db.transaction('moves').objectStore('moves').count()))).toBe(0);
+});
+
+test('lost acknowledgement retries the same packet without duplicating server history',async({page})=>{
+ const {backend}=await setup(page);await login(page);backend.online=false;
+ await page.locator('#issWorker').fill('RECIPIENT');await page.locator('#issSn').fill('TEST-A');await page.locator('#btnIssue').click();await expect(page.locator('#toast .t-undo')).toBeVisible();await page.evaluate(()=>clearTimeout(syncScheduledTimer));
+ const queued=await page.evaluate(()=>readQueueWithKeys());backend.online=true;backend.loseNextAck=true;await page.evaluate(()=>syncNow());
+ expect(await page.evaluate(()=>readQueueWithKeys())).toEqual(queued);expect(backend.moves).toHaveLength(1);await expect(page.locator('#syncText')).toContainText('Нет подтверждения сервера');
+ await page.evaluate(()=>syncNow());expect(await page.evaluate(()=>readQueueWithKeys())).toHaveLength(0);expect(backend.moves).toHaveLength(1);expect(backend.operations.map(op=>op.p_id)).toEqual([queued[0].value.id,queued[0].value.id]);await expect(page.locator('#syncText')).toHaveText('Подтверждено сервером');
+});
+
+test('server rejection preserves signed queue and local history and displays the reason',async({page})=>{
+ const {backend}=await setup(page);await login(page);backend.online=false;
+ await page.locator('#issWorker').fill('RECIPIENT');await page.locator('#issSn').fill('TEST-A');await page.locator('#btnIssue').click();await expect(page.locator('#toast .t-undo')).toBeVisible();await page.evaluate(()=>clearTimeout(syncScheduledTimer));
+ const queued=await page.evaluate(()=>readQueueWithKeys());const history=await page.evaluate(()=>requestResult(db.transaction('moves').objectStore('moves').getAll()));
+ backend.online=true;backend.applyError={code:'P0001',message:'TEST_SERVER_REJECTION'};await page.evaluate(()=>syncNow());
+ await expect(page.locator('#syncText')).toContainText('TEST_SERVER_REJECTION');expect(await page.evaluate(()=>readQueueWithKeys())).toEqual(queued);expect(await page.evaluate(()=>requestResult(db.transaction('moves').objectStore('moves').getAll()))).toEqual(history);expect(backend.moves).toHaveLength(0);
+ backend.applyError=null;await page.evaluate(()=>syncNow());expect(backend.moves).toHaveLength(1);
+});
+
+test('two operators racing for one recipient in shared IndexedDB can commit only one issue',async({page,context})=>{
+ const {backend}=await setup(page);await login(page,'OPERATOR-ONE');const tab=await context.newPage();await tab.goto('/');await login(tab,'OPERATOR-TWO');backend.online=false;
+ // Both packets capture fresh versions before either transaction commits.
+ for(const p of [page,tab])await p.evaluate(()=>{const sign=signOperatorOperation;signOperatorOperation=async(...args)=>{const proof=await sign(...args);window.signingReached=true;await new Promise(resolve=>window.releaseSigning=resolve);return proof;};});
+ const save=(p,sn)=>p.evaluate(async sn=>{try{const dev=state.devices.find(d=>d.serial===sn);await saveDevice({...dev,status:'issued',holder:'RECIPIENT',issued_at:new Date().toISOString()},'Выдан','RECIPIENT');return 'saved';}catch(e){return e.message;}},sn);
+ const first=save(page,'TEST-A'),second=save(tab,'TEST-B');
+ await Promise.all([page.waitForFunction(()=>window.signingReached),tab.waitForFunction(()=>window.signingReached)]);await Promise.all([page.evaluate(()=>window.releaseSigning()),tab.evaluate(()=>window.releaseSigning())]);
+ const results=await Promise.all([first,second]);expect(results.filter(x=>x==='saved')).toHaveLength(1);expect(results.find(x=>x!=='saved')).toContain('активная выдача');
+ const queue=await page.evaluate(()=>readQueueWithKeys());expect(queue).toHaveLength(1);expect(['OPERATOR-ONE','OPERATOR-TWO']).toContain(JSON.parse(queue[0].value.proof.payload).employee_id);
+ expect(await page.evaluate(async()=>(await requestResult(db.transaction('devices').objectStore('devices').getAll())).filter(d=>d.status==='issued'))).toHaveLength(1);
+ expect(await page.evaluate(()=>requestResult(db.transaction('moves').objectStore('moves').count()))).toBe(1);
+});
+
+test('independent offline terminals preserve the losing operation as a visible server conflict',async({page,browser})=>{
+ const {backend}=await setup(page);await login(page,'OPERATOR-ONE');const other=await browser.newContext();
+ try{
+  const tab=await other.newPage();await setup(tab,{backend});await login(tab,'OPERATOR-TWO');backend.online=false;
+  for(const [p,sn]of [[page,'TEST-A'],[tab,'TEST-B']]){await p.locator('#issWorker').fill('RECIPIENT');await p.locator('#issSn').fill(sn);await p.locator('#btnIssue').click();await expect(p.locator('#toast .t-undo')).toBeVisible();await p.evaluate(()=>clearTimeout(syncScheduledTimer));}
+  const losing=await tab.evaluate(()=>readQueueWithKeys());backend.online=true;await page.evaluate(()=>syncNow());await tab.evaluate(()=>syncNow());
+  expect(backend.devices.filter(d=>d.status==='issued'&&d.holder==='RECIPIENT')).toHaveLength(1);expect(backend.moves).toHaveLength(1);
+  const pending=await tab.evaluate(()=>readQueueWithKeys());expect(pending).toHaveLength(1);expect(pending[0].value.proof).toEqual(losing[0].value.proof);expect(pending[0].value.changes).toEqual(losing[0].value.changes);expect(pending[0].value.conflict).toBeTruthy();await expect(tab.locator('#syncText')).toContainText('Конфликт синхронизации');await expect(tab.locator('#tTitle')).toHaveText('КОНФЛИКТ СИНХРОНИЗАЦИИ');
+  expect(await tab.evaluate(()=>requestResult(db.transaction('moves').objectStore('moves').count()))).toBe(1);
+ }finally{await other.close();}
+});
+
+test('previously enabled automatic replacement still uses one checked atomic operation',async({page})=>{
+ const {backend}=await setup(page);await login(page);
+ backend.devices[0]={...backend.devices[0],status:'issued',holder:'RECIPIENT',issued_at:new Date().toISOString()};await page.evaluate(()=>syncNow());backend.online=false;
+ await page.evaluate(()=>{state.autoSwap=true;});await page.locator('#issWorker').fill('RECIPIENT');await page.locator('#issSn').fill('TEST-B');await page.locator('#btnIssue').click();
+ await expect(page.locator('#tTitle')).toContainText('ЗАМЕНА СОХРАНЕНА ЛОКАЛЬНО');const queue=await page.evaluate(()=>readQueueWithKeys());expect(queue).toHaveLength(1);expect(queue[0].value.changes).toHaveLength(2);
+ expect(await page.evaluate(()=>state.devices.filter(d=>d.status==='issued'&&d.holder==='RECIPIENT').map(d=>d.serial))).toEqual(['TEST-B']);expect(await page.evaluate(()=>state.opLock)).toBe(false);
 });

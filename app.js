@@ -391,7 +391,7 @@ function showUndoToast(title, desc, undoLabel, undoCallback, kind = 'ok') {
   clearUndo();
   const el = $('toast');
   $('tTitle').innerText = title;
-  $('tDesc').innerText = desc || '';
+  $('tDesc').innerText = `${desc || ''}\nПодтверждение сервера — в статусе синхронизации.`;
   $('tIcon').innerText = kind === 'swap' ? '🔁' : (kind === 'warn' ? '🛠' : '✓');
   $('tIcon').style.background = '';
   $('tIcon').style.borderColor = '';
@@ -1150,7 +1150,7 @@ async function submitIssue() {
     beep('err');
     triggerScanFlash('err');
     updateIssBanner(sn);
-    if (dev.holder && dev.holder.toUpperCase() === worker.toUpperCase()) {
+    if (dev.holder && dev.holder.trim().toUpperCase() === worker.trim().toUpperCase()) {
       showToastWithAction(
         'ОШИБКА: УЖЕ ЧИСЛИТСЯ ЗА ЭТИМ СОТРУДНИКОМ',
         `Сканер ${sn} уже выдан сотруднику ${dev.holder}`,
@@ -1185,7 +1185,7 @@ async function submitIssue() {
     if (state.issueShiftAuto) shift = computeSmartShift(worker);
 
     const existingWorkerDev = state.devices.find(
-      d => d.status === 'issued' && d.holder && d.holder.toUpperCase() === worker.toUpperCase()
+      d => d.status === 'issued' && d.holder && d.holder.trim().toUpperCase() === worker.trim().toUpperCase()
     );
 
     if (existingWorkerDev) {
@@ -1196,11 +1196,13 @@ async function submitIssue() {
         isNew: !dev,
         shift,
         originalIssuedAt: existingWorkerDev.issued_at,
-        originalShift: existingWorkerDev.shift
+        originalShift: existingWorkerDev.shift,
+        oldVersion: existingWorkerDev.version,
+        newVersion: dev?.version || null
       };
       if (state.autoSwap) {
         state.pendingSwap = pending;
-        await confirmSwap();
+        await confirmSwap(true);
         return;
       }
       state.pendingSwap = pending;
@@ -1246,46 +1248,36 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
     defect: ''
   };
   const oldSnapshot = dev ? JSON.parse(JSON.stringify(dev)) : null;
-  const idx = state.devices.findIndex(d => d.serial === sn);
-  if (idx >= 0) state.devices[idx] = updated;
-  else state.devices.push(updated);
-
-  state.justIssued = sn;
-  renderTable();
-  setTimeout(() => { state.justIssued = null; renderTable(); }, 2200);
+  SkladCore.assertSingleActiveIssue(state.devices, [{ serial: sn, after: updated }]);
 
   const actionName = inheritedIssuedAt
     ? (isNew ? 'Создан и выдан (время перенесено)' : 'Выдан (время перенесено)')
     : (isNew ? 'Создан и выдан' : 'Выдан');
 
-  try {
-    await saveDevice(updated, actionName, worker);
-    rememberWorkerShift(worker, shift);
-    beep('issue');
-    triggerScanFlash('ok');
-    pushTickerEvent('t-iss', sn, worker);
-    showUndoToast(
-      'ВЫДАНО В СМЕНУ',
-      `Сканер ${sn} (${updated.model}) ➔ 👤 ${worker} (${shift})`,
-      '↩ Отменить (Ctrl+Z)',
-      async () => {
-        try {
-          if (isNew) await deleteSerial(sn);
-          else await saveDevice({ ...oldSnapshot, last_move: nowIso() }, 'Отмена выдачи', worker);
-          beep('return');
-          showToast('ВЫДАЧА ОТМЕНЕНА', `Сканер ${sn} возвращён в резерв`);
-        } catch(e) { showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err'); }
-      },
-      'ok'
-    );
-    logMsg(`✅ ВЫДАНО: ${sn} ➔ ${worker} (${shift})`);
-    clearDraft();
-  } catch(e) {
-    if (isNew) state.devices = state.devices.filter(d => d.serial !== sn);
-    else if (idx >= 0) state.devices[idx] = dev;
-    renderTable();
-    throw e;
-  }
+  await saveDevice(updated, actionName, worker);
+  state.justIssued = sn;
+  renderTable();
+  setTimeout(() => { state.justIssued = null; renderTable(); }, 2200);
+  rememberWorkerShift(worker, shift);
+  beep('issue');
+  triggerScanFlash('ok');
+  pushTickerEvent('t-iss', sn, worker);
+  showUndoToast(
+    'ВЫДАЧА СОХРАНЕНА ЛОКАЛЬНО',
+    `Сканер ${sn} (${updated.model}) ➔ 👤 ${worker} (${shift})`,
+    '↩ Отменить (Ctrl+Z)',
+    async () => {
+      try {
+        if (isNew) await deleteSerial(sn);
+        else await saveDevice({ ...oldSnapshot, last_move: nowIso() }, 'Отмена выдачи', worker);
+        beep('return');
+        showToast('ОТМЕНА ВЫДАЧИ СОХРАНЕНА ЛОКАЛЬНО', `Сканер ${sn} возвращён в резерв. Ожидает синхронизации.`);
+      } catch(e) { showToast('ОШИБКА ОТМЕНЫ', e.message || '?', 'err'); }
+    },
+    'ok'
+  );
+  logMsg(`💾 ВЫДАЧА СОХРАНЕНА ЛОКАЛЬНО: ${sn} ➔ ${worker} (${shift})`);
+  clearDraft();
 
   // Полный сброс и возврат фокуса на поле бейджа для следующего сотрудника в очереди!
   $('issSn').value = '';
@@ -1299,9 +1291,12 @@ async function performIssue(sn, worker, dev, shift, inheritedIssuedAt) {
   $('issWorker').focus();
 }
 
-async function confirmSwap() {
+async function confirmSwap(fromIssue = false) {
+  if (state.opLock && fromIssue !== true) return;
   const p = state.pendingSwap;
   if (!p) return;
+  const wasLocked = state.opLock;
+  state.opLock = true;
   state.pendingSwap = null; // анти-дубль: повторный клик/Enter по окну замены выйдет сразу
   closeModal('swapModal');
   let snapshot = null;
@@ -1328,7 +1323,7 @@ async function confirmSwap() {
       shift: p.shift,
       defect: ''
     };
-    if (!oldDev || oldDev.status !== 'issued' || String(oldDev.holder || '').toUpperCase() !== p.worker.toUpperCase() || (newDev && newDev.status !== 'free')) {
+    if (!oldDev || oldDev.status !== 'issued' || String(oldDev.holder || '').trim().toUpperCase() !== p.worker.trim().toUpperCase() || (newDev && newDev.status !== 'free') || oldDev.version !== p.oldVersion || (newDev?.version || null) !== p.newVersion) {
       throw new Error('Статус сканеров изменился. Повторите замену.');
     }
     await saveDeviceChanges([
@@ -1340,7 +1335,7 @@ async function confirmSwap() {
     triggerScanFlash('ok');
     pushTickerEvent('t-swp', p.newSn, p.worker);
     showUndoToast(
-      `ЗАМЕНА СКАНЕРА: ${p.oldSn.slice(-4)} ➔ ${p.newSn.slice(-4)}`,
+      `ЗАМЕНА СОХРАНЕНА ЛОКАЛЬНО: ${p.oldSn.slice(-4)} ➔ ${p.newSn.slice(-4)}`,
       `Сотрудник ${p.worker} · старый принят, новый выдан`,
       '↩ Отменить (Ctrl+Z)',
       async () => {
@@ -1355,12 +1350,12 @@ async function confirmSwap() {
           }
           await saveDeviceChanges(changes);
           beep('return');
-          showToast('ЗАМЕНА ОТМЕНЕНА', 'Восстановлено прежнее состояние');
+          showToast('ОТМЕНА ЗАМЕНЫ СОХРАНЕНА ЛОКАЛЬНО', 'Восстановлено прежнее состояние. Ожидает синхронизации.');
         } catch(e) { showToast('ОШИБКА', e.message || '?', 'err'); }
       },
       'swap'
     );
-    logMsg(`🔄 ЗАМЕНА: ${p.oldSn} ➔ ${p.newSn} у ${p.worker}`);
+    logMsg(`💾 ЗАМЕНА СОХРАНЕНА ЛОКАЛЬНО: ${p.oldSn} ➔ ${p.newSn} у ${p.worker}`);
     state.pendingSwap = null;
     $('issSn').value = '';
     $('issWorker').value = '';
@@ -1393,6 +1388,8 @@ async function confirmSwap() {
       await loadLocal();
     }
     state.pendingSwap = null;
+  } finally {
+    state.opLock = wasLocked;
   }
 }
 
@@ -2280,6 +2277,7 @@ function closeModal(id) {
   const i = modalFocusStack.findLastIndex(entry => entry.id === id);
   const previous = i >= 0 ? modalFocusStack.splice(i, 1)[0].element : null;
   if (id === 'confirmDialogModal' && confirmDialogResolver) { const fn = confirmDialogResolver; confirmDialogResolver = null; fn(false); }
+  if (id === 'swapModal') state.pendingSwap = null;
   setTimeout(() => previous?.isConnected && previous.focus(), 0);
   const el = $(id);
   if (el) el.classList.remove('show');
