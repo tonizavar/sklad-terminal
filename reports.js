@@ -1,5 +1,5 @@
 function exportExcel() {
-  const end = new Date(), start = new Date();
+  const end = new Date(serverNowMs()), start = new Date(serverNowMs());
   start.setHours(start.getHours() < 6 ? -6 : start.getHours() < 18 ? 6 : 18, 0, 0, 0);
   const local = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
   $('reportStart').value = local(start);

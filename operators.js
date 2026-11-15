@@ -1,8 +1,27 @@
 /* PIN sessions bind the offline outbox to its original operator. */
-const operatorContext = { profile: null, token: null, key: null, saving: 0, timer: null };
+const operatorContext = { profile: null, token: null, key: null, saving: 0, timer: null, clock: null };
 let ownerAuditCursor = null;
 const OPERATOR_ACTIONS = { login:'Вход', logout:'Выход', logout_offline:'Выход на устройстве без сети', owner_setup:'Настройка создателя', operator_register:'Самостоятельная регистрация', issue:'Выдача', return:'Приёмка', repair:'Ремонт', repair_complete:'Возврат из ремонта', retire:'Списание', register:'Регистрация сканера', device_update:'Изменение устройства', device_operation:'Операция с устройством', operator_create:'Добавление оператора', operator_reset_pin:'Сброс PIN', operator_disable:'Отключение оператора', operator_enable:'Включение оператора', report_export:'Экспорт отчёта', fleet_export:'Экспорт парка', print_act:'Печать акта', queue_reconciliation:'Согласование очереди', cache_refresh:'Перезагрузка кэша', backup_create:'Создание копии', backup_list:'Просмотр копий', backup_download:'Скачивание копии', backup_delete:'Скрытие копии' };
-function operatorActive() { return Boolean(operatorContext.profile && operatorContext.token && Date.parse(operatorContext.profile.expires_at)>Date.now()); }
+function serverNowMs() {
+ const clock=operatorContext.clock;
+ return clock ? clock.serverAt+performance.now()-clock.performanceAt : Date.now();
+}
+function setOperatorClockOffset(offsetMs) {
+ operatorContext.clock=Number.isFinite(offsetMs)?{offsetMs,serverAt:Date.now()+offsetMs,performanceAt:performance.now()}:null;
+}
+function calibrateOperatorClock(serverTime) {
+ const serverAt=Date.parse(serverTime);
+ if(!Number.isFinite(serverAt))throw new Error('Сервер не подтвердил время. Повторите вход.');
+ setOperatorClockOffset(serverAt-Date.now());lastClockSyncAt=Date.now();
+}
+function saveOperatorSession() {
+ try{sessionStorage.setItem('sklad_operator_session',JSON.stringify({token:operatorContext.token,profile:operatorContext.profile,pinVerified:true,clockOffsetMs:operatorContext.clock?.offsetMs??null}));}catch(_){}
+}
+function scheduleOperatorLock() {
+ clearTimeout(operatorContext.timer);
+ operatorContext.timer=setTimeout(()=>lockOperator('Время сессии истекло. Введите ID и PIN.'),Math.max(0,Date.parse(operatorContext.profile.expires_at)-serverNowMs()));
+}
+function operatorActive() { return Boolean(operatorContext.profile && operatorContext.token && Date.parse(operatorContext.profile.expires_at)>serverNowMs()); }
 function requireOperator(owner = false) {
   if (!operatorActive()) { lockOperator(); throw new Error('Введите ID и PIN'); }
   if (owner && operatorContext.profile.role!=='owner') throw new Error('Действие доступно только создателю');
@@ -35,7 +54,7 @@ function updateOperatorUI() {
 }
 function lockOperator(message='') {
   if (operatorContext.saving || state.opLock) { clearTimeout(operatorContext.timer);operatorContext.timer=setTimeout(()=>lockOperator(message),500);return; }
-  operatorContext.profile=null;operatorContext.token=null;operatorContext.key=null;
+  operatorContext.profile=null;operatorContext.token=null;operatorContext.key=null;operatorContext.clock=null;
   clearTimeout(operatorContext.timer);clearUndo();
   try{sessionStorage.removeItem('sklad_operator_session');}catch(_){}
   document.querySelectorAll('.modal-overlay.show').forEach(el=>closeModal(el.id));closeAuditDrawer();
@@ -57,11 +76,16 @@ function lockOperator(message='') {
 async function acceptOperatorSession(data) {
   if(!data.profile || !data.token)throw new Error('Сервер не подтвердил оператора');
   operatorContext.profile=data.profile;operatorContext.token=data.token;
+  setOperatorClockOffset(Number.isFinite(data.clockOffsetMs)?data.clockOffsetMs:null);
+  if(!data.server_time && !Number.isFinite(data.clockOffsetMs) && navigator.onLine){
+    const checked=await operatorRpc('scanner_operator_session');
+    if(!checked?.profile || checked.profile.session_id!==data.profile.session_id)throw new Error('Доступ изменён. Введите ID и PIN.');
+    data={...data,profile:checked.profile,server_time:checked.server_time};operatorContext.profile=data.profile;
+  }
+  if(data.server_time)calibrateOperatorClock(data.server_time);
   operatorContext.key=await operatorSigningKey(data.token);
-  try{sessionStorage.setItem('sklad_operator_session',JSON.stringify({token:data.token,profile:data.profile,pinVerified:true}));}catch(_){}
-  clearTimeout(operatorContext.timer);
-  operatorContext.timer=setTimeout(()=>lockOperator('Время сессии истекло. Введите ID и PIN.'),Math.max(0,Date.parse(data.profile.expires_at)-Date.now()));
-  updateOperatorUI();await loadLocal();await syncNow();scheduleSync();focusActiveTerminalInput();
+  saveOperatorSession();scheduleOperatorLock();
+  updateOperatorUI();refreshSmartShift();await loadLocal();await syncNow();scheduleSync();focusActiveTerminalInput();
 }
 function setOperatorEnrollment(enrolling) {
   $('operatorEnroll').setAttribute('aria-pressed', String(enrolling));
@@ -140,26 +164,41 @@ async function initOperatorAccess() {
   $('refreshOwnerAudit').addEventListener('click',()=>refreshOwnerAudit(false));
   $('nextOwnerAudit').addEventListener('click',()=>refreshOwnerAudit(true));
   $('ownerAuditExport').addEventListener('click',exportOwnerAudit);
-  const end=new Date(),start=new Date();start.setHours(0,0,0,0);
+  let cached;try{cached=JSON.parse(sessionStorage.getItem('sklad_operator_session')||'null');}catch(_){}
+  setOperatorClockOffset(cached?.clockOffsetMs);
+  const end=new Date(serverNowMs()),start=new Date(serverNowMs());start.setHours(0,0,0,0);
   const local=d=>new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
   $('ownerAuditFrom').value=local(start);$('ownerAuditTo').value=local(new Date(end.getTime()+60000));
-  let cached;try{cached=JSON.parse(sessionStorage.getItem('sklad_operator_session')||'null');}catch(_){}
-  if(cached?.pinVerified === true && cached.token && Date.parse(cached.profile?.expires_at)>Date.now()){
+  if(cached?.pinVerified === true && cached.token){
     operatorContext.token=cached.token;
-    if(!navigator.onLine){await acceptOperatorSession(cached);return;}
-    try {
+    if(!navigator.onLine && Date.parse(cached.profile?.expires_at)>serverNowMs()){await acceptOperatorSession(cached);return;}
+    if(navigator.onLine)try {
       const checked=await operatorRpc('scanner_operator_session');
-      if (checked?.profile) { await acceptOperatorSession({token:cached.token,profile:checked.profile}); return; }
+      if (checked?.profile) { await acceptOperatorSession({token:cached.token,profile:checked.profile,server_time:checked.server_time}); return; }
       lockOperator('Доступ изменён. Введите ID и PIN.');
       return;
     } catch (error) {
-      if (error.connectionUnavailable || error.code === 'TIMEOUT') { await acceptOperatorSession(cached); return; }
+      if ((error.connectionUnavailable || error.code === 'TIMEOUT') && Date.parse(cached.profile?.expires_at)>serverNowMs()) { await acceptOperatorSession(cached); return; }
     }
   }
   lockOperator();
 }
 let lastHeartbeatAt = 0;
+let lastClockSyncAt = 0;
 let heartbeatSession;
+async function refreshOperatorClock(session) {
+  if(Date.now()-lastClockSyncAt<300000)return;
+  lastClockSyncAt=Date.now();
+  try {
+    const checked=await operatorRpc('scanner_operator_session');
+    if(operatorContext.profile?.session_id!==session)return;
+    if(!checked?.profile){lockOperator('Доступ изменён. Введите ID и PIN.');return;}
+    operatorContext.profile=checked.profile;calibrateOperatorClock(checked.server_time);
+    saveOperatorSession();scheduleOperatorLock();updateOperatorUI();
+  } catch(error) {
+    if(operatorContext.profile?.session_id===session && error.code==='42501' && /LOGIN_REQUIRED/.test(error.message))lockOperator('Доступ изменён. Введите ID и PIN.');
+  }
+}
 function maybeSendTerminalHeartbeat(session) {
   if (!operatorActive() || operatorContext.profile.session_id !== session) return;
   if (heartbeatSession === session && Date.now() - lastHeartbeatAt < 60000) return;
@@ -168,6 +207,7 @@ function maybeSendTerminalHeartbeat(session) {
   operatorRpc('scanner_workstation_heartbeat').catch(error => {
     if (operatorContext.profile?.session_id === session && error.code === '42501' && /LOGIN_REQUIRED/.test(error.message)) lockOperator('Доступ изменён. Введите ID и PIN.');
   });
+  refreshOperatorClock(session);
 }
 let terminalListRequest = 0;
 async function refreshTerminals(args = {}) {

@@ -15,8 +15,8 @@ async function boot(page,{devices=[free('AUDIT-AA'),free('AUDIT-BB')],owner=true
   backend.calls.push({call,args});
   let json;
   switch(call){
-   case 'scanner_operator_login':json={status:'ok',token:'a'.repeat(64),profile:{...profile,employee_id:args.p_employee_id}};break;
-   case 'scanner_operator_session':json=backend.suspendSession?{profile:null}:{profile};break;
+   case 'scanner_operator_login':json={status:'ok',token:'a'.repeat(64),profile:{...profile,employee_id:args.p_employee_id}};backend.currentProfile=json.profile;break;
+   case 'scanner_operator_session':json=backend.suspendSession?{profile:null}:{profile:backend.currentProfile||profile,server_time:await page.evaluate(()=>new Date().toISOString())};break;
    case 'scanner_operator_logout':json={status:'ok'};break;
    case 'scanner_workstation_heartbeat':json=null;break;
    case 'scanner_manage_workstations':{

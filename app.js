@@ -89,7 +89,8 @@ try { state.debtAlertDismissedUntil = parseInt(localStorage.getItem(DEBT_ALERT_D
 
 const opCooldownMap = new Map(); // sn -> timestamp защиты от двойного пика сканера
 const $ = id => document.getElementById(id);
-const nowIso = () => new Date().toISOString();
+const nowDate = () => new Date(serverNowMs());
+const nowIso = () => nowDate().toISOString();
 
 /* ===== ЗАЩИТА ОТ ДВОЙНОГО ПИКА СКАНЕРА (COOLDOWN LOCK) ===== */
 function isSerialInCooldown(sn) {
@@ -154,7 +155,7 @@ function triggerScanFlash(kind = 'ok') {
 }
 
 function pushTickerEvent(kind, sn, worker) {
-  const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const t = nowDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   state.recentEvents.unshift({ kind, sn, worker: worker || 'Склад', t });
   if (state.recentEvents.length > 5) state.recentEvents.pop();
   if (kind === 't-iss' || kind === 't-swp') state.sessionOut++;
@@ -207,7 +208,7 @@ function copyTelegramSummary() {
       free++;
     }
   });
-  const dt = new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const dt = nowDate().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   const lines = [
     `📊 СВОДКА ПАРКА СКАНЕРОВ СЦ (${dt} • ${state.issueShift})`,
     `📦 Всего сканеров в парке: ${state.devices.length} шт.`,
@@ -287,7 +288,7 @@ function hoursSince(iso) {
   if (!iso) return 0;
   const t = Date.parse(iso);
   if (isNaN(t)) return 0;
-  return Math.max(0, (Date.now() - t) / 3600000);
+  return Math.max(0, (serverNowMs() - t) / 3600000);
 }
 function parseTime(v) {
   if (!v) return 0;
@@ -319,7 +320,7 @@ function isInheritedTime(d) {
   return Math.abs(t1 - t2) > 60 * 1000;
 }
 function logMsg(msg) {
-  const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const t = nowDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const el = $('logStatus');
   if (el) el.textContent = `[${t}] ${msg}`;
 }
@@ -422,7 +423,7 @@ function showUndoToast(title, desc, undoLabel, undoCallback, kind = 'ok') {
 
 /* ===== УМНОЕ УПРАВЛЕНИЕ СМЕНАМИ ===== */
 function computeSmartShift(worker) {
-  const now = new Date();
+  const now = nowDate();
   const hm = now.getHours() * 60 + now.getMinutes();
   const w = String(worker || '').trim().toUpperCase();
   if (w) {
@@ -449,7 +450,7 @@ function updateShiftPill() {
     badge.className = 'badge-manual';
     badge.innerText = 'РУЧН ↻';
   }
-  const now = new Date();
+  const now = nowDate();
   $('shiftTime').innerText = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 }
 function saveShiftPref() {
@@ -2143,7 +2144,7 @@ async function exportFleetSnapshot() {
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
   const a = document.createElement('a');
   a.href = url;
-  a.download = `sklad_scanners_report_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `sklad_scanners_report_${nowDate().toISOString().slice(0, 10)}.csv`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
   showToast('ОТЧЁТ ВЫГРУЖЕН (CSV / EXCEL)', `Экспортировано ${state.devices.length} сканеров`);
@@ -2152,7 +2153,7 @@ async function exportFleetSnapshot() {
 async function printShiftAct() {
   if (!state.dataVerified) { showToast('ПАРК ЕЩЁ НЕ ЗАГРУЖЕН', 'Дождитесь загрузки данных для акта', 'warn'); return; }
   await recordOperatorAction('print_act',{devices:state.devices.length});
-  const dt = new Date().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const dt = nowDate().toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   const total = state.devices.length;
   const issued = state.devices.filter(d => d.status === 'issued').length;
   const free = state.devices.filter(d => d.status === 'free').length;

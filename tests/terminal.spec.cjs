@@ -13,11 +13,11 @@ async function setup(page,{role='owner',count=2,configured=true,sharedBackend,in
   if(!backend.online || (backend.failApply && new URL(route.request().url()).pathname.endsWith('/rpc/scanner_apply')))return route.abort();
   const req=route.request(),url=new URL(req.url());let body={};
   const profile={employee_id:backend.role==='owner'?'TEST-OWNER':'TEST-STAFF',display_name:'Тестовый сотрудник',role:backend.role,session_id:'00000000-0000-4000-8000-000000000001',expires_at:new Date(Date.now()+3600000).toISOString(),terminal_id:'test-terminal'};
-  if(url.pathname.endsWith('/rpc/scanner_operator_login')){const args=req.postDataJSON();backend.pinLogin=args;body=backend.idLoginStatus?{status:backend.idLoginStatus}:args.p_pin===TEST_PIN?{status:'ok',token:'a'.repeat(64),profile:{...profile,employee_id:args.p_employee_id}}:{status:'invalid'};}
-  else if(url.pathname.endsWith('/rpc/scanner_operator_register')){const args=req.postDataJSON();backend.registration=args;body=backend.registrationStatus?{status:backend.registrationStatus}:{status:'ok',token:'a'.repeat(64),profile:{...profile,employee_id:args.p_employee_id,role:'operator'}};}
+  if(url.pathname.endsWith('/rpc/scanner_operator_login')){const args=req.postDataJSON();backend.pinLogin=args;body=backend.idLoginStatus?{status:backend.idLoginStatus}:args.p_pin===TEST_PIN?{status:'ok',token:'a'.repeat(64),profile:{...profile,employee_id:args.p_employee_id}}:{status:'invalid'};if(body.status==='ok')backend.currentProfile=body.profile;}
+  else if(url.pathname.endsWith('/rpc/scanner_operator_register')){const args=req.postDataJSON();backend.registration=args;body=backend.registrationStatus?{status:backend.registrationStatus}:{status:'ok',token:'a'.repeat(64),profile:{...profile,employee_id:args.p_employee_id,role:'operator'}};if(body.status==='ok')backend.currentProfile=body.profile;}
   else if(url.pathname.endsWith('/rpc/scanner_operator_status'))body={configured:backend.configured,setup_ready:true};
-  else if(url.pathname.endsWith('/rpc/scanner_operator_setup'))body=req.postDataJSON().p_pin===TEST_PIN?{status:'ok',token:'a'.repeat(64),profile}:{status:'invalid'};
-  else if(url.pathname.endsWith('/rpc/scanner_operator_session'))body={profile};
+  else if(url.pathname.endsWith('/rpc/scanner_operator_setup')){body=req.postDataJSON().p_pin===TEST_PIN?{status:'ok',token:'a'.repeat(64),profile}:{status:'invalid'};if(body.status==='ok')backend.currentProfile=body.profile;}
+  else if(url.pathname.endsWith('/rpc/scanner_operator_session'))body={profile:backend.currentProfile||profile,server_time:backend.serverNow||await page.evaluate(()=>new Date().toISOString())};
   else if(url.pathname.endsWith('/rpc/scanner_operator_logout'))body={status:'ok'};
   else if(url.pathname.endsWith('/rpc/scanner_workstation_heartbeat'))body=null;
   else if(url.pathname.endsWith('/rpc/scanner_manage_workstations'))body=[];
@@ -97,6 +97,33 @@ test('separate workstations see issue and return without reloading',async({page,
   await expect(page.locator('#mIssued')).toHaveText('0',{timeout:9000});
   expect(backend.operations).toHaveLength(2);
   expect(await station.evaluate(()=>window.testWorkstation)).toBe(true);
+ } finally {await other.close();}
+});
+test('server time aligns overdue counts and issue timestamps across skewed workstations',async({page,browser})=>{
+ const other=await browser.newContext();
+ try {
+  const serverMs=Date.now();await page.clock.setFixedTime(new Date(serverMs));
+  const {backend}=await setup(page,{incremental:true});backend.serverNow=new Date(serverMs).toISOString();
+  backend.devices=Array.from({length:21},(_,i)=>{
+   const hours=i<17?20:i===17?53:i===18?1:null;
+   return {...fixture()[0],serial:`CLOCK-${i}`,status:hours===null?'free':'issued',holder:hours===null?'':`CLOCK-HOLDER-${i}`,issued_at:hours===null?null:new Date(serverMs-hours*3600000).toISOString()};
+  });
+  await login(page);await expect(page.locator('#mOverdue')).toHaveText('18');
+  const station=await other.newPage();await station.clock.setFixedTime(new Date(serverMs-24*3600000));
+  await setup(station,{sharedBackend:backend});await login(station,'TEST-CLOCK-SKEW');
+  await expect(station.locator('#mOverdue')).toHaveText('18');
+  await station.locator('#issWorker').fill('CLOCK-NEW-WORKER');await station.locator('#issSn').fill('CLOCK-19');await station.locator('#issSn').press('Enter');
+  await expect.poll(()=>backend.devices.find(d=>d.serial==='CLOCK-19')?.holder).toBe('CLOCK-NEW-WORKER');
+  const issuedAt=backend.operations.at(-1).p_changes[0].after.issued_at;
+  expect(Math.abs(Date.parse(issuedAt)-serverMs)).toBeLessThan(10000);
+  backend.online=false;await station.reload();await expect(station.locator('#operatorPanel')).toBeHidden();await expect(station.locator('#mOverdue')).toHaveText('18');
+  await station.locator('#issWorker').fill('CLOCK-OFFLINE-WORKER');await station.locator('#issSn').fill('CLOCK-20');await station.locator('#issSn').press('Enter');
+  await expect(station.locator('#mIssued')).toHaveText('21');
+  const offlineIssuedAt=await station.evaluate(()=>state.devices.find(d=>d.serial==='CLOCK-20').issued_at);
+  expect(Math.abs(Date.parse(offlineIssuedAt)-serverMs)).toBeLessThan(10000);
+  backend.online=true;await station.clock.setFixedTime(new Date(serverMs+48*3600000));await station.reload();
+  await expect(station.locator('#operatorPanel')).toBeHidden();await expect(station.locator('#mOverdue')).toHaveText('18');
+  await expect.poll(()=>backend.devices.find(d=>d.serial==='CLOCK-20')?.holder).toBe('CLOCK-OFFLINE-WORKER');
  } finally {await other.close();}
 });
 test('a blocked queue does not delay sync of unrelated scanners',async({page})=>{
