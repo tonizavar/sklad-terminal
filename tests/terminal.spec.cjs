@@ -110,6 +110,40 @@ test('a blocked queue does not delay sync of unrelated scanners',async({page})=>
  expect(await page.evaluate(async()=>(await readQueueWithKeys()).length)).toBe(1);
  await expect(page.locator('#tbody tr').filter({hasText:'TEST-A'})).toContainText('TEST-LOCAL');
 });
+test('a conflict blocks only dependent operations and unrelated uploads reach another workstation',async({page,browser})=>{
+ const other=await browser.newContext();
+ try {
+  const {backend}=await setup(page,{incremental:true});await login(page);
+  const station=await other.newPage();await setup(station,{sharedBackend:backend});await login(station,'TEST-POST-B');
+  backend.online=false;await page.locator('#issWorker').fill('TEST-LOCAL-A');await page.locator('#issSn').fill('TEST-A');await page.locator('#issSn').press('Enter');
+  await expect(page.locator('#syncDetail')).toContainText('ожидает: 1');
+  backend.devices[0]={...backend.devices[0],status:'issued',holder:'TEST-CLOUD-A',version:'remote-a',revision:++backend.cursor};backend.online=true;
+  await page.evaluate(()=>syncNow());await expect(page.locator('#syncText')).toHaveText('Требуется сверка с облаком');
+  await page.locator('#issWorker').fill('TEST-LOCAL-B');await page.locator('#issSn').fill('TEST-B');await page.locator('#issSn').press('Enter');
+  await expect.poll(()=>backend.devices.find(d=>d.serial==='TEST-B')?.holder).toBe('TEST-LOCAL-B');
+  await station.evaluate(()=>syncNow());await expect(station.locator('#tbody tr').filter({hasText:'TEST-B'})).toContainText('TEST-LOCAL-B');
+  expect(await page.evaluate(async()=>(await readQueueWithKeys()).map(x=>x.value.serials))).toEqual([['TEST-A']]);
+  await page.waitForTimeout(1300);await page.locator('#retQuery').fill('TEST-A');await page.locator('#retQuery').press('Enter');
+  await expect(page.locator('#syncDetail')).toContainText('ожидает: 2');await page.evaluate(()=>syncNow());
+  expect(backend.devices.find(d=>d.serial==='TEST-A').holder).toBe('TEST-CLOUD-A');
+  const queue=await page.evaluate(async()=>(await readQueueWithKeys()).map(x=>({serials:x.value.serials,conflict:x.value.conflict||null})));
+  expect(queue).toHaveLength(2);expect(queue.every(x=>x.serials.length===1&&x.serials[0]==='TEST-A')).toBe(true);expect(queue[1].conflict).toBeNull();
+ } finally {await other.close();}
+});
+test('cloud reconciliation archives only the conflict and preserves an unrelated pending operation',async({page})=>{
+ const {backend}=await setup(page,{incremental:true});await login(page);backend.online=false;
+ await page.locator('#issWorker').fill('TEST-LOCAL-A');await page.locator('#issSn').fill('TEST-A');await page.locator('#issSn').press('Enter');
+ await expect(page.locator('#syncDetail')).toContainText('ожидает: 1');
+ backend.devices[0]={...backend.devices[0],status:'issued',holder:'TEST-CLOUD-A',version:'remote-a',revision:++backend.cursor};backend.online=true;
+ await page.evaluate(()=>syncNow());await expect(page.locator('#syncText')).toHaveText('Требуется сверка с облаком');
+ await page.locator('#issWorker').fill('TEST-LOCAL-B');await page.locator('#issSn').fill('TEST-B');await page.locator('#issSn').press('Enter');
+ await page.locator('#syncStatus').click();await page.locator('#btnResolveQueue').click();await page.locator('#confirmDialogOkBtn').click();
+ await expect(page.locator('#tbody tr').filter({hasText:'TEST-A'})).toContainText('TEST-CLOUD-A');
+ await expect(page.locator('#tbody tr').filter({hasText:'TEST-B'})).toContainText('TEST-LOCAL-B');
+ await expect.poll(()=>backend.devices.find(d=>d.serial==='TEST-B')?.holder).toBe('TEST-LOCAL-B');
+ await expect(page.locator('#syncText')).toHaveText('Подтверждено облаком');
+ expect(await page.evaluate(async()=>{const meta=db.transaction('meta').objectStore('meta');const keys=await requestResult(meta.getAllKeys());return keys.filter(key=>String(key).startsWith('conflict:')).length;})).toBe(1);
+});
 test('Enter on an exact free serial never returns a similar issued scanner',async({page})=>{
  const {backend}=await setup(page);backend.devices[1]={...backend.devices[1],serial:'OTHER-TEST-A',status:'issued',holder:'TEST-HOLDER',issued_at:new Date().toISOString()};
  await login(page);

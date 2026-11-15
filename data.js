@@ -188,21 +188,28 @@ async function syncWithCloud() {
     const run = async () => {
       const queue = await readQueueWithKeys();
       if (queue.length && !queue[0].value.conflict) setSync(true, 'Синхронизация…', true);
+      const blockedSerials = new Set();
+      const serialsOf = op => Array.isArray(op.serials) ? op.serials : [op.serial || op.dev?.serial].filter(Boolean);
+      const blockOperation = (op, extra = []) => { for (const sn of [...serialsOf(op), ...extra]) blockedSerials.add(sn); };
       for (const { key, value: op } of queue) {
-        if (op.conflict || !operatorActive()) break;
+        if (!operatorActive()) break;
+        const serials = serialsOf(op);
+        if (op.conflict || serials.some(sn => blockedSerials.has(sn))) { blockOperation(op); continue; }
         if (!['operation','operator_action'].includes(op.type) || !op.proof) {
           await setQueueConflict(key, 'Очередь старой версии: скачайте её и согласуйте с администратором');
-          break;
+          blockOperation(op);
+          continue;
         }
         if(op.type==='operator_action'){
           const {data,error}=await withTimeout(cloud.rpc('scanner_record_signed_action',{p_session:op.proof.session,p_payload:op.proof.payload,p_signature:op.proof.signature}),NET_TIMEOUT_MS,'журнал');
-          if(error){if(error.code==='42501'){await setQueueConflict(key,error.message);if(op.proof.session===operatorContext.profile?.session_id)lockOperator('Доступ изменён. Введите ID и PIN.');break;}throw error;}if(data?.status!=='applied')throw new Error('Запись журнала не подтверждена');await deleteQueueKey(key, op);continue;
+          if(error){if(error.code==='42501'){await setQueueConflict(key,error.message);if(op.proof.session===operatorContext.profile?.session_id){lockOperator('Доступ изменён. Введите ID и PIN.');break;}continue;}throw error;}if(data?.status!=='applied')throw new Error('Запись журнала не подтверждена');await deleteQueueKey(key, op);continue;
         }
         const { data, error } = await withTimeout(cloud.rpc('scanner_apply', {p_id:op.id,p_changes:op.changes,p_events:[],p_terminal:op.terminal,p_session:op.proof.session,p_payload:op.proof.payload,p_signature:op.proof.signature}), NET_TIMEOUT_MS, 'операция');
-        if(error){if(error.code==='42501'){await setQueueConflict(key,error.message);if(op.proof.session===operatorContext.profile?.session_id)lockOperator('Доступ изменён. Введите ID и PIN.');break;}throw error;}
+        if(error){if(error.code==='42501'){await setQueueConflict(key,error.message);blockOperation(op);if(op.proof.session===operatorContext.profile?.session_id){lockOperator('Доступ изменён. Введите ID и PIN.');break;}continue;}throw error;}
         if (data?.status === 'conflict') {
           await setQueueConflict(key, `Состояние изменено другим терминалом: ${(data.serials || []).join(', ')}`);
-          break; // Preserve dependent operations and every local event.
+          blockOperation(op, data.serials || []);
+          continue;
         }
         if (data?.status !== 'applied') throw new Error('Сервер не подтвердил операцию');
         await deleteQueueKey(key, op);
@@ -338,13 +345,13 @@ async function downloadQueue() {
 }
 async function resolveQueueFromCloud() {
   requireReady();requireOperator(true);
-  const queue = await readQueueWithKeys();
-  if (!queue.length) return;
-  const ok = await askConfirmDialog('Согласование с облаком', `В очереди ${queue.length} операций. Они будут сохранены в локальный архив конфликтов; рабочее состояние будет загружено из облака. Сначала скачайте очередь. Применяйте после сверки фактической выдачи.`, 'Принять облачное состояние');
+  const conflicts = (await readQueueWithKeys()).filter(item => item.value.conflict);
+  if (!conflicts.length) { showToast('НЕТ КОНФЛИКТОВ', 'Неподтверждённые операции останутся в очереди. Повторите синхронизацию.', 'warn'); return; }
+  const ok = await askConfirmDialog('Согласование с облаком', `Конфликтных пакетов: ${conflicts.length}. Только они будут сохранены в локальный архив конфликтов; их рабочее состояние будет загружено из облака. Остальные операции останутся в очереди. Сначала скачайте очередь. Применяйте после сверки фактической выдачи.`, 'Принять облачное состояние');
   if (!ok) return;
-  await recordOperatorAction('queue_reconciliation',{reviewed_packets:queue.length});
+  await recordOperatorAction('queue_reconciliation',{reviewed_packets:conflicts.length});
   const data = await pullAllDevices({ full: true });
-  if (!await applyPull(data, queue)) throw new Error('Парк обновился во время загрузки. Повторите сверку.');
+  if (!await applyPull(data, conflicts)) throw new Error('Парк обновился во время загрузки. Повторите сверку.');
   await updateQueueStatus();
   scheduleSync(100);
 }
